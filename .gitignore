@@ -1,15 +1,127 @@
+# ==============================================
+# Android Studio IDE 本地配置（所有人本地环境，严禁提交）
+# ==============================================
+.idea/
 *.iml
-.gradle
-/local.properties
-/.idea/caches
-/.idea/libraries
-/.idea/modules.xml
-/.idea/workspace.xml
-/.idea/navEditor.xml
-/.idea/assetWizardSettings.xml
-.DS_Store
-/build
-/captures
-.externalNativeBuild
-.cxx
+*.iws
+*.ipr
+.apt_generated
+.studio3/
+.studio4/
+.navigation/
+captures/
+build-logic/.idea/
+
+# ==============================================
+# Gradle 构建缓存 & 编译输出
+# ==============================================
+build/
+*/build/
+!gradle/wrapper/gradle-wrapper.jar
+!gradle/wrapper/gradle-wrapper.properties
+.gradle/
+*/.gradle/
+gradlew.bat.orig
+gradlew.orig
+out/
+*/out/
+
+# ==============================================
+# Android 编译产物、资源缓存
+# ==============================================
+app/build/
+*.apk
+*.ap_
+*.aab
+*.dex
+*.class
+bin/
+gen/
+*/gen/
+proguard/
+lint/
+lint-report.html
+lint-report.xml
+
+# 资源生成文件
+generated/
+*/generated/
+
+# ==============================================
+# 密钥、隐私配置
+# ==============================================
+*.jks
+*.keystore
+*.p12
+*.pk8
+keystore.properties
+signing.properties
 local.properties
+secrets.properties
+google-services.json
+firebase_options.dart
+keystore/
+
+# ==============================================
+# NDK / C++ 原生代码缓存
+# ==============================================
+obj/
+*/obj/
+libs/
+!src/main/jniLibs/**/*.so
+.cxx/
+*/.cxx/
+
+# ==============================================
+# Kotlin 缓存
+# ==============================================
+kotlin-bin/
+kotlin-build/
+*.kotlin_module
+
+# ==============================================
+# 测试、性能分析文件
+# ==============================================
+*.trace
+*.hprof
+*.perfetto-trace
+test-output/
+coverage/
+jacoco.exec
+
+# ==============================================
+# 日志、本地临时文件
+# ==============================================
+*.log
+logs/
+temp/
+tmp/
+*.swp
+*.swo
+
+# ==============================================
+# Windows / Mac / Linux 系统垃圾文件
+# ==============================================
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# ==============================================
+# Git 自身临时文件
+# ==============================================
+*.orig
+.gitignore.orig
+
+# ==============================================
+# 第三方SDK、本地依赖（按需开启）
+# ==============================================
+# libs/*.jar      # 如果统一管理lib库，注释此行；远程依赖建议屏蔽本地jar
+# *.aar
+# ==============================================
+# Compose 预览缓存
+# ==============================================
+.compose-preview/
