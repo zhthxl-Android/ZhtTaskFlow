@@ -17,6 +17,7 @@ import com.example.zhttaskflow.ui.theme.ZhtTaskFlowTheme
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        //骨架分支创建
         enableEdgeToEdge()
         setContent {
             ZhtTaskFlowTheme {
