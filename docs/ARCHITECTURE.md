@@ -2,7 +2,7 @@
 
 ## 1. 目标
 
-面试级多模块骨架：Feature 垂直 DDD + Clean Architecture（`domain` / `data` / `presentation` 内嵌于各 Feature）+ MVI 约定（仅文档，本仓库无 UiState/UiEvent 实现）。本阶段无 DI（无 Hilt/KSP）。
+多模块工程骨架：Feature 垂直 DDD + Clean Architecture（`domain` / `data` / `presentation` 内嵌于各 Feature）+ MVI 约定（仅文档，本仓库无 UiState/UiEvent 实现）。本阶段无 DI（无 Hilt/KSP）。
 
 ## 2. 模块职责
 
