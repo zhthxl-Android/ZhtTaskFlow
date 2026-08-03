@@ -1,0 +1,4 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <style name="article_Theme.Standalone" parent="android:Theme.Material.Light.NoActionBar" />
+</resources>
