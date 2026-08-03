@@ -31,7 +31,7 @@ tasks.register("checkDependencyRules") {
             ":feature_article",
         )
         logger.lifecycle("")
-        logger.lifecycle("=== TaskflowTaskFlow 依赖红线辅助校验（请在本工程根目录手动执行）===")
+        logger.lifecycle("=== TaskFlowTaskFlow 依赖红线辅助校验（请在本工程根目录手动执行）===")
         logger.lifecycle("规则摘要：")
         logger.lifecycle("  - app 仅 implementation :component_nav（base 经 nav 的 api 传递）")
         logger.lifecycle("  - feature 仅 implementation :component_core、:component_nav")

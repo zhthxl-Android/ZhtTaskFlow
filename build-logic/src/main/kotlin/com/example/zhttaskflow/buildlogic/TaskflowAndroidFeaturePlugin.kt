@@ -15,13 +15,13 @@ import org.gradle.kotlin.dsl.dependencies
  * - applicationId 默认 namespace；在 configure<ApplicationExtension> 内写入 defaultConfig（避免 AGP「已读取 applicationId」报错）；模块可通过 taskflowFeature { applicationId.set(...) } 覆盖
  * - 公共依赖：仅 implementation core、nav（base 经 api 传递）；不重复声明 base
  */
-class TaskflowAndroidFeaturePlugin : Plugin<Project> {
+class TaskFlowAndroidFeaturePlugin : Plugin<Project> {
     override fun apply(project: Project) {
         val featureExtension = project.extensions.create(
             "taskflowFeature",
-            taskflowFeatureExtension::class.java,
+            TaskFlowFeatureExtension::class.java,
         )
-        featureExtension.applicationId.convention(project.computeTaskflowNamespace())
+        featureExtension.applicationId.convention(project.computeTaskFlowNamespace())
 
         val standaloneKey = project.featureStandaloneGradlePropertyKey()
         val isStandalone = project.providers.gradleProperty(standaloneKey)

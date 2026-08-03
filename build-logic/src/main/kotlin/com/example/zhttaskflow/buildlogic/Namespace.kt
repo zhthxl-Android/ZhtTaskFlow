@@ -7,7 +7,7 @@ import org.gradle.api.Project
  * 规则：去掉前导冒号 → 剔除 component_ 前缀 → 下划线替换为点 → 拼接 com.example.zhttaskflow
  * :app 特例为根包 com.example.zhttaskflow
  */
-internal fun Project.computeTaskflowNamespace(): String {
+internal fun Project.computeTaskFlowNamespace(): String {
     val modulePath = path.removePrefix(":")
     if (modulePath == "app") {
         return "com.example.zhttaskflow"

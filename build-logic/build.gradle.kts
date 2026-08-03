@@ -28,29 +28,29 @@ dependencies {
 
 gradlePlugin {
     plugins {
-        register("TaskflowAndroidBase") {
+        register("TaskFlowAndroidBase") {
             id = "taskflow.android.base"
-            implementationClass = "com.example.zhttaskflow.buildlogic.TaskflowAndroidBasePlugin"
+            implementationClass = "com.example.zhttaskflow.buildlogic.TaskFlowAndroidBasePlugin"
         }
-        register("TaskflowAndroidLibrary") {
+        register("TaskFlowAndroidLibrary") {
             id = "taskflow.android.library"
-            implementationClass = "com.example.zhttaskflow.buildlogic.TaskflowAndroidLibraryPlugin"
+            implementationClass = "com.example.zhttaskflow.buildlogic.TaskFlowAndroidLibraryPlugin"
         }
-        register("TaskflowAndroidApplication") {
+        register("TaskFlowAndroidApplication") {
             id = "taskflow.android.application"
-            implementationClass = "com.example.zhttaskflow.buildlogic.TaskflowAndroidApplicationPlugin"
+            implementationClass = "com.example.zhttaskflow.buildlogic.TaskFlowAndroidApplicationPlugin"
         }
-        register("TaskflowAndroidCore") {
+        register("TaskFlowAndroidCore") {
             id = "taskflow.android.core"
-            implementationClass = "com.example.zhttaskflow.buildlogic.TaskflowAndroidCorePlugin"
+            implementationClass = "com.example.zhttaskflow.buildlogic.TaskFlowAndroidCorePlugin"
         }
-        register("TaskflowAndroidNav") {
+        register("TaskFlowAndroidNav") {
             id = "taskflow.android.nav"
-            implementationClass = "com.example.zhttaskflow.buildlogic.TaskflowAndroidNavPlugin"
+            implementationClass = "com.example.zhttaskflow.buildlogic.TaskFlowAndroidNavPlugin"
         }
-        register("TaskflowAndroidFeature") {
+        register("TaskFlowAndroidFeature") {
             id = "taskflow.android.feature"
-            implementationClass = "com.example.zhttaskflow.buildlogic.TaskflowAndroidFeaturePlugin"
+            implementationClass = "com.example.zhttaskflow.buildlogic.TaskFlowAndroidFeaturePlugin"
         }
     }
 }

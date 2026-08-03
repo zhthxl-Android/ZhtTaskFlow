@@ -5,7 +5,7 @@ import org.gradle.api.Plugin
 import org.gradle.api.Project
 
 /** App 壳约定：Application → Kotlin Android → Compose → Base */
-class TaskflowAndroidApplicationPlugin : Plugin<Project> {
+class TaskFlowAndroidApplicationPlugin : Plugin<Project> {
     override fun apply(project: Project) {
         with(project.pluginManager) {
             apply("com.android.application")

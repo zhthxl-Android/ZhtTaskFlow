@@ -2,7 +2,7 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
 
     <application
-        android:name=".TaskflowApplication"
+        android:name=".TaskFlowApplication"
         android:allowBackup="true"
         android:label="@string/app_str_app_name"
         android:supportsRtl="true"

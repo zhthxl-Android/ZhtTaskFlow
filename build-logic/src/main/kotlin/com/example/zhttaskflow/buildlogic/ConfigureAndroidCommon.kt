@@ -9,7 +9,7 @@ import java.io.File
  * 统一 Android 模块通用配置：SDK、namespace、resourcePrefix、buildTypes、Lint、Library consumer 规则。
  */
 internal fun Project.configureAndroidCommon() {
-    val taskflowExt = extensions.findByType(TaskflowExtension::class.java)
+    val taskflowExt = extensions.findByType(TaskFlowExtension::class.java)
     val prefix = taskflowExt?.resourcePrefix?.orNull ?: ""
 
     extensions.findByType(LibraryExtension::class.java)?.let { ext ->
@@ -51,7 +51,7 @@ private fun Project.applySharedAndroidSettings(
     ext: com.android.build.api.dsl.CommonExtension<*, *, *, *, *, *>,
     resourcePrefix: String,
 ) {
-    ext.namespace = computeTaskflowNamespace()
+    ext.namespace = computeTaskFlowNamespace()
     if (resourcePrefix.isNotEmpty()) {
         ext.resourcePrefix = resourcePrefix
     }

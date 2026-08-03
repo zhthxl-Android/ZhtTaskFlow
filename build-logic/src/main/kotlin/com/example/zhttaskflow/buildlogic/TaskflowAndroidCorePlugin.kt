@@ -12,7 +12,7 @@ import org.gradle.kotlin.dsl.dependencies
  * - 规则：Entity/@Database 变更时编译器自动生成/更新 JSON；须纳入 Git 做迁移评审
  * - 版本：room-compiler 版本仅来自 libs.versions.toml，与 room-runtime 对齐
  */
-class TaskflowAndroidCorePlugin : Plugin<Project> {
+class TaskFlowAndroidCorePlugin : Plugin<Project> {
     override fun apply(project: Project) {
         project.pluginManager.apply("taskflow.android.library")
         val catalog = project.libsCatalog()

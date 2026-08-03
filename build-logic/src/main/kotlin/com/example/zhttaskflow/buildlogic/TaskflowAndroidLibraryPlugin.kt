@@ -8,7 +8,7 @@ import org.gradle.kotlin.dsl.dependencies
  * 标准 Android Library 约定：Android Library → Kotlin Android → Base。
  * 统一 api 暴露 coroutines 与 core-ktx，所有 Library 模块自动获得，模块脚本无需重复声明。
  */
-class TaskflowAndroidLibraryPlugin : Plugin<Project> {
+class TaskFlowAndroidLibraryPlugin : Plugin<Project> {
     override fun apply(project: Project) {
         with(project.pluginManager) {
             apply("com.android.library")
@@ -21,7 +21,7 @@ class TaskflowAndroidLibraryPlugin : Plugin<Project> {
             add("api", catalog.findLibrary("kotlinx-coroutines-android").get())
             add("api", catalog.findLibrary("androidx-core-ktx").get())
         }
-        // 骨架阶段不引入测试依赖；接入时调用 configureTaskflowTestDependenciesPlaceholder() 并取消注释
-        // project.configureTaskflowTestDependenciesPlaceholder()
+        // 骨架阶段不引入测试依赖；接入时调用 configureTaskFlowTestDependenciesPlaceholder() 并取消注释
+        // project.configureTaskFlowTestDependenciesPlaceholder()
     }
 }
