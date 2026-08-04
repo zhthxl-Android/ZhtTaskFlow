@@ -11,6 +11,9 @@ internal fun Project.configureCompose(commonExtension: CommonExtension<*, *, *, 
     }
     val catalog = libsCatalog()
     dependencies {
-        add("debugImplementation", catalog.findLibrary("androidx-compose-ui-tooling").get())
+        add(
+            "debugImplementation",
+            catalog.findLibrary("androidx-compose-ui-tooling").get()
+        )
     }
 }

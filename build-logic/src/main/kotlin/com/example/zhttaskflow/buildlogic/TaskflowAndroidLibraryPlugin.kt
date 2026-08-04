@@ -17,9 +17,18 @@ class TaskFlowAndroidLibraryPlugin : Plugin<Project> {
         }
         val catalog = project.libsCatalog()
         project.dependencies {
-            add("api", catalog.findLibrary("kotlinx-coroutines-core").get())
-            add("api", catalog.findLibrary("kotlinx-coroutines-android").get())
-            add("api", catalog.findLibrary("androidx-core-ktx").get())
+            add(
+                "api",
+                catalog.findLibrary("kotlinx-coroutines-core").get()
+            )
+            add(
+                "api",
+                catalog.findLibrary("kotlinx-coroutines-android").get()
+            )
+            add(
+                "api",
+                catalog.findLibrary("androidx-core-ktx").get()
+            )
         }
         // 骨架阶段不引入测试依赖；接入时调用 configureTaskFlowTestDependenciesPlaceholder() 并取消注释
         // project.configureTaskFlowTestDependenciesPlaceholder()

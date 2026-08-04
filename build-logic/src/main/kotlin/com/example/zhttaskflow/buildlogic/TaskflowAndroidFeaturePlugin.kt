@@ -25,7 +25,12 @@ class TaskFlowAndroidFeaturePlugin : Plugin<Project> {
 
         val standaloneKey = project.featureStandaloneGradlePropertyKey()
         val isStandalone = project.providers.gradleProperty(standaloneKey)
-            .map { value -> value.equals("true", ignoreCase = true) }
+            .map { value ->
+                value.equals(
+                    "true",
+                    ignoreCase = true
+                )
+            }
             .orElse(false)
             .get()
 
@@ -54,8 +59,14 @@ class TaskFlowAndroidFeaturePlugin : Plugin<Project> {
         }
 
         project.dependencies {
-            add("implementation", project.project(":component_core"))
-            add("implementation", project.project(":component_nav"))
+            add(
+                "implementation",
+                project.project(":component_core")
+            )
+            add(
+                "implementation",
+                project.project(":component_nav")
+            )
         }
     }
 }

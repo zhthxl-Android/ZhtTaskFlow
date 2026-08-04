@@ -17,12 +17,30 @@ class TaskFlowAndroidCorePlugin : Plugin<Project> {
         project.pluginManager.apply("taskflow.android.library")
         val catalog = project.libsCatalog()
         project.dependencies {
-            add("api", project.project(":component_base"))
-            add("api", catalog.findLibrary("retrofit").get())
-            add("api", catalog.findLibrary("room-runtime").get())
-            add("api", catalog.findLibrary("room-ktx").get())
-            add("implementation", catalog.findLibrary("okhttp").get())
-            add("implementation", catalog.findLibrary("okhttp-logging").get())
+            add(
+                "api",
+                project.project(":component_base")
+            )
+            add(
+                "api",
+                catalog.findLibrary("retrofit").get()
+            )
+            add(
+                "api",
+                catalog.findLibrary("room-runtime").get()
+            )
+            add(
+                "api",
+                catalog.findLibrary("room-ktx").get()
+            )
+            add(
+                "implementation",
+                catalog.findLibrary("okhttp").get()
+            )
+            add(
+                "implementation",
+                catalog.findLibrary("okhttp-logging").get()
+            )
         }
         // 接入 KSP + Room 编译器后启用（版本写入 libs.versions.toml）：
         // project.pluginManager.apply("com.google.devtools.ksp")

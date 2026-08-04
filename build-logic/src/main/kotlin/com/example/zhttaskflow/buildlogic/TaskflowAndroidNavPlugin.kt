@@ -17,15 +17,39 @@ class TaskFlowAndroidNavPlugin : Plugin<Project> {
         val libraryExtension = project.extensions.getByType(LibraryExtension::class.java)
         project.configureCompose(libraryExtension)
         project.dependencies {
-            add("api", project.project(":component_base"))
-            add("api", catalog.findLibrary("androidx-lifecycle-runtime-ktx").get())
+            add(
+                "api",
+                project.project(":component_base")
+            )
+            add(
+                "api",
+                catalog.findLibrary("androidx-lifecycle-runtime-ktx").get()
+            )
             val bom = catalog.findLibrary("androidx-compose-bom").get()
-            add("api", project.dependencies.platform(bom))
-            add("api", catalog.findLibrary("androidx-compose-ui").get())
-            add("api", catalog.findLibrary("androidx-compose-material3").get())
-            add("api", catalog.findLibrary("androidx-navigation-compose").get())
-            add("api", catalog.findLibrary("androidx-activity-compose").get())
-            add("api", catalog.findLibrary("androidx-compose-ui-tooling-preview").get())
+            add(
+                "api",
+                project.dependencies.platform(bom)
+            )
+            add(
+                "api",
+                catalog.findLibrary("androidx-compose-ui").get()
+            )
+            add(
+                "api",
+                catalog.findLibrary("androidx-compose-material3").get()
+            )
+            add(
+                "api",
+                catalog.findLibrary("androidx-navigation-compose").get()
+            )
+            add(
+                "api",
+                catalog.findLibrary("androidx-activity-compose").get()
+            )
+            add(
+                "api",
+                catalog.findLibrary("androidx-compose-ui-tooling-preview").get()
+            )
         }
     }
 }
