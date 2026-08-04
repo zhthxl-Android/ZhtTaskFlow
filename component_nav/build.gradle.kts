@@ -1,7 +1,7 @@
 plugins {
-    alias(libs.plugins.taskflow.android.nav)
+    alias(libs.plugins.taskFlow.android.nav)
 }
 
-taskflow {
+taskFlow {
     resourcePrefix.set("nav_")
 }

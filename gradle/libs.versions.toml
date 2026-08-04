@@ -54,9 +54,9 @@ android-library = { id = "com.android.library", version.ref = "agp" }
 kotlin-android = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin" }
 kotlin-compose = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "kotlin" }
 
-taskflow-android-base = { id = "taskflow.android.base", version = "unspecified" }
-taskflow-android-library = { id = "taskflow.android.library", version = "unspecified" }
-taskflow-android-application = { id = "taskflow.android.application", version = "unspecified" }
-taskflow-android-core = { id = "taskflow.android.core", version = "unspecified" }
-taskflow-android-nav = { id = "taskflow.android.nav", version = "unspecified" }
-taskflow-android-feature = { id = "taskflow.android.feature", version = "unspecified" }
+taskFlow-android-base = { id = "taskFlow.android.base", version = "unspecified" }
+taskFlow-android-library = { id = "taskFlow.android.library", version = "unspecified" }
+taskFlow-android-application = { id = "taskFlow.android.application", version = "unspecified" }
+taskFlow-android-core = { id = "taskFlow.android.core", version = "unspecified" }
+taskFlow-android-nav = { id = "taskFlow.android.nav", version = "unspecified" }
+taskFlow-android-feature = { id = "taskFlow.android.feature", version = "unspecified" }

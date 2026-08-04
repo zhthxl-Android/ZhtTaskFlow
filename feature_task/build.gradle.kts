@@ -1,12 +1,12 @@
 plugins {
-    alias(libs.plugins.taskflow.android.feature)
+    alias(libs.plugins.taskFlow.android.feature)
 }
 
-taskflow {
+taskFlow {
     resourcePrefix.set("task_")
 }
 
 // applicationId 可选覆盖；默认与自动 namespace 一致（com.example.zhttaskflow.feature.task）
-// taskflowFeature {
+// taskFlowFeature {
 //     applicationId.set("com.example.zhttaskflow.feature.task.debug")
 // }

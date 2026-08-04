@@ -13,7 +13,7 @@ class TaskFlowAndroidLibraryPlugin : Plugin<Project> {
         with(project.pluginManager) {
             apply("com.android.library")
             apply("org.jetbrains.kotlin.android")
-            apply("taskflow.android.base")
+            apply("taskFlow.android.base")
         }
         val catalog = project.libsCatalog()
         project.dependencies {

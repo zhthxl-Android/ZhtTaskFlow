@@ -7,11 +7,11 @@ plugins {
     alias(libs.plugins.android.library) apply false
     alias(libs.plugins.kotlin.android) apply false
     alias(libs.plugins.kotlin.compose) apply false
-    alias(libs.plugins.taskflow.android.application) apply false
-    alias(libs.plugins.taskflow.android.library) apply false
-    alias(libs.plugins.taskflow.android.core) apply false
-    alias(libs.plugins.taskflow.android.nav) apply false
-    alias(libs.plugins.taskflow.android.feature) apply false
+    alias(libs.plugins.taskFlow.android.application) apply false
+    alias(libs.plugins.taskFlow.android.library) apply false
+    alias(libs.plugins.taskFlow.android.core) apply false
+    alias(libs.plugins.taskFlow.android.nav) apply false
+    alias(libs.plugins.taskFlow.android.feature) apply false
 }
 
 // =============================================================================

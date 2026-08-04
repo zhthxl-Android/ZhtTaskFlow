@@ -1,7 +1,7 @@
 plugins {
-    alias(libs.plugins.taskflow.android.feature)
+    alias(libs.plugins.taskFlow.android.feature)
 }
 
-taskflow {
+taskFlow {
     resourcePrefix.set("article_")
 }

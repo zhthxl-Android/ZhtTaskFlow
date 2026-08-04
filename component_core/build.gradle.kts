@@ -1,7 +1,7 @@
 plugins {
-    alias(libs.plugins.taskflow.android.core)
+    alias(libs.plugins.taskFlow.android.core)
 }
 
-taskflow {
+taskFlow {
     resourcePrefix.set("core_")
 }

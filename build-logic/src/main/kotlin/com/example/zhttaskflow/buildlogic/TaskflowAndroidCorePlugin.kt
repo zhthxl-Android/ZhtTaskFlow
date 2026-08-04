@@ -5,7 +5,7 @@ import org.gradle.api.Project
 import org.gradle.kotlin.dsl.dependencies
 
 /**
- * 基础设施约定：复用 taskflow.android.library，叠加 Retrofit/Room/OkHttp。
+ * 基础设施约定：复用 taskFlow.android.library，叠加 Retrofit/Room/OkHttp。
  *
  * schemas/ 目录（KSP+Room 接入后）：
  * - 路径：component_core/schemas/，由 room.schemaLocation 指向
@@ -14,7 +14,7 @@ import org.gradle.kotlin.dsl.dependencies
  */
 class TaskFlowAndroidCorePlugin : Plugin<Project> {
     override fun apply(project: Project) {
-        project.pluginManager.apply("taskflow.android.library")
+        project.pluginManager.apply("taskFlow.android.library")
         val catalog = project.libsCatalog()
         project.dependencies {
             add(

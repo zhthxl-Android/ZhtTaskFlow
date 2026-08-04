@@ -9,16 +9,16 @@ import org.gradle.kotlin.dsl.dependencies
 
 /**
  * Feature 双模式约定插件：
- * - library：taskflow.android.library + Compose（library 已含 base，禁止再 apply base）
- * - application：com.android.application → kotlin.android → kotlin.compose → taskflow.android.base
+ * - library：taskFlow.android.library + Compose（library 已含 base，禁止再 apply base）
+ * - application：com.android.application → kotlin.android → kotlin.compose → taskFlow.android.base
  * - standalone 键名固定（featureStandaloneGradlePropertyKey），避免 apply 阶段读取 DSL 扩展的时序问题
- * - applicationId 默认 namespace；在 configure<ApplicationExtension> 内写入 defaultConfig（避免 AGP「已读取 applicationId」报错）；模块可通过 taskflowFeature { applicationId.set(...) } 覆盖
+ * - applicationId 默认 namespace；在 configure<ApplicationExtension> 内写入 defaultConfig（避免 AGP「已读取 applicationId」报错）；模块可通过 taskFlowFeature { applicationId.set(...) } 覆盖
  * - 公共依赖：仅 implementation core、nav（base 经 api 传递）；不重复声明 base
  */
 class TaskFlowAndroidFeaturePlugin : Plugin<Project> {
     override fun apply(project: Project) {
         val featureExtension = project.extensions.create(
-            "taskflowFeature",
+            "taskFlowFeature",
             TaskFlowFeatureExtension::class.java,
         )
         featureExtension.applicationId.convention(project.computeTaskFlowNamespace())
@@ -39,7 +39,7 @@ class TaskFlowAndroidFeaturePlugin : Plugin<Project> {
                 apply("com.android.application")
                 apply("org.jetbrains.kotlin.android")
                 apply("org.jetbrains.kotlin.plugin.compose")
-                apply("taskflow.android.base")
+                apply("taskFlow.android.base")
             }
             project.configure<ApplicationExtension> {
                 sourceSets.getByName("main") {
@@ -51,7 +51,7 @@ class TaskFlowAndroidFeaturePlugin : Plugin<Project> {
                 project.configureCompose(this)
             }
         } else {
-            project.pluginManager.apply("taskflow.android.library")
+            project.pluginManager.apply("taskFlow.android.library")
             project.pluginManager.apply("org.jetbrains.kotlin.plugin.compose")
             project.configure<LibraryExtension> {
                 project.configureCompose(this)

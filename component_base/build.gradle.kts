@@ -1,8 +1,8 @@
 plugins {
-    alias(libs.plugins.taskflow.android.library)
+    alias(libs.plugins.taskFlow.android.library)
 }
 
-taskflow {
+taskFlow {
     resourcePrefix.set("base_")
 }
 

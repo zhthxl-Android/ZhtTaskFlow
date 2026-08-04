@@ -30,7 +30,7 @@
 - 根包固定 `com.example.zhttaskflow`
 - 去掉模块 path 前导 `:`，剔除 `component_` 前缀，`_` 替换为 `.`，拼接到根包后
 - `:app` → `com.example.zhttaskflow`
-- 由 `taskflow.android.base` 在配置阶段写入 `android.namespace`
+- 由 `taskFlow.android.base` 在配置阶段写入 `android.namespace`
 
 ## 5. 依赖流向（允许）
 
@@ -64,9 +64,9 @@ Kotlin 标准库不由 Version Catalog 声明，由 `org.jetbrains.kotlin.androi
 | library | `feature.*.standalone=false` | library + Compose（内含 base） | 仅 `src/main`；manifest 为空根；**不编译** standalone |
 | application | `true` | application + kotlin + compose + base | `src/main` 保留默认目录；**追加** standalone kotlin/res；manifest **仅** standalone 文件 |
 
-开关键名固定：`:feature_task` → `feature.task.standalone`，不可在 `taskflowFeature` DSL 配置。
+开关键名固定：`:feature_task` → `feature.task.standalone`，不可在 `taskFlowFeature` DSL 配置。
 
-`applicationId` 可在模块 `taskflowFeature { applicationId.set(...) }` 覆盖；插件在 `afterEvaluate` 写入 `defaultConfig.applicationId`。
+`applicationId` 可在模块 `taskFlowFeature { applicationId.set(...) }` 覆盖；standalone 模式下插件在 `configure<ApplicationExtension>` 内直接写入 `defaultConfig.applicationId`（避免 AGP「已读取 applicationId」报错）。
 
 app 在 `app/build.gradle.kts` 中当 standalone=true 时不 `implementation` 对应 feature。
 
@@ -87,7 +87,7 @@ app 在 `app/build.gradle.kts` 中当 standalone=true 时不 `implementation` �
 
 ## 11. 资源前缀
 
-app_、base_、core_、nav_、task_、article_；`values` 中名称必须带前缀。Feature 模块通过 `taskflow { resourcePrefix.set(...) }` 配置。
+app_、base_、core_、nav_、task_、article_；`values` 中名称必须带前缀。Feature 模块通过 `taskFlow { resourcePrefix.set(...) }` 配置。
 
 `ConfigureAndroidCommon` Lint 策略：
 
@@ -97,10 +97,10 @@ app_、base_、core_、nav_、task_、article_；`values` 中名称必须带前�
 
 ## 12. 约定插件应用顺序
 
-- **Library 栈**：`com.android.library` → `org.jetbrains.kotlin.android` → `taskflow.android.base`（`TaskFlowAndroidLibraryPlugin` 一次完成）
-- **App 栈**：`com.android.application` → `kotlin.android` → `kotlin.compose` → `taskflow.android.base`
-- **Feature library**：`taskflow.android.library` → `kotlin.compose`（**禁止**再 apply base）
-- **Feature application**：与 App 栈相同，不经过 `taskflow.android.library`
+- **Library 栈**：`com.android.library` → `org.jetbrains.kotlin.android` → `taskFlow.android.base`（`TaskFlowAndroidLibraryPlugin` 一次完成）
+- **App 栈**：`com.android.application` → `kotlin.android` → `kotlin.compose` → `taskFlow.android.base`
+- **Feature library**：`taskFlow.android.library` → `kotlin.compose`（**禁止**再 apply base）
+- **Feature application**：与 App 栈相同，不经过 `taskFlow.android.library`
 
 ## 13. Room schemas 目录
 
@@ -109,14 +109,14 @@ app_、base_、core_、nav_、task_、article_；`values` 中名称必须带前�
 ## 14. 后续接入 Hilt
 
 1. 在 `libs.versions.toml` 增加 hilt、ksp、room-compiler
-2. 新增或叠加 `taskflow.android.hilt` 约定插件
+2. 新增或叠加 `taskFlow.android.hilt` 约定插件
 3. Application 使用 `@HiltAndroidApp`；Module 放在 `component_core/di/`
 4. 启用 Core 插件中 Room schema 注释块，`schemas/` 目录已预留
 
 ## 15. 配置缓存与 Provider.get()
 
 - `gradle.properties` 预留 `org.gradle.configuration-cache=true`（默认注释）。全模块 `assembleDebug` 通过后再开启，可缩短增量配置时间。
-- **权衡**：`TaskFlowAndroidFeaturePlugin` 在 `apply` 阶段对 standalone 开关使用 `Provider.get()` 同步求值，以便立即分支选择 Android 插件类型；`applicationId` 使用 `afterEvaluate` 避免与模块 DSL 时序冲突。
+- **权衡**：`TaskFlowAndroidFeaturePlugin` 在 `apply` 阶段对 standalone 开关使用 `Provider.get()` 同步求值，以便立即分支选择 Android 插件类型；`applicationId` 在 `configure<ApplicationExtension>` 内从 `taskFlowFeature` 扩展读取并写入 `defaultConfig`（与模块 DSL 约定一致，且早于 AGP 读取 applicationId）。
 - 建议流程：先关闭配置缓存完成首次全量构建 → 开启配置缓存 → 重复 assemble 与切换 `feature.*.standalone` 回归。
 
 ## 16. 构建验证

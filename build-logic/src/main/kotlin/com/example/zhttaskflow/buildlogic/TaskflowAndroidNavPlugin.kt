@@ -7,11 +7,11 @@ import org.gradle.kotlin.dsl.dependencies
 
 /**
  * 路由与 Compose UI 基座：复用 library（已含 base），再应用 Compose 插件并 api 暴露 UI 栈与 lifecycle。
- * 不重复 apply taskflow.android.base。
+ * 不重复 apply taskFlow.android.base。
  */
 class TaskFlowAndroidNavPlugin : Plugin<Project> {
     override fun apply(project: Project) {
-        project.pluginManager.apply("taskflow.android.library")
+        project.pluginManager.apply("taskFlow.android.library")
         project.pluginManager.apply("org.jetbrains.kotlin.plugin.compose")
         val catalog = project.libsCatalog()
         val libraryExtension = project.extensions.getByType(LibraryExtension::class.java)

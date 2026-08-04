@@ -29,27 +29,27 @@ dependencies {
 gradlePlugin {
     plugins {
         register("TaskFlowAndroidBase") {
-            id = "taskflow.android.base"
+            id = "taskFlow.android.base"
             implementationClass = "com.example.zhttaskflow.buildlogic.TaskFlowAndroidBasePlugin"
         }
         register("TaskFlowAndroidLibrary") {
-            id = "taskflow.android.library"
+            id = "taskFlow.android.library"
             implementationClass = "com.example.zhttaskflow.buildlogic.TaskFlowAndroidLibraryPlugin"
         }
         register("TaskFlowAndroidApplication") {
-            id = "taskflow.android.application"
+            id = "taskFlow.android.application"
             implementationClass = "com.example.zhttaskflow.buildlogic.TaskFlowAndroidApplicationPlugin"
         }
         register("TaskFlowAndroidCore") {
-            id = "taskflow.android.core"
+            id = "taskFlow.android.core"
             implementationClass = "com.example.zhttaskflow.buildlogic.TaskFlowAndroidCorePlugin"
         }
         register("TaskFlowAndroidNav") {
-            id = "taskflow.android.nav"
+            id = "taskFlow.android.nav"
             implementationClass = "com.example.zhttaskflow.buildlogic.TaskFlowAndroidNavPlugin"
         }
         register("TaskFlowAndroidFeature") {
-            id = "taskflow.android.feature"
+            id = "taskFlow.android.feature"
             implementationClass = "com.example.zhttaskflow.buildlogic.TaskFlowAndroidFeaturePlugin"
         }
     }
