@@ -9,8 +9,8 @@ import java.io.File
  * 统一 Android 模块通用配置：SDK、namespace、resourcePrefix、buildTypes、Lint、Library consumer 规则。
  */
 internal fun Project.configureAndroidCommon() {
-    val taskflowExt = extensions.findByType(TaskFlowExtension::class.java)
-    val prefix = taskflowExt?.resourcePrefix?.orNull ?: ""
+    val taskFlowExt = extensions.findByType(TaskFlowExtension::class.java)
+    val prefix = taskFlowExt?.resourcePrefix?.orNull ?: ""
 
     extensions.findByType(LibraryExtension::class.java)?.let { ext ->
         ext.compileSdk = 35
