@@ -14,6 +14,7 @@ pluginManagement {
 }
 
 dependencyResolutionManagement {
+    // 开启仓库统一管控
     repositoriesMode.set(RepositoriesMode.FAIL_ON_PROJECT_REPOS)
     repositories {
         // 阿里云公共依赖镜像
