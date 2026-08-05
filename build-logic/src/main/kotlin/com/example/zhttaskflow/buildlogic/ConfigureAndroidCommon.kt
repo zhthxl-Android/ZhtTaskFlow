@@ -9,8 +9,7 @@ import java.io.File
  * 统一 Android 模块通用配置：SDK、namespace、resourcePrefix、buildTypes、Lint、Library consumer 规则。
  */
 internal fun Project.configureAndroidCommon() {
-    val taskFlowExt = extensions.findByType(TaskFlowExtension::class.java)
-    val prefix = taskFlowExt?.resourcePrefix?.orNull ?: ""
+    val prefix = extensions.findByType(TaskFlowExtension::class.java)?.resourcePrefix?.get().orEmpty()
 
     extensions.findByType(LibraryExtension::class.java)?.let { ext ->
         ext.compileSdk = 35
@@ -60,6 +59,7 @@ private fun Project.applySharedAndroidSettings(
     ext.namespace = computeTaskFlowNamespace()
 
     if (resourcePrefix.isNotEmpty()) {
+        //等价于在模块的 android {} 中手动写 resourcePrefix "xxx"
         ext.resourcePrefix = resourcePrefix
     }
     ext.buildFeatures {
@@ -76,7 +76,8 @@ private fun Project.applySharedAndroidSettings(
         abortOnError = true
         //启用 lint 基线
         baseline = baselineFile
-        //把资源缺少前缀提升为 error（配合 resourcePrefix，library 模块资源规范）；
+        // resourcePrefix 违规：AGP 8+ 为 ResourceName；旧版/部分场景为 MissingPrefix
+        error.add("ResourceName")
         error.add("MissingPrefix")
         //关闭一些不关心的 lint 规则；
         //字符串没有全部翻译，不报错；

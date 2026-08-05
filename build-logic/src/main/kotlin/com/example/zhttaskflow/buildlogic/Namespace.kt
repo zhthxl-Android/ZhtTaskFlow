@@ -29,3 +29,18 @@ internal fun Project.featureStandaloneGradlePropertyKey(): String {
     //feature.task.standalone
     return "feature.$dotted.standalone"
 }
+
+/**
+ * 与各模块 `taskFlow { resourcePrefix.set(...) }` 命名一致；在 plugins 块执行前即可供 AGP 读取。
+ */
+internal fun Project.computeDefaultResourcePrefix(): String {
+    val modulePath = path.removePrefix(":")
+    when {
+        modulePath == "app" -> return "app_"
+        modulePath.startsWith("component_") ->
+            return modulePath.removePrefix("component_") + "_"
+        modulePath.startsWith("feature_") ->
+            return modulePath.removePrefix("feature_") + "_"
+        else -> return ""
+    }
+}
