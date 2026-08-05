@@ -17,13 +17,16 @@ import org.gradle.kotlin.dsl.dependencies
  */
 class TaskFlowAndroidFeaturePlugin : Plugin<Project> {
     override fun apply(project: Project) {
+        // 注册feature专属DSL扩展 taskFlowFeature {}
         val featureExtension = project.extensions.create(
             "taskFlowFeature",
             TaskFlowFeatureExtension::class.java,
         )
+        //.convention(...)：设置默认值，默认值调用computeTaskFlowNamespace()自动生成包名；业务模块可以手动覆盖applicationId
         featureExtension.applicationId.convention(project.computeTaskFlowNamespace())
 
         val standaloneKey = project.featureStandaloneGradlePropertyKey()
+        //project.providers.gradleProperty(standaloneKey)：惰性读取gradle.properties配置；
         val isStandalone = project.providers.gradleProperty(standaloneKey)
             .map { value ->
                 value.equals(
