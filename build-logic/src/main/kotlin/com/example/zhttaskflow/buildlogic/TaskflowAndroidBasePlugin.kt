@@ -10,7 +10,10 @@ import org.gradle.api.Project
 class TaskFlowAndroidBasePlugin : Plugin<Project> {
     override fun apply(project: Project) {
         if (project.extensions.findByName("taskFlow") == null) {
-            project.extensions.create("taskFlow", TaskFlowExtension::class.java).apply {
+            project.extensions.create(
+                "taskFlow",
+                TaskFlowExtension::class.java
+            ).apply {
                 resourcePrefix.convention(project.computeDefaultResourcePrefix())
             }
         }

@@ -9,7 +9,8 @@ import java.io.File
  * 统一 Android 模块通用配置：SDK、namespace、resourcePrefix、buildTypes、Lint、Library consumer 规则。
  */
 internal fun Project.configureAndroidCommon() {
-    val prefix = extensions.findByType(TaskFlowExtension::class.java)?.resourcePrefix?.get().orEmpty()
+    val prefix =
+        extensions.findByType(TaskFlowExtension::class.java)?.resourcePrefix?.get().orEmpty()
 
     extensions.findByType(LibraryExtension::class.java)?.let { ext ->
         ext.compileSdk = 35
@@ -17,7 +18,10 @@ internal fun Project.configureAndroidCommon() {
             minSdk = 24
             consumerProguardFiles("consumer-rules.pro")
         }
-        applySharedAndroidSettings(ext, prefix)
+        applySharedAndroidSettings(
+            ext,
+            prefix
+        )
         ext.buildTypes {
             getByName("debug") {
                 isMinifyEnabled = false
@@ -33,7 +37,10 @@ internal fun Project.configureAndroidCommon() {
             minSdk = 24
             targetSdk = 35
         }
-        applySharedAndroidSettings(ext, prefix)
+        applySharedAndroidSettings(
+            ext,
+            prefix
+        )
         ext.buildTypes {
             getByName("debug") {
                 isDebuggable = true

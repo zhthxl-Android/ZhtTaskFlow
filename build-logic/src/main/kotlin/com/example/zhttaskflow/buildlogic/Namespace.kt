@@ -37,8 +37,10 @@ internal fun Project.computeDefaultResourcePrefix(): String {
     val modulePath = path.removePrefix(":")
     when {
         modulePath == "app" -> return "app_"
+        //component_base → base_
         modulePath.startsWith("component_") ->
             return modulePath.removePrefix("component_") + "_"
+        //feature_task → task_
         modulePath.startsWith("feature_") ->
             return modulePath.removePrefix("feature_") + "_"
         else -> return ""
