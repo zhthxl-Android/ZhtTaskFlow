@@ -35,14 +35,12 @@ internal fun Project.featureStandaloneGradlePropertyKey(): String {
  */
 internal fun Project.computeDefaultResourcePrefix(): String {
     val modulePath = path.removePrefix(":")
-    when {
-        modulePath == "app" -> return "app_"
-        //component_base → base_
+    return when {
+        modulePath == "app" -> "app_"
         modulePath.startsWith("component_") ->
-            return modulePath.removePrefix("component_") + "_"
-        //feature_task → task_
+            modulePath.removePrefix("component_") + "_"
         modulePath.startsWith("feature_") ->
-            return modulePath.removePrefix("feature_") + "_"
-        else -> return ""
+            modulePath.removePrefix("feature_") + "_"
+        else -> ""
     }
 }
