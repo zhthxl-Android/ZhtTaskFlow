@@ -6,8 +6,8 @@ import org.gradle.api.Project
 import org.gradle.kotlin.dsl.dependencies
 
 /**
- * 路由与 Compose UI 基座：复用 library（已含 base），再应用 Compose 插件并 api 暴露 UI 栈与 lifecycle。
- * 不重复 apply taskFlow.android.base。
+ * 路由与 Compose UI 基座：复用 library（已含 common），再应用 Compose 插件并 api 暴露 UI 栈与 lifecycle。
+ * 不重复 apply taskFlow.android.common。
  */
 class TaskFlowAndroidNavPlugin : Plugin<Project> {
     override fun apply(project: Project) {

@@ -1,4 +1,19 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="task_str_module_name">feature_task</string>
+    <string name="task_str_list_title">任务列表</string>
+    <string name="task_str_add_task">新增任务</string>
+    <string name="task_str_empty_list">暂无任务，点击右下角添加</string>
+    <string name="task_str_load_failed">加载失败</string>
+    <string name="task_str_retry">重试</string>
+    <string name="task_str_dialog_title">新增任务</string>
+    <string name="task_str_field_title">标题</string>
+    <string name="task_str_field_content">内容</string>
+    <string name="task_str_confirm">确定</string>
+    <string name="task_str_cancel">取消</string>
+    <string name="task_str_status_pending">待处理</string>
+    <string name="task_str_status_in_progress">进行中</string>
+    <string name="task_str_status_completed">已完成</string>
+    <string name="task_str_status_cancelled">已取消</string>
+    <string name="task_str_refresh_success">刷新成功</string>
 </resources>

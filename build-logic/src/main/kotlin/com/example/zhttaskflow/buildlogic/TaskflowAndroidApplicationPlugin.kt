@@ -1,19 +1,16 @@
 package com.example.zhttaskflow.buildlogic
 
-import com.android.build.api.dsl.ApplicationExtension
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 
-/** App 壳约定：Application → Kotlin Android → Compose → Base */
+/** App 壳约定：Application → Kotlin Android → Kotlin Compose → Common（Compose 配置与依赖由 Common 统一收口）。 */
 class TaskFlowAndroidApplicationPlugin : Plugin<Project> {
     override fun apply(project: Project) {
         with(project.pluginManager) {
             apply("com.android.application")
             apply("org.jetbrains.kotlin.android")
             apply("org.jetbrains.kotlin.plugin.compose")
-            apply("taskFlow.android.base")
+            apply("taskFlow.android.common")
         }
-        val appExtension = project.extensions.getByType(ApplicationExtension::class.java)
-        project.configureCompose(appExtension)
     }
 }

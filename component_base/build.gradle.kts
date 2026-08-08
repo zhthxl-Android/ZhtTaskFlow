@@ -5,7 +5,3 @@ plugins {
 taskFlow {
     resourcePrefix.set("base_")
 }
-
-dependencies {
-    api(libs.androidx.lifecycle.viewmodel.ktx)
-}

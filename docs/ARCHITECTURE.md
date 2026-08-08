@@ -30,7 +30,7 @@
 - 根包固定 `com.example.zhttaskflow`
 - 去掉模块 path 前导 `:`，剔除 `component_` 前缀，`_` 替换为 `.`，拼接到根包后
 - `:app` → `com.example.zhttaskflow`
-- 由 `taskFlow.android.base` 在配置阶段写入 `android.namespace`
+- 由 `taskFlow.android.common` 在配置阶段写入 `android.namespace`
 
 ## 5. 依赖流向（允许）
 
@@ -97,8 +97,8 @@ app_、base_、core_、nav_、task_、article_；`values` 中名称必须带前�
 
 ## 12. 约定插件应用顺序
 
-- **Library 栈**：`com.android.library` → `org.jetbrains.kotlin.android` → `taskFlow.android.base`（`TaskFlowAndroidLibraryPlugin` 一次完成）
-- **App 栈**：`com.android.application` → `kotlin.android` → `kotlin.compose` → `taskFlow.android.base`
+- **Library 栈**：`com.android.library` → `org.jetbrains.kotlin.android` → `taskFlow.android.common`（`TaskFlowAndroidLibraryPlugin` 一次完成）
+- **App 栈**：`com.android.application` → `kotlin.android` → `kotlin.compose` → `taskFlow.android.common`
 - **Feature library**：`taskFlow.android.library` → `kotlin.compose`（**禁止**再 apply base）
 - **Feature application**：与 App 栈相同，不经过 `taskFlow.android.library`
 

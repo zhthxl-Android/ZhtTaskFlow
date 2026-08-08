@@ -77,6 +77,7 @@ class TaskViewModel(
     }
 
     private fun applyLoadSuccess(tasks: List<Task>) {
+        val wasRefreshing = currentState.isRefreshing
         setState {
             copy(
                 tasks = tasks,
@@ -84,6 +85,9 @@ class TaskViewModel(
                 isRefreshing = false,
                 errorMessage = null,
             )
+        }
+        if (wasRefreshing) {
+            sendEffect(TaskUiEffect.ShowToast("刷新成功"))
         }
     }
 

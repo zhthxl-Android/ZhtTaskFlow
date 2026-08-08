@@ -9,8 +9,8 @@ import org.gradle.kotlin.dsl.dependencies
 
 /**
  * Feature 双模式约定插件：
- * - library：taskFlow.android.library + Compose（library 已含 base，禁止再 apply base）
- * - application：com.android.application → kotlin.android → kotlin.compose → taskFlow.android.base
+ * - library：taskFlow.android.library + Compose（library 已含 common，禁止再 apply common）
+ * - application：com.android.application → kotlin.android → kotlin.compose → taskFlow.android.common
  * - standalone 键名固定（featureStandaloneGradlePropertyKey），避免 apply 阶段读取 DSL 扩展的时序问题
  * - applicationId 默认 namespace；在 configure<ApplicationExtension> 内写入 defaultConfig（避免 AGP「已读取 applicationId」报错）；模块可通过 taskFlowFeature { applicationId.set(...) } 覆盖
  * - 公共依赖：仅 implementation core、nav（base 经 api 传递）；不重复声明 base
@@ -42,7 +42,7 @@ class TaskFlowAndroidFeaturePlugin : Plugin<Project> {
                 apply("com.android.application")
                 apply("org.jetbrains.kotlin.android")
                 apply("org.jetbrains.kotlin.plugin.compose")
-                apply("taskFlow.android.base")
+                apply("taskFlow.android.common")
             }
             project.configure<ApplicationExtension> {
                 sourceSets.getByName("main") {
