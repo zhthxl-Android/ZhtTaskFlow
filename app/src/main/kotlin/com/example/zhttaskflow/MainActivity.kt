@@ -9,7 +9,7 @@ import com.example.zhttaskflow.nav.theme.TaskFlowTheme
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        //公共底层组件分支 创建
+        //task开发分支 创建
         setContent {
             TaskFlowTheme {
             }
