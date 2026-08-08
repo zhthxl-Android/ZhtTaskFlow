@@ -30,7 +30,7 @@
 - 根包固定 `com.example.zhttaskflow`
 - 去掉模块 path 前导 `:`，剔除 `component_` 前缀，`_` 替换为 `.`，拼接到根包后
 - `:app` → `com.example.zhttaskflow`
-- 由 `taskFlow.android.base` 在配置阶段写入 `android.namespace`
+- 由 `taskFlow.android.common` 在配置阶段写入 `android.namespace`
 
 ## 5. 依赖流向（允许）
 
@@ -61,7 +61,7 @@ Kotlin 标准库不由 Version Catalog 声明，由 `org.jetbrains.kotlin.androi
 
 | 模式 | gradle.properties | Android 插件 | 源码 / Manifest |
 |------|-------------------|--------------|-----------------|
-| library | `feature.*.standalone=false` | library + Compose（内含 base） | 仅 `src/main`；manifest 为空根；**不编译** standalone |
+| library | `feature.*.standalone=false` | library + Compose（内含 common 约定） | 仅 `src/main`；manifest 为空根；**不编译** standalone |
 | application | `true` | application + kotlin + compose + base | `src/main` 保留默认目录；**追加** standalone kotlin/res；manifest **仅** standalone 文件 |
 
 开关键名固定：`:feature_task` → `feature.task.standalone`，不可在 `taskFlowFeature` DSL 配置。
@@ -97,9 +97,9 @@ app_、base_、core_、nav_、task_、article_；`values` 中名称必须带前�
 
 ## 12. 约定插件应用顺序
 
-- **Library 栈**：`com.android.library` → `org.jetbrains.kotlin.android` → `taskFlow.android.base`（`TaskFlowAndroidLibraryPlugin` 一次完成）
-- **App 栈**：`com.android.application` → `kotlin.android` → `kotlin.compose` → `taskFlow.android.base`
-- **Feature library**：`taskFlow.android.library` → `kotlin.compose`（**禁止**再 apply base）
+- **Library 栈**：`com.android.library` → `org.jetbrains.kotlin.android` → `taskFlow.android.common`（`TaskFlowAndroidLibraryPlugin` 一次完成）
+- **App 栈**：`com.android.application` → `kotlin.android` → `kotlin.compose` → `taskFlow.android.common`
+- **Feature library**：`taskFlow.android.library` → `kotlin.compose`（**禁止**再 apply common）
 - **Feature application**：与 App 栈相同，不经过 `taskFlow.android.library`
 
 ## 13. Room schemas 目录

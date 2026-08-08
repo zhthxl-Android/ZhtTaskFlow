@@ -1,3 +1,4 @@
+// 基础层：仅使用 library 约定插件（勿用 feature，避免注入 core/nav 与业务层依赖）
 plugins {
     alias(libs.plugins.taskFlow.android.library)
 }
@@ -5,5 +6,3 @@ plugins {
 taskFlow {
     resourcePrefix.set("base_")
 }
-
-// coroutines、core-ktx 由 TaskFlowAndroidLibraryPlugin 统一 api 注入，本模块脚本不重复声明 dependencies。

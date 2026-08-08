@@ -11,3 +11,16 @@ import org.gradle.kotlin.dsl.getByType
  */
 internal fun Project.libsCatalog(): VersionCatalog =
     extensions.getByType<VersionCatalogsExtension>().named("libs")
+
+/**
+ * 从 Catalog [versions] 段读取整型 SDK 级别，避免在插件源码硬编码数字。
+ */
+internal fun VersionCatalog.requireVersionInt(alias: String): Int =
+    findVersion(alias).get().requiredVersion.toInt()
+
+/** 与 [gradle/libs.versions.toml] 中 compileSdk / minSdk / targetSdk 对齐。 */
+internal fun Project.taskFlowCompileSdk(): Int = libsCatalog().requireVersionInt("compileSdk")
+
+internal fun Project.taskFlowMinSdk(): Int = libsCatalog().requireVersionInt("minSdk")
+
+internal fun Project.taskFlowTargetSdk(): Int = libsCatalog().requireVersionInt("targetSdk")

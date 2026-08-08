@@ -28,9 +28,9 @@ dependencies {
 
 gradlePlugin {
     plugins {
-        register("TaskFlowAndroidBase") {
-            id = "taskFlow.android.base"
-            implementationClass = "com.example.zhttaskflow.buildlogic.TaskFlowAndroidBasePlugin"
+        register("TaskFlowAndroidCommon") {
+            id = "taskFlow.android.common"
+            implementationClass = "com.example.zhttaskflow.buildlogic.TaskFlowAndroidCommonPlugin"
         }
         register("TaskFlowAndroidLibrary") {
             id = "taskFlow.android.library"
