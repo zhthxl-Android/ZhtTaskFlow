@@ -13,7 +13,6 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
@@ -44,16 +43,13 @@ import java.util.Date
 import java.util.Locale
 
 /**
- * 任务列表主页面：订阅 [TaskViewModel] 状态与副作用，纯声明式 UI，不直接接触数据层。
+ * 任务列表主页面：订阅 [TaskViewModel] 状态与副作用，纯声明式 UI，不直接接触数据层与导航实现。
  *
- * @param viewModel 由外部注入的 ViewModel
- * @param onNavigateToTaskDetail 详情页导航回调（对接 component_nav）
+ * @param viewModel 由路由宿主注入的 ViewModel（已持有 [com.example.zhttaskflow.nav.TaskFlowNavigator]）
  */
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun TaskListScreen(
     viewModel: TaskViewModel,
-    onNavigateToTaskDetail: (String) -> Unit,
     modifier: Modifier = Modifier,
 ) {
     val uiState by viewModel.uiState.collectUiStateWithLifecycle()
@@ -65,9 +61,6 @@ fun TaskListScreen(
             when (effect) {
                 is TaskUiEffect.ShowToast -> {
                     Toast.makeText(context, effect.message, Toast.LENGTH_SHORT).show()
-                }
-                is TaskUiEffect.NavigateToTaskDetail -> {
-                    onNavigateToTaskDetail(effect.taskId)
                 }
             }
         }
@@ -112,7 +105,6 @@ fun TaskListScreen(
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun TaskListContent(
     uiState: TaskUiState,

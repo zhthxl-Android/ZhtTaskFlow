@@ -1,36 +1,32 @@
 package com.example.zhttaskflow.feature.task.standalone
 
 import android.os.Bundle
-import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.runtime.remember
-import com.example.zhttaskflow.feature.task.data.TaskMockDataSource
-import com.example.zhttaskflow.feature.task.data.TaskRepositoryImpl
-import com.example.zhttaskflow.feature.task.ui.TaskListScreen
-import com.example.zhttaskflow.feature.task.ui.TaskViewModel
+import com.example.zhttaskflow.feature.task.navigation.TaskRoute
+import com.example.zhttaskflow.feature.task.navigation.registerTaskRoutes
+import com.example.zhttaskflow.nav.TaskFlowNavHost
+import com.example.zhttaskflow.nav.rememberTaskFlowNavigator
+import com.example.zhttaskflow.nav.route.TaskFlowRouteRegistryImpl
 import com.example.zhttaskflow.nav.theme.TaskFlowTheme
 
-/** Feature 独立调试入口：展示任务列表页。 */
+/** Feature 独立调试入口：与宿主一致使用 [TaskFlowNavHost]。 */
 class FeatureTaskDebugActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {
             TaskFlowTheme {
-                val viewModel = remember {
-                    TaskViewModel(
-                        TaskRepositoryImpl(TaskMockDataSource()),
-                    )
+                val navigator = rememberTaskFlowNavigator()
+                val routeRegistry = remember(navigator) {
+                    TaskFlowRouteRegistryImpl().also { registry ->
+                        registerTaskRoutes(registry, navigator)
+                    }
                 }
-                TaskListScreen(
-                    viewModel = viewModel,
-                    onNavigateToTaskDetail = { taskId ->
-                        Toast.makeText(
-                            this,
-                            "跳转详情: $taskId",
-                            Toast.LENGTH_SHORT,
-                        ).show()
-                    },
+                TaskFlowNavHost(
+                    registry = routeRegistry,
+                    startDestination = TaskRoute.ROUTE_LIST,
+                    navigator = navigator,
                 )
             }
         }

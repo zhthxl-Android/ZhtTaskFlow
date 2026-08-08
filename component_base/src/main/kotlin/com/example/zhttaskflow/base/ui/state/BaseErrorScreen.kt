@@ -10,7 +10,9 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import com.example.zhttaskflow.base.R
 
 /**
  * 错误态全屏展示，支持重试回调。
@@ -40,7 +42,7 @@ fun BaseErrorScreen(
             onClick = onRetry,
             modifier = Modifier.padding(top = 16.dp),
         ) {
-            Text(text = "重试")
+            Text(text = stringResource(id = R.string.base_str_retry))
         }
     }
 }
