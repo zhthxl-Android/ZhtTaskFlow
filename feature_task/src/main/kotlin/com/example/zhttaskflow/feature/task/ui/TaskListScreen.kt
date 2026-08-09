@@ -124,14 +124,14 @@ private fun TaskListContent(
         }
         uiState.errorMessage != null && uiState.tasks.isEmpty() -> {
             BaseErrorScreen(
-                message = uiState.errorMessage ?: stringResource(id = R.string.task_str_load_failed),
+                message = uiState.errorMessage,
                 onRetry = onRetry,
                 modifier = Modifier
                     .fillMaxSize()
                     .padding(contentPadding),
             )
         }
-        uiState.isEmpty -> {
+        uiState.isListEmpty -> {
             BaseEmptyScreen(
                 message = stringResource(id = R.string.task_str_empty_list),
                 modifier = Modifier

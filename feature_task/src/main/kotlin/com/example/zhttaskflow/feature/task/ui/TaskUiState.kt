@@ -13,7 +13,7 @@ data class TaskUiState(
     val errorMessage: String? = null,
 ) : BaseUiState {
 
-    /** 无数据且非加载中、无错误时的空态 */
-    val isEmpty: Boolean =
+    /** 无数据、非加载中、无错误、的空态（数据为空） */
+    val isListEmpty: Boolean =
         !isLoading && !isRefreshing && tasks.isEmpty() && errorMessage == null
 }
