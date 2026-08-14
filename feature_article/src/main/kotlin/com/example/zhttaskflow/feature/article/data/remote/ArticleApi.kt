@@ -5,7 +5,7 @@ import retrofit2.http.GET
 import retrofit2.http.Query
 
 /**
- * 文章分页网络接口：仅声明 HTTP 契约，由 [com.example.zhttaskflow.core.network.RetrofitServiceFactory] 创建实例。
+ * 文章分页网络接口：仅声明 HTTP 契约，实例由 [com.example.zhttaskflow.core.network.RetrofitServiceFactory.createApi] 提供。
  */
 interface ArticleApi {
 

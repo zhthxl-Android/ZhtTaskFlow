@@ -1,10 +1,9 @@
 package com.example.zhttaskflow.core.network
 
 /**
- * 全局网络客户端配置。
+ * 全局网络客户端配置（遗留数据结构，供扩展场景引用默认超时等语义）。
  *
- * 安全约定：[enableLogging] 仅在 Debug 构建为 true；Release 必须为 false，避免 BODY 日志泄露。
- * 默认使用有限超时，避免无限等待导致 ANR。
+ * 标准接入请使用 [RetrofitServiceFactory.createApi]；日志开关由宿主 [Context.isAppDebuggable] 运行时判断。
  */
 data class TaskFlowNetworkConfig(
     val baseUrl: String,
