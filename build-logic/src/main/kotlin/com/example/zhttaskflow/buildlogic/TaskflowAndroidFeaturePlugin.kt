@@ -14,6 +14,10 @@ import org.gradle.kotlin.dsl.dependencies
  * - standalone 键名固定（featureStandaloneGradlePropertyKey），避免 apply 阶段读取 DSL 扩展的时序问题
  * - applicationId 默认 namespace；在 configure<ApplicationExtension> 内写入 defaultConfig（避免 AGP「已读取 applicationId」报错）；模块可通过 taskFlowFeature { applicationId.set(...) } 覆盖
  * - 公共依赖：仅 implementation core、nav（base 经 api 传递）；不重复声明 base
+ *
+ * ## Room KSP（业务模块统一收口）
+ * apply 本插件后自动配置 KSP、`room-compiler`、schema 目录（`{module}/schemas`）、`room.incremental`；
+ * 业务模块定义 `@Entity` / `@Dao` / `@Database` 时无需在模块 `build.gradle.kts` 重复配置 KSP。
  */
 class TaskFlowAndroidFeaturePlugin : Plugin<Project> {
     override fun apply(project: Project) {
@@ -71,5 +75,6 @@ class TaskFlowAndroidFeaturePlugin : Plugin<Project> {
                 project.project(":component_nav")
             )
         }
+        project.configureTaskFlowRoomKsp(includeRoomCompileOnlyAnnotations = true)
     }
 }

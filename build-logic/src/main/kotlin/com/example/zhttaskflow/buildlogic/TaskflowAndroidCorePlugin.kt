@@ -12,14 +12,17 @@ import org.gradle.kotlin.dsl.dependencies
  * - **implementation**：Retrofit、OkHttp、Room、DataStore、Coil 等具体技术栈，**不向 feature / app 透传**
  *
  * 业务模块仅通过 core 包下的封装类访问能力（如 [com.example.zhttaskflow.core.network.ApiResult]、
- * [com.example.zhttaskflow.core.network.safeApiCall]），禁止直接 import 第三方库。
+ * [com.example.zhttaskflow.core.network.safeApiCall]、[com.example.zhttaskflow.core.persistence.room.TaskFlowRoomTemplate]），
+ * 禁止直接 import 第三方库。
  *
- * schemas/（KSP + Room 接入后）：`component_core/schemas/`，由 `room.schemaLocation` 指向。
+ * ## Room KSP
+ * 本模块若接入 `@Database`，由 [configureTaskFlowRoomKsp] 统一注入 KSP；业务 Feature 由 [TaskFlowAndroidFeaturePlugin] 注入。
  */
 class TaskFlowAndroidCorePlugin : Plugin<Project> {
     override fun apply(project: Project) {
         project.pluginManager.apply("taskFlow.android.library")
         project.injectCoreDependencies()
+        project.configureTaskFlowRoomKsp()
     }
 
     private fun Project.injectCoreDependencies() {
@@ -36,11 +39,5 @@ class TaskFlowAndroidCorePlugin : Plugin<Project> {
             add("implementation", catalog.findLibrary("androidx-datastore-preferences").get())
             add("implementation", catalog.findLibrary("coil-compose").get())
         }
-        // 接入 KSP + Room 编译器后启用（版本写入 libs.versions.toml）：
-        // project.pluginManager.apply("com.google.devtools.ksp")
-        // project.dependencies.add("ksp", catalog.findLibrary("room-compiler").get())
-        // project.extensions.configure(KspExtension::class.java) {
-        //     arg("room.schemaLocation", "${project.projectDir}/schemas")
-        // }
     }
 }

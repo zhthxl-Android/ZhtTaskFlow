@@ -1,4 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="article_str_module_name">feature_article</string>
+    <!-- 默认文章 API 根地址（须以 / 结尾）；集成时可由 ArticleDataConfig 覆盖 -->
+    <string name="article_str_default_api_base_url">https://api.example.com/</string>
 </resources>

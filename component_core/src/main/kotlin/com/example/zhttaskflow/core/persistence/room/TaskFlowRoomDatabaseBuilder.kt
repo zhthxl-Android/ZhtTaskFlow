@@ -1,32 +1,31 @@
 package com.example.zhttaskflow.core.persistence.room
 
 import android.content.Context
-import androidx.room.Room
 import androidx.room.RoomDatabase
 
 /**
- * Room 数据库统一构建入口。
+ * Room 数据库构建兼容入口（委托 [TaskFlowRoomTemplate]）。
  *
- * 安全说明：默认未启用 SQLCipher；敏感数据场景请在业务层接入加密或 EncryptedFile 扩展。
+ * 新代码请直接使用 [TaskFlowRoomTemplate]；本对象保留以兼容既有 [openDao] 调用，行为与门面一致。
  */
 object TaskFlowRoomDatabaseBuilder {
 
     /**
-     * 创建 [RoomDatabase] 子类实例。
-     *
-     * @param context ApplicationContext
-     * @param config 数据库名等配置
-     * @param databaseClass `@Database` 注解的类
+     * 通过门面打开 DAO，不向外暴露 [RoomDatabase] 实例。
+     */
+    fun <DB : RoomDatabase, D : BaseRoomDao> openDao(
+        context: Context,
+        config: TaskFlowRoomConfig,
+        databaseClass: Class<DB>,
+        daoProvider: (DB) -> D,
+    ): D = TaskFlowRoomTemplate.openDao(context, config, databaseClass, daoProvider)
+
+    /**
+     * 获取数据库实例（仅供历史兼容；业务模块请勿调用，生命周期由 [TaskFlowRoomTemplate] 管理）。
      */
     fun <T : RoomDatabase> build(
         context: Context,
         config: TaskFlowRoomConfig,
         databaseClass: Class<T>,
-    ): T {
-        return Room.databaseBuilder(
-            context.applicationContext,
-            databaseClass,
-            config.databaseName,
-        ).build()
-    }
+    ): T = TaskFlowRoomTemplate.openDatabaseInstance(context, config, databaseClass)
 }

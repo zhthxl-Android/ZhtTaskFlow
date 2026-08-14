@@ -10,5 +10,8 @@ data class TaskFlowRoomConfig(
 
 /**
  * 通用 DAO 标记接口，Feature 层 DAO 可继承并补充 Room 注解。
+ *
+ * 运行时访问推荐 [TaskFlowRoomTemplate]；兼容 [TaskFlowRoomDatabaseBuilder.openDao] 与 [runRoomIo]。
+ * 禁止在 Feature 中直接调用 [androidx.room.Room.databaseBuilder]。
  */
 interface BaseRoomDao
