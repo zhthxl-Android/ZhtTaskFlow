@@ -33,10 +33,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import com.example.zhttaskflow.base.extension.collectUiStateWithLifecycle
-import com.example.zhttaskflow.base.mvi.BaseUiState
-import com.example.zhttaskflow.base.ui.state.BaseEmptyScreen
-import com.example.zhttaskflow.base.ui.state.BaseErrorScreen
-import com.example.zhttaskflow.base.ui.state.BaseLoadingScreen
+import com.example.zhttaskflow.base.ui.StateBox
 import com.example.zhttaskflow.feature.task.R
 import com.example.zhttaskflow.feature.task.domain.Task
 import com.example.zhttaskflow.feature.task.domain.TaskStatus
@@ -119,64 +116,40 @@ private fun TaskListContent(
     onTaskClick: (String) -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    when (uiState) {
-        BaseUiState.Loading -> {
-            BaseLoadingScreen(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(contentPadding),
-            )
-        }
-        is BaseUiState.Error -> {
-            BaseErrorScreen(
-                message = uiState.message,
-                onRetry = onRetry,
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(contentPadding),
-            )
-        }
-        BaseUiState.Empty -> {
-            BaseEmptyScreen(
-                message = stringResource(id = R.string.task_str_empty_list),
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(contentPadding),
-            )
-        }
-        is BaseUiState.Success -> {
-            val data = uiState.data
-            if (data.tasks.isEmpty() && data.isRefreshing) {
-                PullToRefreshBox(
-                    isRefreshing = true,
-                    onRefresh = onRefresh,
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .padding(contentPadding),
+    StateBox(
+        uiState = uiState,
+        onRetry = onRetry,
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(contentPadding),
+        emptyMessage = stringResource(id = R.string.task_str_empty_list),
+    ) { data ->
+        if (data.tasks.isEmpty() && data.isRefreshing) {
+            PullToRefreshBox(
+                isRefreshing = true,
+                onRefresh = onRefresh,
+                modifier = Modifier.fillMaxSize(),
+            ) {
+                Box(modifier = Modifier.fillMaxSize())
+            }
+        } else {
+            PullToRefreshBox(
+                isRefreshing = data.isRefreshing,
+                onRefresh = onRefresh,
+                modifier = Modifier.fillMaxSize(),
+            ) {
+                LazyColumn(
+                    modifier = Modifier.fillMaxSize(),
+                    verticalArrangement = Arrangement.spacedBy(8.dp),
                 ) {
-                    Box(modifier = Modifier.fillMaxSize())
-                }
-            } else {
-                PullToRefreshBox(
-                    isRefreshing = data.isRefreshing,
-                    onRefresh = onRefresh,
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .padding(contentPadding),
-                ) {
-                    LazyColumn(
-                        modifier = Modifier.fillMaxSize(),
-                        verticalArrangement = Arrangement.spacedBy(8.dp),
-                    ) {
-                        items(
-                            items = data.tasks,
-                            key = { it.id },
-                        ) { task ->
-                            TaskListItem(
-                                task = task,
-                                onClick = { onTaskClick(task.id) },
-                            )
-                        }
+                    items(
+                        items = data.tasks,
+                        key = { it.id },
+                    ) { task ->
+                        TaskListItem(
+                            task = task,
+                            onClick = { onTaskClick(task.id) },
+                        )
                     }
                 }
             }

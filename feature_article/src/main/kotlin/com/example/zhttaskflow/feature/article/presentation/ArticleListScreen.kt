@@ -33,9 +33,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import com.example.zhttaskflow.base.extension.collectUiStateWithLifecycle
-import com.example.zhttaskflow.base.mvi.BaseUiState
-import com.example.zhttaskflow.base.ui.state.BaseEmptyScreen
-import com.example.zhttaskflow.base.ui.state.BaseErrorScreen
+import com.example.zhttaskflow.base.ui.StateBox
 import com.example.zhttaskflow.feature.article.R
 import com.example.zhttaskflow.feature.article.domain.Article
 import com.example.zhttaskflow.nav.TaskFlowNavigator
@@ -94,39 +92,23 @@ private fun ArticleListContent(
     onEvent: (ArticleUiEvent) -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    when (uiState) {
-        BaseUiState.Loading -> {
-            ArticleListSkeleton(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(contentPadding),
-            )
-        }
-        is BaseUiState.Error -> {
-            BaseErrorScreen(
-                message = uiState.message,
-                onRetry = { onEvent(ArticleUiEvent.Refresh) },
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(contentPadding),
-            )
-        }
-        BaseUiState.Empty -> {
-            BaseEmptyScreen(
-                message = stringResource(id = R.string.article_str_empty_list),
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(contentPadding),
-            )
-        }
-        is BaseUiState.Success -> {
-            ArticleSuccessList(
-                state = uiState.data,
-                contentPadding = contentPadding,
-                onEvent = onEvent,
-                modifier = modifier,
-            )
-        }
+    StateBox(
+        uiState = uiState,
+        onRetry = { onEvent(ArticleUiEvent.Refresh) },
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(contentPadding),
+        emptyMessage = stringResource(id = R.string.article_str_empty_list),
+        loading = { loadingModifier ->
+            ArticleListSkeleton(modifier = loadingModifier)
+        },
+    ) { data ->
+        ArticleSuccessList(
+            state = data,
+            contentPadding = PaddingValues(),
+            onEvent = onEvent,
+            modifier = modifier,
+        )
     }
 }
 
