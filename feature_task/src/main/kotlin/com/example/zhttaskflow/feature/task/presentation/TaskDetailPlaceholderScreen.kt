@@ -15,7 +15,7 @@ import com.example.zhttaskflow.feature.task.R
 /**
  * 任务详情占位页：用于验证列表 → 详情导航与系统返回栈。
  *
- * @param taskId 任务唯一标识（来自路由参数 [com.example.zhttaskflow.feature.task.navigation.TaskRoute.ARG_TASK_ID]）
+ * @param taskId 任务唯一标识（来自路由参数 [com.example.zhttaskflow.nav.route.TaskFlowTaskNavRoutes.ARG_TASK_ID]）
  */
 @Composable
 fun TaskDetailPlaceholderScreen(

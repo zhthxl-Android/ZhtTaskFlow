@@ -12,7 +12,7 @@ import com.example.zhttaskflow.base.mvi.BaseViewModel
  *
  * **线程约束**：当前为本地固定入口数据，无异步 IO；后续接入 UseCase 时在 [launchTask] 内调度。
  */
-class HomeViewModel(
+internal class HomeViewModel(
     initialPageData: HomePageData,
     private val entranceRouteById: Map<String, String>,
 ) : BaseViewModel<HomeUiState, HomeUiEvent, HomeUiEffect>(
@@ -41,7 +41,7 @@ class HomeViewModel(
 /**
  * [HomeViewModel] 手动注入工厂（无 Hilt）。
  */
-class HomeViewModelFactory(
+internal class HomeViewModelFactory(
     private val homePageData: HomePageData,
     private val entranceRouteById: Map<String, String>,
 ) : ViewModelProvider.Factory {

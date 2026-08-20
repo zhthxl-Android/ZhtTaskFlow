@@ -2,10 +2,10 @@ package com.example.zhttaskflow.navigation
 
 import com.example.zhttaskflow.feature.article.navigation.registerArticleRoutes
 import com.example.zhttaskflow.feature.home.navigation.registerHomeRoutes
-import com.example.zhttaskflow.feature.task.navigation.TaskRoute
 import com.example.zhttaskflow.feature.task.navigation.registerTaskRoutes
 import com.example.zhttaskflow.nav.TaskFlowNavigator
 import com.example.zhttaskflow.nav.route.TaskFlowArticleNavRoutes
+import com.example.zhttaskflow.nav.route.TaskFlowTaskNavRoutes
 import com.example.zhttaskflow.nav.route.TaskFlowRouteRegistry
 
 /**
@@ -18,7 +18,7 @@ internal fun TaskFlowRouteRegistry.registerAppRoutes(
     registerHomeRoutes(
         registry = this,
         navigator = navigator,
-        taskListRoute = TaskRoute.ROUTE_LIST,
+        taskListRoute = TaskFlowTaskNavRoutes.LIST,
         articleListRoute = TaskFlowArticleNavRoutes.LIST,
         onHomeBackPress = onHomeBackPress,
     )

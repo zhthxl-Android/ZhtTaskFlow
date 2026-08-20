@@ -14,6 +14,7 @@ import com.example.zhttaskflow.feature.article.presentation.ArticleDetailScreen
 import com.example.zhttaskflow.feature.article.presentation.ArticleListScreen
 import com.example.zhttaskflow.feature.article.presentation.ArticleViewModel
 import com.example.zhttaskflow.feature.article.presentation.ArticleViewModelFactory
+import com.example.zhttaskflow.nav.LocalTaskFlowNavigator
 import com.example.zhttaskflow.nav.TaskFlowNavigator
 import com.example.zhttaskflow.nav.route.TaskFlowArticleNavRoutes
 import com.example.zhttaskflow.nav.route.TaskFlowRoute
@@ -36,7 +37,7 @@ sealed interface ArticleRoute : TaskFlowRoute {
  */
 fun registerArticleRoutes(
     registry: TaskFlowRouteRegistry,
-    navigator: TaskFlowNavigator,
+    @Suppress("UNUSED_PARAMETER") navigator: TaskFlowNavigator,
     repository: ArticleRepository? = null,
     articleDataConfig: ArticleDataConfig? = null,
     useMockRemote: Boolean = false,
@@ -46,7 +47,6 @@ fun registerArticleRoutes(
             route = TaskFlowArticleNavRoutes.LIST,
             content = {
                 ArticleListRouteHost(
-                    navigator = navigator,
                     repository = repository,
                     articleDataConfig = articleDataConfig,
                     useMockRemote = useMockRemote,
@@ -60,6 +60,7 @@ fun registerArticleRoutes(
             firstArgumentName = TaskFlowArticleNavRoutes.ARG_ARTICLE_ID,
             secondArgumentName = TaskFlowArticleNavRoutes.ARG_DETAIL_URL,
             content = { articleId, detailUrl ->
+                val navigator = LocalTaskFlowNavigator.current
                 ArticleDetailScreen(
                     articleId = Uri.decode(articleId),
                     detailUrl = Uri.decode(detailUrl),
@@ -72,7 +73,6 @@ fun registerArticleRoutes(
 
 @Composable
 private fun ArticleListRouteHost(
-    navigator: TaskFlowNavigator,
     repository: ArticleRepository?,
     articleDataConfig: ArticleDataConfig?,
     useMockRemote: Boolean,
@@ -97,8 +97,5 @@ private fun ArticleListRouteHost(
         )
     }
     val viewModel: ArticleViewModel = viewModel(factory = factory)
-    ArticleListScreen(
-        viewModel = viewModel,
-        navigator = navigator,
-    )
+    ArticleListScreen(viewModel = viewModel)
 }

@@ -4,7 +4,7 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.runtime.remember
-import com.example.zhttaskflow.feature.task.navigation.TaskRoute
+import com.example.zhttaskflow.nav.route.TaskFlowTaskNavRoutes
 import com.example.zhttaskflow.feature.task.navigation.registerTaskRoutes
 import com.example.zhttaskflow.nav.TaskFlowNavHost
 import com.example.zhttaskflow.nav.rememberTaskFlowNavigator
@@ -25,7 +25,7 @@ class FeatureTaskDebugActivity : ComponentActivity() {
                 }
                 TaskFlowNavHost(
                     registry = routeRegistry,
-                    startDestination = TaskRoute.ROUTE_LIST,
+                    startDestination = TaskFlowTaskNavRoutes.LIST,
                     navigator = navigator,
                 )
             }

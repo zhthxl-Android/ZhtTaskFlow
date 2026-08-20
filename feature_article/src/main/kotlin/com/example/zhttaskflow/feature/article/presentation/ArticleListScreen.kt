@@ -36,7 +36,7 @@ import com.example.zhttaskflow.base.extension.collectUiStateWithLifecycle
 import com.example.zhttaskflow.base.ui.StateBox
 import com.example.zhttaskflow.feature.article.R
 import com.example.zhttaskflow.feature.article.domain.Article
-import com.example.zhttaskflow.nav.TaskFlowNavigator
+import com.example.zhttaskflow.nav.LocalTaskFlowNavigator
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
@@ -48,11 +48,11 @@ import java.util.Locale
 @Composable
 fun ArticleListScreen(
     viewModel: ArticleViewModel,
-    navigator: TaskFlowNavigator,
     modifier: Modifier = Modifier,
 ) {
     val uiState by viewModel.uiState.collectUiStateWithLifecycle()
     val context = LocalContext.current
+    val navigator = LocalTaskFlowNavigator.current
 
     LaunchedEffect(viewModel) {
         viewModel.uiEffect.collect { effect ->

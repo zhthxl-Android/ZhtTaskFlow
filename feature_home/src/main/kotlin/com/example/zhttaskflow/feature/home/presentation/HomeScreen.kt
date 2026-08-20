@@ -9,8 +9,8 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Article
-import androidx.compose.material.icons.filled.List
+import androidx.compose.material.icons.automirrored.filled.Article
+import androidx.compose.material.icons.automirrored.filled.List
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -34,7 +34,7 @@ import com.example.zhttaskflow.feature.home.domain.HomeEntranceIds
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun HomeScreen(
+internal fun HomeScreen(
     uiState: HomeUiState,
     onEvent: (HomeUiEvent) -> Unit,
     modifier: Modifier = Modifier,
@@ -139,8 +139,8 @@ private fun HomeEntryCard(
 
 private fun entranceIcon(entranceId: String): ImageVector {
     return when (entranceId) {
-        HomeEntranceIds.TASK -> Icons.Filled.List
-        HomeEntranceIds.ARTICLE -> Icons.Filled.Article
-        else -> Icons.Filled.List
+        HomeEntranceIds.TASK -> Icons.AutoMirrored.Filled.List
+        HomeEntranceIds.ARTICLE -> Icons.AutoMirrored.Filled.Article
+        else -> Icons.AutoMirrored.Filled.List
     }
 }

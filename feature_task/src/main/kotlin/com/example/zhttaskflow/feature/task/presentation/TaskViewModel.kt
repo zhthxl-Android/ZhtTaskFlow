@@ -11,7 +11,7 @@ import com.example.zhttaskflow.feature.task.domain.usecase.AddTaskUseCase
 import com.example.zhttaskflow.feature.task.domain.usecase.DeleteTaskUseCase
 import com.example.zhttaskflow.feature.task.domain.usecase.GetTaskListUseCase
 import com.example.zhttaskflow.feature.task.domain.usecase.UpdateTaskUseCase
-import com.example.zhttaskflow.feature.task.navigation.TaskRoute
+import com.example.zhttaskflow.nav.route.TaskFlowTaskNavRoutes
 
 /**
  * 任务列表 ViewModel：MVI 单向数据流，通过领域用例调度任务数据与 UI 状态/副作用。
@@ -50,7 +50,7 @@ class TaskViewModel(
         }
         sendEffect(
             TaskUiEffect.NavigateToEdit(
-                url = TaskRoute.detailPath(taskId),
+                url = TaskFlowTaskNavRoutes.detailPath(taskId),
             ),
         )
     }

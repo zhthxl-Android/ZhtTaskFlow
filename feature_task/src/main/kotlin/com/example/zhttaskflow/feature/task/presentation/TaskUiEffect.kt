@@ -17,7 +17,7 @@ sealed interface TaskUiEffect : BaseUiEffect {
     /**
      * 跳转任务编辑/详情页。
      *
-     * @param url 完整 Navigation 路由 path（由 [com.example.zhttaskflow.feature.task.navigation.TaskRoute.detailPath] 生成）
+     * @param url 完整 Navigation 路由 path（由 [com.example.zhttaskflow.nav.route.TaskFlowTaskNavRoutes.detailPath] 生成）
      */
     data class NavigateToEdit(val url: String) : TaskUiEffect
 }
