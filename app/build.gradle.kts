@@ -17,6 +17,8 @@ val articleStandalone = providers.gradleProperty("feature.article.standalone")
 dependencies {
     // component_nav 已通过 api 传递 component_base（coroutines、core-ktx 等），无需重复声明 base
     implementation(project(":component_nav"))
+    implementation(platform(libs.androidx.compose.bom))
+    implementation(libs.androidx.compose.material.icons.extended)
     if (!taskStandalone.get()) {
         implementation(project(":feature_task"))
     }

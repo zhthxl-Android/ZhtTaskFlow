@@ -4,18 +4,16 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.runtime.remember
-import com.example.zhttaskflow.feature.task.navigation.TaskRoute
-import com.example.zhttaskflow.feature.task.navigation.registerTaskRoutes
-import com.example.zhttaskflow.feature.article.navigation.registerArticleRoutes
+import com.example.zhttaskflow.navigation.registerAppFeatureRoutes
+import com.example.zhttaskflow.navigation.registerHomeRoute
 import com.example.zhttaskflow.nav.TaskFlowNavHost
 import com.example.zhttaskflow.nav.rememberTaskFlowNavigator
+import com.example.zhttaskflow.nav.route.TaskFlowNavRoutes
 import com.example.zhttaskflow.nav.route.TaskFlowRouteRegistryImpl
 import com.example.zhttaskflow.nav.theme.TaskFlowTheme
 
 /**
- * 壳 Activity：通过 [TaskFlowNavHost] 装配 Feature 注册的路由。
- *
- * 是否集成 feature_task 由 app 模块 Gradle 依赖控制（feature.task.standalone）；编译进宿主时自动注册任务路由。
+ * 壳 Activity：装配首页与 Feature 路由，[TaskFlowNavHost] 统一导航。
  */
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -25,13 +23,13 @@ class MainActivity : ComponentActivity() {
                 val navigator = rememberTaskFlowNavigator()
                 val routeRegistry = remember(navigator) {
                     TaskFlowRouteRegistryImpl().also { registry ->
-                        registerTaskRoutes(registry, navigator)
-                        registerArticleRoutes(registry, navigator)
+                        registry.registerHomeRoute()
+                        registry.registerAppFeatureRoutes(navigator = navigator)
                     }
                 }
                 TaskFlowNavHost(
                     registry = routeRegistry,
-                    startDestination = TaskRoute.ROUTE_LIST,
+                    startDestination = TaskFlowNavRoutes.HOME_ROUTE,
                     navigator = navigator,
                 )
             }

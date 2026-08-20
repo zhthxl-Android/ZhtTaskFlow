@@ -1,4 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_str_app_name">TaskFlow</string>
+    <string name="app_str_app_name">ZhtTaskFlow</string>
+    <string name="app_str_home_title">ZhtTaskFlow</string>
+    <string name="app_str_home_task_title">任务管理</string>
+    <string name="app_str_home_task_desc">本地任务增删改查</string>
+    <string name="app_str_home_article_title">资讯列表</string>
+    <string name="app_str_home_article_desc">三级缓存分页资讯</string>
 </resources>
