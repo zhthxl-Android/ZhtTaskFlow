@@ -23,6 +23,7 @@ import androidx.compose.ui.Modifier
  *
  * @param title 顶部栏标题文案（由调用方传入已解析的字符串，通常来自 stringResource）
  * @param modifier 根布局修饰符
+ * @param navigationIcon 顶部栏左侧导航区（如返回 [IconButton]），默认无
  * @param actions 顶部栏右侧操作区，默认无
  * @param bottomBar 底部栏插槽，默认无
  * @param floatingActionButton 悬浮操作按钮插槽，默认无（如任务列表新增按钮）
@@ -33,6 +34,7 @@ import androidx.compose.ui.Modifier
 fun TaskFlowScaffold(
     title: String,
     modifier: Modifier = Modifier,
+    navigationIcon: @Composable () -> Unit = {},
     actions: @Composable RowScope.() -> Unit = {},
     bottomBar: @Composable () -> Unit = {},
     floatingActionButton: @Composable () -> Unit = {},
@@ -45,6 +47,7 @@ fun TaskFlowScaffold(
                 title = {
                     Text(text = title)
                 },
+                navigationIcon = navigationIcon,
                 actions = actions,
             )
         },
