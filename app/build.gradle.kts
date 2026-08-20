@@ -14,11 +14,18 @@ val articleStandalone = providers.gradleProperty("feature.article.standalone")
     .map { value -> value.equals("true", ignoreCase = true) }
     .orElse(false)
 
+val homeStandalone = providers.gradleProperty("feature.home.standalone")
+    .map { value -> value.equals("true", ignoreCase = true) }
+    .orElse(false)
+
 dependencies {
     // component_nav 已通过 api 传递 component_base（coroutines、core-ktx 等），无需重复声明 base
     implementation(project(":component_nav"))
     implementation(platform(libs.androidx.compose.bom))
     implementation(libs.androidx.compose.material.icons.extended)
+    if (!homeStandalone.get()) {
+        implementation(project(":feature_home"))
+    }
     if (!taskStandalone.get()) {
         implementation(project(":feature_task"))
     }

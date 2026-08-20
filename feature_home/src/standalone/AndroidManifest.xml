@@ -8,7 +8,7 @@
         android:supportsRtl="true"
         android:theme="@style/home_Theme.Standalone">
         <activity
-            android:name=".standalone.FeatureHomeDebugActivity"
+            android:name=".standalone.HomeDebugActivity"
             android:exported="true"
             android:theme="@style/home_Theme.Standalone">
             <intent-filter>
