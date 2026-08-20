@@ -6,21 +6,27 @@ import com.example.zhttaskflow.base.mvi.BaseUiState
 import com.example.zhttaskflow.base.mvi.BaseViewModel
 import com.example.zhttaskflow.base.mvi.getDataOrNull
 import com.example.zhttaskflow.feature.task.domain.Task
-import com.example.zhttaskflow.feature.task.domain.TaskRepository
 import com.example.zhttaskflow.feature.task.domain.TaskStatus
+import com.example.zhttaskflow.feature.task.domain.usecase.AddTaskUseCase
+import com.example.zhttaskflow.feature.task.domain.usecase.DeleteTaskUseCase
+import com.example.zhttaskflow.feature.task.domain.usecase.GetTaskListUseCase
+import com.example.zhttaskflow.feature.task.domain.usecase.UpdateTaskUseCase
 import com.example.zhttaskflow.feature.task.navigation.TaskRoute
 
 /**
- * 任务列表 ViewModel：MVI 单向数据流，调度 [TaskRepository] 与 UI 状态/副作用。
+ * 任务列表 ViewModel：MVI 单向数据流，通过领域用例调度任务数据与 UI 状态/副作用。
  *
  * **调用方式**：UI 通过 [onEvent] 投递 [TaskUiEvent]；订阅 [uiState] 渲染，订阅 [uiEffect] 处理 Toast/导航。
  *
- * **线程约束**：数据操作在 [launchTask] 内执行（仓库层 IO）；本类不直接访问导航 API。
- *
- * @param repository 由 [TaskViewModelFactory] 手动注入
+ * **线程约束**：数据操作在 [launchTask] 内执行（用例 → 仓库 IO）；本类不直接访问 Repository 与导航 API。
  */
 class TaskViewModel(
-    private val repository: TaskRepository,
+    private val getTaskListUseCase: GetTaskListUseCase,
+    private val addTaskUseCase: AddTaskUseCase,
+    @Suppress("UnusedPrivateProperty")
+    private val updateTaskUseCase: UpdateTaskUseCase,
+    @Suppress("UnusedPrivateProperty")
+    private val deleteTaskUseCase: DeleteTaskUseCase,
 ) : BaseViewModel<TaskUiState, TaskUiEvent, TaskUiEffect>(BaseUiState.Loading) {
 
     private val logTag = "TaskViewModel"
@@ -55,7 +61,7 @@ class TaskViewModel(
             onError = { throwable -> applyLoadError(throwable) },
         ) {
             applyLoadingState(isRefresh)
-            val tasks = repository.getAllTasks()
+            val tasks = getTaskListUseCase()
             applyLoadSuccess(tasks)
         }
     }
@@ -78,10 +84,10 @@ class TaskViewModel(
                 createdAt = System.currentTimeMillis(),
                 status = TaskStatus.PENDING,
             )
-            repository.addTask(task)
+            addTaskUseCase(task)
             sendEffect(TaskUiEffect.ShowToast("任务已添加"))
             applyLoadingState(isRefresh = false)
-            val tasks = repository.getAllTasks()
+            val tasks = getTaskListUseCase()
             applyLoadSuccess(tasks)
         }
     }
@@ -152,13 +158,21 @@ class TaskViewModel(
  * [TaskViewModel] 手动注入工厂（无 Hilt）。
  */
 class TaskViewModelFactory(
-    private val repository: TaskRepository,
+    private val getTaskListUseCase: GetTaskListUseCase,
+    private val addTaskUseCase: AddTaskUseCase,
+    private val updateTaskUseCase: UpdateTaskUseCase,
+    private val deleteTaskUseCase: DeleteTaskUseCase,
 ) : ViewModelProvider.Factory {
 
     @Suppress("UNCHECKED_CAST")
     override fun <T : ViewModel> create(modelClass: Class<T>): T {
         if (modelClass.isAssignableFrom(TaskViewModel::class.java)) {
-            return TaskViewModel(repository) as T
+            return TaskViewModel(
+                getTaskListUseCase = getTaskListUseCase,
+                addTaskUseCase = addTaskUseCase,
+                updateTaskUseCase = updateTaskUseCase,
+                deleteTaskUseCase = deleteTaskUseCase,
+            ) as T
         }
         throw IllegalArgumentException("未知 ViewModel: ${modelClass.name}")
     }

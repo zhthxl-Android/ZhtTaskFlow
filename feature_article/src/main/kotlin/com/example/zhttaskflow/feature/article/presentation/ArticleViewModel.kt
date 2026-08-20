@@ -5,22 +5,22 @@ import com.example.zhttaskflow.base.mvi.BaseViewModel
 import com.example.zhttaskflow.base.mvi.getDataOrNull
 import com.example.zhttaskflow.feature.article.domain.ArticlePage
 import com.example.zhttaskflow.feature.article.domain.ArticlePagingDefaults
-import com.example.zhttaskflow.feature.article.domain.ArticleRepository
+import com.example.zhttaskflow.feature.article.domain.usecase.GetArticlePageUseCase
+import com.example.zhttaskflow.feature.article.domain.usecase.RefreshArticlePageUseCase
 import com.example.zhttaskflow.nav.route.TaskFlowArticleNavRoutes
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 
 /**
- * 资讯列表 ViewModel：MVI 单向数据流，调度 [ArticleRepository] 分页与 UI 状态。
+ * 资讯列表 ViewModel：MVI 单向数据流，通过领域用例调度分页与 UI 状态。
  *
  * **调用方式**：UI 通过 [onEvent] 投递 [ArticleUiEvent]；订阅 [uiState] 渲染，订阅 [uiEffect] 处理 Toast/导航。
  *
- * **线程约束**：数据加载在 [launchTask] 内执行（仓库层 IO）；本类不直接访问网络/数据库 SDK。
- *
- * @param repository 由 [ArticleViewModelFactory] 手动注入
+ * **线程约束**：数据加载在 [launchTask] 内执行（用例 → 仓库 IO）；本类不直接访问 Repository 与网络/数据库 SDK。
  */
 class ArticleViewModel(
-    private val repository: ArticleRepository,
+    private val getArticlePageUseCase: GetArticlePageUseCase,
+    private val refreshArticlePageUseCase: RefreshArticlePageUseCase,
 ) : BaseViewModel<ArticleUiState, ArticleUiEvent, ArticleUiEffect>(BaseUiState.Loading) {
 
     private val logTag = "ArticleViewModel"
@@ -55,7 +55,7 @@ class ArticleViewModel(
                 )
             },
         ) {
-            val page = repository.refreshArticlePage(
+            val page = getArticlePageUseCase(
                 page = ArticlePagingDefaults.FIRST_PAGE,
                 pageSize = pageSize,
             )
@@ -102,8 +102,7 @@ class ArticleViewModel(
                 )
             },
         ) {
-            repository.clearMemoryCache()
-            val page = repository.refreshArticlePage(
+            val page = refreshArticlePageUseCase(
                 page = ArticlePagingDefaults.FIRST_PAGE,
                 pageSize = pageSize,
             )
@@ -144,7 +143,7 @@ class ArticleViewModel(
                 )
             },
         ) {
-            val page = repository.refreshArticlePage(page = nextPage, pageSize = pageSize)
+            val page = getArticlePageUseCase(page = nextPage, pageSize = pageSize)
             val merged = data.articles + page.articles
             setState {
                 BaseUiState.Success(
@@ -213,13 +212,17 @@ class ArticleViewModel(
  * [ArticleViewModel] 手动注入工厂（无 Hilt）。
  */
 class ArticleViewModelFactory(
-    private val repository: ArticleRepository,
+    private val getArticlePageUseCase: GetArticlePageUseCase,
+    private val refreshArticlePageUseCase: RefreshArticlePageUseCase,
 ) : ViewModelProvider.Factory {
 
     @Suppress("UNCHECKED_CAST")
     override fun <T : ViewModel> create(modelClass: Class<T>): T {
         if (modelClass.isAssignableFrom(ArticleViewModel::class.java)) {
-            return ArticleViewModel(repository) as T
+            return ArticleViewModel(
+                getArticlePageUseCase = getArticlePageUseCase,
+                refreshArticlePageUseCase = refreshArticlePageUseCase,
+            ) as T
         }
         throw IllegalArgumentException("未知 ViewModel: ${modelClass.name}")
     }

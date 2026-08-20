@@ -8,6 +8,8 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.zhttaskflow.feature.article.data.ArticleDataConfig
 import com.example.zhttaskflow.feature.article.data.ArticleRepositoryFactory
 import com.example.zhttaskflow.feature.article.domain.ArticleRepository
+import com.example.zhttaskflow.feature.article.domain.usecase.GetArticlePageUseCase
+import com.example.zhttaskflow.feature.article.domain.usecase.RefreshArticlePageUseCase
 import com.example.zhttaskflow.feature.article.presentation.ArticleDetailScreen
 import com.example.zhttaskflow.feature.article.presentation.ArticleListScreen
 import com.example.zhttaskflow.feature.article.presentation.ArticleViewModel
@@ -87,7 +89,12 @@ private fun ArticleListRouteHost(
         )
     }
     val factory = remember(resolvedRepository) {
-        ArticleViewModelFactory(repository = resolvedRepository)
+        val getArticlePageUseCase = GetArticlePageUseCase(resolvedRepository)
+        val refreshArticlePageUseCase = RefreshArticlePageUseCase(resolvedRepository)
+        ArticleViewModelFactory(
+            getArticlePageUseCase = getArticlePageUseCase,
+            refreshArticlePageUseCase = refreshArticlePageUseCase,
+        )
     }
     val viewModel: ArticleViewModel = viewModel(factory = factory)
     ArticleListScreen(

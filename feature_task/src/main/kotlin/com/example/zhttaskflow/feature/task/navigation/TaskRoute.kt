@@ -5,6 +5,10 @@ import androidx.compose.runtime.remember
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.zhttaskflow.feature.task.data.TaskMockDataSource
 import com.example.zhttaskflow.feature.task.data.TaskRepositoryImpl
+import com.example.zhttaskflow.feature.task.domain.usecase.AddTaskUseCase
+import com.example.zhttaskflow.feature.task.domain.usecase.DeleteTaskUseCase
+import com.example.zhttaskflow.feature.task.domain.usecase.GetTaskListUseCase
+import com.example.zhttaskflow.feature.task.domain.usecase.UpdateTaskUseCase
 import com.example.zhttaskflow.feature.task.ui.TaskDetailPlaceholderScreen
 import com.example.zhttaskflow.feature.task.ui.TaskListScreen
 import com.example.zhttaskflow.feature.task.ui.TaskViewModel
@@ -79,7 +83,12 @@ private fun TaskListRouteHost() {
         TaskRepositoryImpl(TaskMockDataSource())
     }
     val factory = remember(repository) {
-        TaskViewModelFactory(repository = repository)
+        TaskViewModelFactory(
+            getTaskListUseCase = GetTaskListUseCase(repository),
+            addTaskUseCase = AddTaskUseCase(repository),
+            updateTaskUseCase = UpdateTaskUseCase(repository),
+            deleteTaskUseCase = DeleteTaskUseCase(repository),
+        )
     }
     val viewModel: TaskViewModel = viewModel(factory = factory)
     TaskListScreen(viewModel = viewModel)
