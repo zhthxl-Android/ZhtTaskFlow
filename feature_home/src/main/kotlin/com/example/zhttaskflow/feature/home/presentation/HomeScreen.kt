@@ -25,26 +25,18 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import com.example.zhttaskflow.base.ui.StateBox
 import com.example.zhttaskflow.feature.home.R
+import com.example.zhttaskflow.feature.home.domain.HomeEntranceIds
 
 /**
- * 首页模块 **表现层**（presentation）。
- *
- * 模块定位：首页入口聚合模块，承载首页业务与功能入口分发。
- * Compose 页面、ViewModel 与 MVI（UiState / UiEvent / UiEffect）均在本包扩展。
- */
-
-/**
- * 应用首页纯 UI：展示任务与资讯功能入口，不包含导航与业务逻辑。
- *
- * @param onTaskClick 点击「任务管理」入口
- * @param onArticleClick 点击「资讯列表」入口
+ * 首页纯 UI：仅根据 [uiState] 渲染，通过 [onEvent] 上报用户交互，不包含导航与业务编排。
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-internal fun HomeScreen(
-    onTaskClick: () -> Unit,
-    onArticleClick: () -> Unit,
+fun HomeScreen(
+    uiState: HomeUiState,
+    onEvent: (HomeUiEvent) -> Unit,
     modifier: Modifier = Modifier,
 ) {
     Scaffold(
@@ -57,25 +49,42 @@ internal fun HomeScreen(
             )
         },
     ) { innerPadding ->
-        Column(
+        StateBox(
+            uiState = uiState,
+            onRetry = { },
             modifier = Modifier
                 .fillMaxSize()
-                .padding(innerPadding)
-                .padding(horizontal = 24.dp, vertical = 16.dp),
-            verticalArrangement = Arrangement.spacedBy(16.dp, Alignment.CenterVertically),
-            horizontalAlignment = Alignment.CenterHorizontally,
-        ) {
-            HomeEntryCard(
-                title = stringResource(id = R.string.home_str_home_task_title),
-                description = stringResource(id = R.string.home_str_home_task_desc),
-                icon = Icons.Filled.List,
-                onClick = onTaskClick,
+                .padding(innerPadding),
+        ) { data ->
+            HomeEntranceList(
+                entrances = data.entrances,
+                onEntranceClick = { entranceId ->
+                    onEvent(HomeUiEvent.EntranceClicked(entranceId = entranceId))
+                },
             )
+        }
+    }
+}
+
+@Composable
+private fun HomeEntranceList(
+    entrances: List<HomeEntrance>,
+    onEntranceClick: (String) -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    Column(
+        modifier = modifier
+            .fillMaxSize()
+            .padding(horizontal = 24.dp, vertical = 16.dp),
+        verticalArrangement = Arrangement.spacedBy(16.dp, Alignment.CenterVertically),
+        horizontalAlignment = Alignment.CenterHorizontally,
+    ) {
+        entrances.forEach { entrance ->
             HomeEntryCard(
-                title = stringResource(id = R.string.home_str_home_article_title),
-                description = stringResource(id = R.string.home_str_home_article_desc),
-                icon = Icons.Filled.Article,
-                onClick = onArticleClick,
+                title = entrance.title,
+                description = entrance.description,
+                icon = entranceIcon(entrance.id),
+                onClick = { onEntranceClick(entrance.id) },
             )
         }
     }
@@ -125,5 +134,13 @@ private fun HomeEntryCard(
                 )
             }
         }
+    }
+}
+
+private fun entranceIcon(entranceId: String): ImageVector {
+    return when (entranceId) {
+        HomeEntranceIds.TASK -> Icons.Filled.List
+        HomeEntranceIds.ARTICLE -> Icons.Filled.Article
+        else -> Icons.Filled.List
     }
 }

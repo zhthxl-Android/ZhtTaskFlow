@@ -1,8 +1,6 @@
 package com.example.zhttaskflow.feature.home.navigation
 
-import androidx.activity.compose.BackHandler
-import androidx.compose.runtime.Composable
-import com.example.zhttaskflow.feature.home.presentation.HomeScreen
+import com.example.zhttaskflow.feature.home.presentation.HomeRoute
 import com.example.zhttaskflow.nav.TaskFlowNavigator
 import com.example.zhttaskflow.nav.route.TaskFlowNavRoutes
 import com.example.zhttaskflow.nav.route.TaskFlowRouteRegistry
@@ -24,7 +22,7 @@ import com.example.zhttaskflow.nav.route.simpleRouteEntry
  */
 fun registerHomeRoutes(
     registry: TaskFlowRouteRegistry,
-    navigator: TaskFlowNavigator,
+    @Suppress("UNUSED_PARAMETER") navigator: TaskFlowNavigator,
     taskListRoute: String? = null,
     articleListRoute: String? = null,
     onHomeBackPress: () -> Unit = {},
@@ -33,31 +31,12 @@ fun registerHomeRoutes(
         simpleRouteEntry(
             route = TaskFlowNavRoutes.HOME_ROUTE,
             content = {
-                HomeRouteHost(
-                    navigator = navigator,
+                HomeRoute(
+                    onHomeBackPress = onHomeBackPress,
                     taskListRoute = taskListRoute,
                     articleListRoute = articleListRoute,
-                    onHomeBackPress = onHomeBackPress,
                 )
             },
         ),
-    )
-}
-
-@Composable
-private fun HomeRouteHost(
-    navigator: TaskFlowNavigator,
-    taskListRoute: String?,
-    articleListRoute: String?,
-    onHomeBackPress: () -> Unit,
-) {
-    BackHandler(onBack = onHomeBackPress)
-    HomeScreen(
-        onTaskClick = {
-            taskListRoute?.let { navigator.navigate(it) }
-        },
-        onArticleClick = {
-            articleListRoute?.let { navigator.navigate(it) }
-        },
     )
 }
