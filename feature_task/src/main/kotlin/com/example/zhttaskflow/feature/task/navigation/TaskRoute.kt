@@ -9,10 +9,10 @@ import com.example.zhttaskflow.feature.task.domain.usecase.AddTaskUseCase
 import com.example.zhttaskflow.feature.task.domain.usecase.DeleteTaskUseCase
 import com.example.zhttaskflow.feature.task.domain.usecase.GetTaskListUseCase
 import com.example.zhttaskflow.feature.task.domain.usecase.UpdateTaskUseCase
-import com.example.zhttaskflow.feature.task.ui.TaskDetailPlaceholderScreen
-import com.example.zhttaskflow.feature.task.ui.TaskListScreen
-import com.example.zhttaskflow.feature.task.ui.TaskViewModel
-import com.example.zhttaskflow.feature.task.ui.TaskViewModelFactory
+import com.example.zhttaskflow.feature.task.presentation.TaskDetailPlaceholderScreen
+import com.example.zhttaskflow.feature.task.presentation.TaskListScreen
+import com.example.zhttaskflow.feature.task.presentation.TaskViewModel
+import com.example.zhttaskflow.feature.task.presentation.TaskViewModelFactory
 import com.example.zhttaskflow.nav.TaskFlowNavigator
 import com.example.zhttaskflow.nav.route.TaskFlowRoute
 import com.example.zhttaskflow.nav.route.TaskFlowRouteRegistry
@@ -24,7 +24,7 @@ import com.example.zhttaskflow.nav.route.stringArgRouteEntry
  * - 前缀 `feature_task/` 与模块名对齐，避免跨 Feature 路由冲突
  * - 列表：`feature_task/list`；详情：`feature_task/detail/{taskId}`，参数名 [ARG_TASK_ID]
  *
- * 跳转范式：ViewModel 通过 [com.example.zhttaskflow.feature.task.ui.TaskUiEffect.NavigateToEdit] 下发路由 path，UI 层消费。
+ * 跳转范式：ViewModel 通过 [com.example.zhttaskflow.feature.task.presentation.TaskUiEffect.NavigateToEdit] 下发路由 path，UI 层消费。
  */
 sealed interface TaskRoute : TaskFlowRoute {
 
