@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="home_str_module_name">feature_home</string>
+    <string name="home_str_home_title">首页</string>
+    <string name="home_str_home_task_title">任务管理</string>
+    <string name="home_str_home_task_desc">查看与管理待办任务</string>
+    <string name="home_str_home_article_title">资讯列表</string>
+    <string name="home_str_home_article_desc">浏览资讯与详情</string>
+</resources>
