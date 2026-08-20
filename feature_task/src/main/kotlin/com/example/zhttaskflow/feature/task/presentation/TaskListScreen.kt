@@ -17,10 +17,8 @@ import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
-import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -34,6 +32,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import com.example.zhttaskflow.base.extension.collectUiStateWithLifecycle
 import com.example.zhttaskflow.base.ui.StateBox
+import com.example.zhttaskflow.base.ui.TaskFlowScaffold
 import com.example.zhttaskflow.feature.task.R
 import com.example.zhttaskflow.feature.task.domain.Task
 import com.example.zhttaskflow.feature.task.domain.TaskStatus
@@ -68,15 +67,9 @@ fun TaskListScreen(
         }
     }
 
-    Scaffold(
-        modifier = modifier.fillMaxSize(),
-        topBar = {
-            TopAppBar(
-                title = {
-                    Text(text = stringResource(id = R.string.task_str_list_title))
-                },
-            )
-        },
+    TaskFlowScaffold(
+        modifier = modifier,
+        title = stringResource(id = R.string.task_str_list_title),
         floatingActionButton = {
             FloatingActionButton(
                 onClick = { showAddDialog = true },
@@ -119,9 +112,8 @@ private fun TaskListContent(
     StateBox(
         uiState = uiState,
         onRetry = onRetry,
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(contentPadding),
+        contentPadding = contentPadding,
+        modifier = modifier.fillMaxSize(),
         emptyMessage = stringResource(id = R.string.task_str_empty_list),
     ) { data ->
         if (data.tasks.isEmpty() && data.isRefreshing) {

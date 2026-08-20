@@ -2,6 +2,7 @@ package com.example.zhttaskflow.feature.article.presentation
 
 import android.webkit.WebView
 import android.webkit.WebViewClient
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -48,22 +49,26 @@ fun ArticleDetailScreen(
             )
         },
     ) { innerPadding ->
-        AndroidView(
+        Box(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(innerPadding),
-            factory = { context ->
-                WebView(context).apply {
-                    webViewClient = WebViewClient()
-                    settings.javaScriptEnabled = true
-                    loadUrl(detailUrl)
-                }
-            },
-            update = { webView ->
-                if (webView.url != detailUrl) {
-                    webView.loadUrl(detailUrl)
-                }
-            },
-        )
+        ) {
+            AndroidView(
+                modifier = Modifier.fillMaxSize(),
+                factory = { context ->
+                    WebView(context).apply {
+                        webViewClient = WebViewClient()
+                        settings.javaScriptEnabled = true
+                        loadUrl(detailUrl)
+                    }
+                },
+                update = { webView ->
+                    if (webView.url != detailUrl) {
+                        webView.loadUrl(detailUrl)
+                    }
+                },
+            )
+        }
     }
 }

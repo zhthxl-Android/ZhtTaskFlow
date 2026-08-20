@@ -13,12 +13,9 @@ import androidx.compose.material.icons.automirrored.filled.Article
 import androidx.compose.material.icons.automirrored.filled.List
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -26,35 +23,28 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import com.example.zhttaskflow.base.ui.StateBox
+import com.example.zhttaskflow.base.ui.TaskFlowScaffold
 import com.example.zhttaskflow.feature.home.R
 import com.example.zhttaskflow.feature.home.domain.HomeEntranceIds
 
 /**
  * 首页纯 UI：仅根据 [uiState] 渲染，通过 [onEvent] 上报用户交互，不包含导航与业务编排。
  */
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 internal fun HomeScreen(
     uiState: HomeUiState,
     onEvent: (HomeUiEvent) -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    Scaffold(
-        modifier = modifier.fillMaxSize(),
-        topBar = {
-            TopAppBar(
-                title = {
-                    Text(text = stringResource(id = R.string.home_str_home_title))
-                },
-            )
-        },
+    TaskFlowScaffold(
+        modifier = modifier,
+        title = stringResource(id = R.string.home_str_home_title),
     ) { innerPadding ->
         StateBox(
             uiState = uiState,
             onRetry = { },
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(innerPadding),
+            contentPadding = innerPadding,
+            modifier = Modifier.fillMaxSize(),
         ) { data ->
             HomeEntranceList(
                 entrances = data.entrances,

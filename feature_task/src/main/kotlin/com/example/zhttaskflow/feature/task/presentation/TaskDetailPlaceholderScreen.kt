@@ -1,6 +1,8 @@
 package com.example.zhttaskflow.feature.task.presentation
 
 import androidx.activity.compose.LocalOnBackPressedDispatcherOwner
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
@@ -40,9 +42,15 @@ fun TaskDetailPlaceholderScreen(
             )
         },
     ) { innerPadding ->
-        Text(
-            text = stringResource(id = R.string.task_str_detail_placeholder, taskId),
-            modifier = Modifier.padding(innerPadding).padding(16.dp),
-        )
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(innerPadding),
+        ) {
+            Text(
+                text = stringResource(id = R.string.task_str_detail_placeholder, taskId),
+                modifier = Modifier.padding(16.dp),
+            )
+        }
     }
 }

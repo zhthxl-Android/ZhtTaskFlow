@@ -1,5 +1,9 @@
 package com.example.zhttaskflow.base.ui
 
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
@@ -15,21 +19,24 @@ import com.example.zhttaskflow.base.ui.state.BaseLoadingScreen
  * ## 用途
  * 收敛业务页面重复的 `when (uiState)` 分支，成功态业务 UI 通过 [content] 插槽渲染。
  *
- * ## 标准用法
+ * ## 标准用法（与 [TaskFlowScaffold] 配合）
  * ```
- * StateBox(
- *     uiState = uiState,
- *     onRetry = { viewModel.onEvent(Refresh) },
- *     emptyMessage = stringResource(R.string.xxx_empty),
- *     modifier = Modifier.fillMaxSize().padding(innerPadding),
- * ) { data ->
- *     // 仅编写 Success 态业务内容（列表、表单等）
+ * TaskFlowScaffold(...) { innerPadding ->
+ *     StateBox(
+ *         uiState = uiState,
+ *         onRetry = { viewModel.onEvent(Refresh) },
+ *         contentPadding = innerPadding,
+ *         modifier = Modifier.fillMaxSize(),
+ *     ) { data ->
+ *         // Success 态业务内容，勿再叠加 Scaffold innerPadding
+ *     }
  * }
  * ```
  *
  * @param uiState 页面 MVI 状态
  * @param onRetry 错误态点击重试
- * @param modifier 作用于当前展示分支的根布局（含 Loading / Empty / Error / Success）
+ * @param modifier 根容器修饰符（不含 Scaffold 内边距）
+ * @param contentPadding Scaffold [innerPadding] 等系统内边距，在根 [Box] 上统一消费一次
  * @param emptyMessage 空数据态展示文案
  * @param loading 首屏加载占位，默认居中 [androidx.compose.material3.CircularProgressIndicator]
  * @param content 成功态业务内容，参数为 [BaseUiState.Success.data]
@@ -39,31 +46,39 @@ fun <T> StateBox(
     uiState: BaseUiState<T>,
     onRetry: () -> Unit,
     modifier: Modifier = Modifier,
+    contentPadding: PaddingValues = PaddingValues(),
     emptyMessage: String = stringResource(id = R.string.base_str_empty),
     loading: @Composable (Modifier) -> Unit = { loadingModifier ->
         BaseLoadingScreen(modifier = loadingModifier)
     },
     content: @Composable (T) -> Unit,
 ) {
-    when (uiState) {
-        BaseUiState.Loading -> {
-            loading(modifier)
-        }
-        BaseUiState.Empty -> {
-            BaseEmptyScreen(
-                message = emptyMessage,
-                modifier = modifier,
-            )
-        }
-        is BaseUiState.Error -> {
-            BaseErrorScreen(
-                message = uiState.message,
-                onRetry = onRetry,
-                modifier = modifier,
-            )
-        }
-        is BaseUiState.Success -> {
-            content(uiState.data)
+    Box(
+        modifier = modifier
+            .fillMaxSize()
+            .padding(contentPadding),
+    ) {
+        val branchModifier = Modifier.fillMaxSize()
+        when (uiState) {
+            BaseUiState.Loading -> {
+                loading(branchModifier)
+            }
+            BaseUiState.Empty -> {
+                BaseEmptyScreen(
+                    message = emptyMessage,
+                    modifier = branchModifier,
+                )
+            }
+            is BaseUiState.Error -> {
+                BaseErrorScreen(
+                    message = uiState.message,
+                    onRetry = onRetry,
+                    modifier = branchModifier,
+                )
+            }
+            is BaseUiState.Success -> {
+                content(uiState.data)
+            }
         }
     }
 }

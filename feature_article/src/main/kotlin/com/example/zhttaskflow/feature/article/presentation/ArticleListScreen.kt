@@ -16,12 +16,9 @@ import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
-import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -34,6 +31,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import com.example.zhttaskflow.base.extension.collectUiStateWithLifecycle
 import com.example.zhttaskflow.base.ui.StateBox
+import com.example.zhttaskflow.base.ui.TaskFlowScaffold
 import com.example.zhttaskflow.feature.article.R
 import com.example.zhttaskflow.feature.article.domain.Article
 import com.example.zhttaskflow.nav.LocalTaskFlowNavigator
@@ -44,7 +42,6 @@ import java.util.Locale
 /**
  * 资讯列表主页面：订阅 [ArticleViewModel] 状态，分发 [ArticleUiEvent]。
  */
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ArticleListScreen(
     viewModel: ArticleViewModel,
@@ -67,15 +64,9 @@ fun ArticleListScreen(
         }
     }
 
-    Scaffold(
-        modifier = modifier.fillMaxSize(),
-        topBar = {
-            TopAppBar(
-                title = {
-                    Text(text = stringResource(id = R.string.article_str_list_title))
-                },
-            )
-        },
+    TaskFlowScaffold(
+        modifier = modifier,
+        title = stringResource(id = R.string.article_str_list_title),
     ) { innerPadding ->
         ArticleListContent(
             uiState = uiState,
@@ -95,9 +86,8 @@ private fun ArticleListContent(
     StateBox(
         uiState = uiState,
         onRetry = { onEvent(ArticleUiEvent.Refresh) },
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(contentPadding),
+        contentPadding = contentPadding,
+        modifier = modifier.fillMaxSize(),
         emptyMessage = stringResource(id = R.string.article_str_empty_list),
         loading = { loadingModifier ->
             ArticleListSkeleton(modifier = loadingModifier)
@@ -105,9 +95,8 @@ private fun ArticleListContent(
     ) { data ->
         ArticleSuccessList(
             state = data,
-            contentPadding = PaddingValues(),
             onEvent = onEvent,
-            modifier = modifier,
+            modifier = Modifier.fillMaxSize(),
         )
     }
 }
@@ -115,7 +104,6 @@ private fun ArticleListContent(
 @Composable
 private fun ArticleSuccessList(
     state: ArticleListData,
-    contentPadding: PaddingValues,
     onEvent: (ArticleUiEvent) -> Unit,
     modifier: Modifier = Modifier,
 ) {
@@ -142,9 +130,7 @@ private fun ArticleSuccessList(
     PullToRefreshBox(
         isRefreshing = state.isRefreshing,
         onRefresh = { onEvent(ArticleUiEvent.Refresh) },
-        modifier = modifier
-            .fillMaxSize()
-            .padding(contentPadding),
+        modifier = modifier.fillMaxSize(),
     ) {
         LazyColumn(
             state = listState,
