@@ -23,6 +23,7 @@ class TaskFlowAndroidCorePlugin : Plugin<Project> {
         project.pluginManager.apply("taskFlow.android.library")
         project.injectCoreDependencies()
         project.configureTaskFlowRoomKsp()
+        project.configureTaskFlowUnitTestDependencies()
     }
 
     private fun Project.injectCoreDependencies() {
