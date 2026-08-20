@@ -6,6 +6,7 @@ import androidx.activity.compose.setContent
 import androidx.compose.runtime.remember
 import com.example.zhttaskflow.feature.task.navigation.TaskRoute
 import com.example.zhttaskflow.feature.task.navigation.registerTaskRoutes
+import com.example.zhttaskflow.feature.article.navigation.registerArticleRoutes
 import com.example.zhttaskflow.nav.TaskFlowNavHost
 import com.example.zhttaskflow.nav.rememberTaskFlowNavigator
 import com.example.zhttaskflow.nav.route.TaskFlowRouteRegistryImpl
@@ -25,6 +26,7 @@ class MainActivity : ComponentActivity() {
                 val routeRegistry = remember(navigator) {
                     TaskFlowRouteRegistryImpl().also { registry ->
                         registerTaskRoutes(registry, navigator)
+                        registerArticleRoutes(registry, navigator)
                     }
                 }
                 TaskFlowNavHost(

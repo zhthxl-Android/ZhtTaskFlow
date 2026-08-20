@@ -21,15 +21,23 @@ object ArticleRepositoryFactory {
      * @param context 建议使用 [Context.getApplicationContext]
      * @param config 业务专属网络根地址等配置
      */
-    fun create(context: Context, config: ArticleDataConfig): ArticleRepository {
+    fun create(
+        context: Context,
+        config: ArticleDataConfig,
+        useMockRemote: Boolean = false,
+    ): ArticleRepository {
         val localDataSource = ArticleLocalDataSource.create(context)
 
-        val articleApi = RetrofitServiceFactory.createApi(
-            context = context,
-            baseUrl = config.baseUrl,
-            serviceClass = ArticleApi::class.java,
-        )
-        val remoteDataSource = ArticleRemoteDataSource(articleApi)
+        val remoteDataSource = if (useMockRemote) {
+            com.example.zhttaskflow.feature.article.data.remote.ArticleMockRemoteDataSource()
+        } else {
+            val articleApi = RetrofitServiceFactory.createApi(
+                context = context,
+                baseUrl = config.baseUrl,
+                serviceClass = ArticleApi::class.java,
+            )
+            ArticleRemoteDataSource(articleApi)
+        }
 
         return ArticleRepositoryImpl(
             localDataSource = localDataSource,

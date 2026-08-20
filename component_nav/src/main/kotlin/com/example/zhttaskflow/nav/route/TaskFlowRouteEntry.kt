@@ -38,6 +38,37 @@ fun simpleRouteEntry(
 /**
  * 单 String 路径参数的页面注册。
  */
+fun twoStringArgsRouteEntry(
+    route: String,
+    firstArgumentName: String,
+    secondArgumentName: String,
+    content: @Composable (first: String, second: String) -> Unit,
+): TaskFlowRouteEntry {
+    return TaskFlowRouteEntry(
+        route = route,
+        register = {
+            composable(
+                route = route,
+                arguments = listOf(
+                    navArgument(firstArgumentName) {
+                        type = NavType.StringType
+                    },
+                    navArgument(secondArgumentName) {
+                        type = NavType.StringType
+                    },
+                ),
+            ) { backStackEntry ->
+                val first = backStackEntry.arguments?.getString(firstArgumentName).orEmpty()
+                val second = backStackEntry.arguments?.getString(secondArgumentName).orEmpty()
+                content(first, second)
+            }
+        },
+    )
+}
+
+/**
+ * 单 String 路径参数的页面注册。
+ */
 fun stringArgRouteEntry(
     route: String,
     argumentName: String,

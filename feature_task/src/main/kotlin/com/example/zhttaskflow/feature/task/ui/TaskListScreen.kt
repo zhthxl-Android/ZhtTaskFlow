@@ -4,6 +4,7 @@ import android.widget.Toast
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -32,20 +33,20 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import com.example.zhttaskflow.base.extension.collectUiStateWithLifecycle
+import com.example.zhttaskflow.base.mvi.BaseUiState
 import com.example.zhttaskflow.base.ui.state.BaseEmptyScreen
 import com.example.zhttaskflow.base.ui.state.BaseErrorScreen
 import com.example.zhttaskflow.base.ui.state.BaseLoadingScreen
 import com.example.zhttaskflow.feature.task.R
 import com.example.zhttaskflow.feature.task.domain.Task
 import com.example.zhttaskflow.feature.task.domain.TaskStatus
+import com.example.zhttaskflow.nav.LocalTaskFlowNavigator
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
 
 /**
- * 任务列表主页面：订阅 [TaskViewModel] 状态与副作用，纯声明式 UI，不直接接触数据层与导航实现。
- *
- * @param viewModel 由路由宿主注入的 ViewModel（已持有 [com.example.zhttaskflow.nav.TaskFlowNavigator]）
+ * 任务列表主页面：订阅 [TaskViewModel] 状态与副作用，纯声明式 UI，不直接接触数据层。
  */
 @Composable
 fun TaskListScreen(
@@ -54,6 +55,7 @@ fun TaskListScreen(
 ) {
     val uiState by viewModel.uiState.collectUiStateWithLifecycle()
     val context = LocalContext.current
+    val navigator = LocalTaskFlowNavigator.current
     var showAddDialog by remember { mutableStateOf(false) }
 
     LaunchedEffect(viewModel) {
@@ -61,6 +63,9 @@ fun TaskListScreen(
             when (effect) {
                 is TaskUiEffect.ShowToast -> {
                     Toast.makeText(context, effect.message, Toast.LENGTH_SHORT).show()
+                }
+                is TaskUiEffect.NavigateToEdit -> {
+                    navigator.navigate(effect.url)
                 }
             }
         }
@@ -114,24 +119,24 @@ private fun TaskListContent(
     onTaskClick: (String) -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    when {
-        uiState.isLoading && uiState.tasks.isEmpty() -> {
+    when (uiState) {
+        BaseUiState.Loading -> {
             BaseLoadingScreen(
                 modifier = Modifier
                     .fillMaxSize()
                     .padding(contentPadding),
             )
         }
-        uiState.errorMessage != null && uiState.tasks.isEmpty() -> {
+        is BaseUiState.Error -> {
             BaseErrorScreen(
-                message = uiState.errorMessage,
+                message = uiState.message,
                 onRetry = onRetry,
                 modifier = Modifier
                     .fillMaxSize()
                     .padding(contentPadding),
             )
         }
-        uiState.isListEmpty -> {
+        BaseUiState.Empty -> {
             BaseEmptyScreen(
                 message = stringResource(id = R.string.task_str_empty_list),
                 modifier = Modifier
@@ -139,26 +144,39 @@ private fun TaskListContent(
                     .padding(contentPadding),
             )
         }
-        else -> {
-            PullToRefreshBox(
-                isRefreshing = uiState.isRefreshing,
-                onRefresh = onRefresh,
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(contentPadding),
-            ) {
-                LazyColumn(
-                    modifier = Modifier.fillMaxSize(),
-                    verticalArrangement = Arrangement.spacedBy(8.dp),
+        is BaseUiState.Success -> {
+            val data = uiState.data
+            if (data.tasks.isEmpty() && data.isRefreshing) {
+                PullToRefreshBox(
+                    isRefreshing = true,
+                    onRefresh = onRefresh,
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(contentPadding),
                 ) {
-                    items(
-                        items = uiState.tasks,
-                        key = { it.id },
-                    ) { task ->
-                        TaskListItem(
-                            task = task,
-                            onClick = { onTaskClick(task.id) },
-                        )
+                    Box(modifier = Modifier.fillMaxSize())
+                }
+            } else {
+                PullToRefreshBox(
+                    isRefreshing = data.isRefreshing,
+                    onRefresh = onRefresh,
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(contentPadding),
+                ) {
+                    LazyColumn(
+                        modifier = Modifier.fillMaxSize(),
+                        verticalArrangement = Arrangement.spacedBy(8.dp),
+                    ) {
+                        items(
+                            items = data.tasks,
+                            key = { it.id },
+                        ) { task ->
+                            TaskListItem(
+                                task = task,
+                                onClick = { onTaskClick(task.id) },
+                            )
+                        }
                     }
                 }
             }

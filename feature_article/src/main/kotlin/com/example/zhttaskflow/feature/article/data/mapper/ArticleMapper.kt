@@ -19,6 +19,10 @@ object ArticleMapper {
         coverUrl = dto.coverUrl,
         author = dto.author,
         publishedAt = dto.publishedAt,
+        category = dto.category?.takeIf { it.isNotBlank() }
+            ?: com.example.zhttaskflow.feature.article.data.ArticleDataConstants.DEFAULT_CATEGORY,
+        detailUrl = dto.detailUrl?.takeIf { it.isNotBlank() }
+            ?: "${com.example.zhttaskflow.feature.article.data.ArticleDataConstants.DEFAULT_DETAIL_URL_PREFIX}${dto.id}",
     )
 
     fun domainToEntity(
@@ -43,6 +47,8 @@ object ArticleMapper {
         coverUrl = entity.coverUrl,
         author = entity.author,
         publishedAt = entity.publishedAt,
+        category = com.example.zhttaskflow.feature.article.data.ArticleDataConstants.DEFAULT_CATEGORY,
+        detailUrl = "${com.example.zhttaskflow.feature.article.data.ArticleDataConstants.DEFAULT_DETAIL_URL_PREFIX}${entity.id}",
     )
 
     fun pageDtoToDomain(dto: ArticlePageDto): ArticlePage = ArticlePage(

@@ -3,6 +3,7 @@ package com.example.zhttaskflow.feature.article.data
 import com.example.zhttaskflow.base.foundation.TaskFlowLogger
 import com.example.zhttaskflow.core.cache.TaskFlowThreeTierCache
 import com.example.zhttaskflow.core.network.ApiResult
+import com.example.zhttaskflow.feature.article.data.remote.ArticlePageRemoteFetcher
 import com.example.zhttaskflow.feature.article.data.local.ArticleLocalDataSource
 import com.example.zhttaskflow.feature.article.data.remote.ArticleRemoteDataSource
 import com.example.zhttaskflow.feature.article.domain.ArticlePage
@@ -18,10 +19,15 @@ import kotlinx.coroutines.flow.Flow
  * - 本类不直接调用 [androidx.room.Room] 运行时 API。
  *
  * 网络侧经 [com.example.zhttaskflow.core.network.safeApiCall] 兜底。
+ *
+ * ## 三级缓存与刷新分工
+ * - [observeArticlePage]：经 [TaskFlowThreeTierCache.observe] 推送本地→内存→远程的渐进数据，适合订阅式 UI。
+ * - [refreshArticlePage]：经 [TaskFlowThreeTierCache.refresh] 强制走远程并回写本地与内存，适合首屏、下拉刷新与加载更多。
+ * - [clearMemoryCache]：仅清空内存层，下拉刷新前调用以避免陈旧页数据干扰。
  */
 class ArticleRepositoryImpl(
     private val localDataSource: ArticleLocalDataSource,
-    private val remoteDataSource: ArticleRemoteDataSource,
+    private val remoteDataSource: ArticlePageRemoteFetcher,
 ) : ArticleRepository {
 
     private val logTag = "ArticleRepositoryImpl"
@@ -40,6 +46,10 @@ class ArticleRepositoryImpl(
 
     override suspend fun refreshArticlePage(page: Int, pageSize: Int): ArticlePage {
         return pageTierCache.refresh(ArticlePageCacheKey(page, pageSize))
+    }
+
+    override suspend fun clearMemoryCache() {
+        pageTierCache.clearMemory()
     }
 
     private fun <T> unwrapOrThrow(result: ApiResult<T>): T {

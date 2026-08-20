@@ -11,20 +11,15 @@ import kotlinx.coroutines.withContext
 import java.util.concurrent.ConcurrentHashMap
 
 /**
- * Room 统一门面：业务 data 层访问本地数据库的 **唯一推荐入口**。
+ * Room 统一门面：封装数据库实例创建、DAO 获取与 IO 执行，业务 data 层访问本地库的唯一推荐入口。
  *
- * ## 防腐约定
- * - 所有 [Room.databaseBuilder] 等 Room **运行时 API** 仅在本类内部使用；
- * - 业务层仅通过 [openDao] 获取 DAO，通过 [runWithDao] / [runIo] 执行挂起操作；
- * - 禁止直接持有 [RoomDatabase]、禁止自行管理数据库生命周期。
+ * **调用方式**：
+ * - 获取 DAO：[openDao]
+ * - 执行读写：[runWithDao]（推荐）或 [runIo]（block 内已持有 DAO 时）
+ * - 业务模块仅使用 Room **编译期注解**（@Entity / @Dao），禁止调用 [Room.databaseBuilder]
  *
- * ## 线程与异常
- * - 所有数据库操作在 [Dispatchers.IO] 上执行，主线程安全；
- * - 非 [CancellationException] 异常统一记录 [TaskFlowLogger] 并包装为 [TaskFlowIllegalStateException]。
- *
- * ## 声明式注解
- * 业务模块仍可在 DAO / Entity 上使用 Room **编译期注解**（@Dao、@Entity、@Query 等），
- * 由各模块 KSP 生成实现；运行时能力统一经本门面访问。
+ * **线程约束**：所有 [runWithDao] / [runIo] 均在 [Dispatchers.IO] 执行，主线程安全；
+ * 非 [CancellationException] 统一记录日志并包装为 [TaskFlowIllegalStateException]。
  */
 object TaskFlowRoomTemplate {
 
@@ -34,11 +29,6 @@ object TaskFlowRoomTemplate {
 
     /**
      * 打开 DAO：内部创建或复用数据库实例，生命周期由本门面缓存管理。
-     *
-     * @param context 建议使用 [Context.getApplicationContext]
-     * @param config 数据库名等配置
-     * @param databaseClass `@Database` 注解的类
-     * @param daoProvider 从数据库类提取 DAO（如 `{ it.articleDao() }`）
      */
     fun <DB : RoomDatabase, D : BaseRoomDao> openDao(
         context: Context,
@@ -51,11 +41,7 @@ object TaskFlowRoomTemplate {
     }
 
     /**
-     * 在 IO 线程上执行与指定 DAO 相关的挂起数据库逻辑（带统一异常兜底）。
-     *
-     * @param dao 已通过 [openDao] 获取的 DAO
-     * @param tag 日志 Tag
-     * @param block 数据库挂起操作，参数为 [dao]
+     * 在 IO 线程执行与指定 DAO 相关的挂起逻辑（带统一异常兜底）。
      */
     suspend fun <D : BaseRoomDao, T> runWithDao(
         dao: D,
@@ -66,10 +52,7 @@ object TaskFlowRoomTemplate {
     }
 
     /**
-     * 在 IO 线程上执行挂起数据库逻辑（DAO 已在 block 内闭包引用时常用）。
-     *
-     * @param tag 日志 Tag
-     * @param block 数据库挂起操作
+     * 在 IO 线程执行挂起数据库逻辑（block 内已闭包引用 DAO 时使用）。
      */
     suspend fun <T> runIo(
         tag: String = DEFAULT_LOG_TAG,
@@ -107,13 +90,4 @@ object TaskFlowRoomTemplate {
             )
         }
     }
-
-    /**
-     * 获取数据库实例（仅供 [TaskFlowRoomDatabaseBuilder.build] 历史兼容，业务模块禁止调用）。
-     */
-    internal fun <T : RoomDatabase> openDatabaseInstance(
-        context: Context,
-        config: TaskFlowRoomConfig,
-        databaseClass: Class<T>,
-    ): T = obtainDatabase(context, config, databaseClass)
 }

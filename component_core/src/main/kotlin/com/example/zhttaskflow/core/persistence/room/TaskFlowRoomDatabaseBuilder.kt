@@ -4,14 +4,16 @@ import android.content.Context
 import androidx.room.RoomDatabase
 
 /**
- * Room 数据库构建兼容入口（委托 [TaskFlowRoomTemplate]）。
+ * Room 数据库打开兼容入口，委托 [TaskFlowRoomTemplate.openDao]。
  *
- * 新代码请直接使用 [TaskFlowRoomTemplate]；本对象保留以兼容既有 [openDao] 调用，行为与门面一致。
+ * **调用方式**：业务 data 层优先直接使用 [TaskFlowRoomTemplate]；本对象保留 [openDao] 别名以兼容旧引用。
+ *
+ * **线程约束**：数据库操作须在 [TaskFlowRoomTemplate.runWithDao] / [runIo] 中执行，禁止主线程直接调用 DAO。
  */
 object TaskFlowRoomDatabaseBuilder {
 
     /**
-     * 通过门面打开 DAO，不向外暴露 [RoomDatabase] 实例。
+     * 打开 DAO，不向外暴露 [RoomDatabase] 实例。
      */
     fun <DB : RoomDatabase, D : BaseRoomDao> openDao(
         context: Context,
@@ -19,13 +21,4 @@ object TaskFlowRoomDatabaseBuilder {
         databaseClass: Class<DB>,
         daoProvider: (DB) -> D,
     ): D = TaskFlowRoomTemplate.openDao(context, config, databaseClass, daoProvider)
-
-    /**
-     * 获取数据库实例（仅供历史兼容；业务模块请勿调用，生命周期由 [TaskFlowRoomTemplate] 管理）。
-     */
-    fun <T : RoomDatabase> build(
-        context: Context,
-        config: TaskFlowRoomConfig,
-        databaseClass: Class<T>,
-    ): T = TaskFlowRoomTemplate.openDatabaseInstance(context, config, databaseClass)
 }

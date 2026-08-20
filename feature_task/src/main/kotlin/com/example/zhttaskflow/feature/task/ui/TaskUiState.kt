@@ -4,16 +4,12 @@ import com.example.zhttaskflow.base.mvi.BaseUiState
 import com.example.zhttaskflow.feature.task.domain.Task
 
 /**
- * 任务列表页 UI 状态：驱动列表、加载、刷新与错误展示。
+ * 任务列表页业务载荷（仅出现在 [BaseUiState.Success] 中）。
  */
-data class TaskUiState(
+data class TaskListData(
     val tasks: List<Task> = emptyList(),
-    val isLoading: Boolean = true,
     val isRefreshing: Boolean = false,
-    val errorMessage: String? = null,
-) : BaseUiState {
+)
 
-    /** 无数据、非加载中、无错误、的空态（数据为空） */
-    val isListEmpty: Boolean =
-        !isLoading && !isRefreshing && tasks.isEmpty() && errorMessage == null
-}
+/** 任务列表页 UI 状态：`BaseUiState` 通用分支 + [TaskListData] 业务数据。 */
+typealias TaskUiState = BaseUiState<TaskListData>

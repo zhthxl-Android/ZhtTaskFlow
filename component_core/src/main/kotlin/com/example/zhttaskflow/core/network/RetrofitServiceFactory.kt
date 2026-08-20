@@ -11,21 +11,12 @@ import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.TimeUnit
 
 /**
- * Retrofit API 统一工厂：业务层获取网络 Service 的 **唯一推荐入口**（与 [com.example.zhttaskflow.core.persistence.room.TaskFlowRoomTemplate] 范式对齐）。
+ * Retrofit API 统一工厂：封装 OkHttp / Retrofit 构建，业务层获取网络 Service 的唯一推荐入口。
  *
- * ## 防腐约定
- * - [OkHttpClient.Builder]、[Retrofit.Builder] 等原生 API **仅在本类内部** 使用；
- * - 业务 Feature 仅声明 API 接口注解，通过 [createApi] 获取实例；
- * - 请求执行与异常兜底使用 [safeApiCall]。
+ * **调用方式**： [createApi] 传入 [Context]、baseUrl 与 API 接口 Class；
+ * 请求执行与异常兜底使用 [safeApiCall]（在 IO 线程挂起调用）。
  *
- * ## 配置规则
- * - 全局共享 [OkHttpClient]：超时、通用拦截器、日志策略一次配置；
- * - BODY 级日志由宿主 [Context.isAppDebuggable] 决定，Release 安装包自动关闭；
- * - 超时等数值见 [TaskFlowNetworkDefaults]。
- *
- * ## 扩展方式
- * - 额外拦截器：[createApi] 的 `extraInterceptors`；
- * - 额外请求头：`defaultHeaders`（非空时派生独立 Client）。
+ * **线程约束**：工厂本身无阻塞；网络请求须在协程中通过 Retrofit 挂起函数或 [safeApiCall] 调用，禁止主线程同步请求。
  */
 object RetrofitServiceFactory {
 
@@ -35,12 +26,6 @@ object RetrofitServiceFactory {
 
     /**
      * 创建 Retrofit API Service 实例。
-     *
-     * @param context 用于判断宿主是否 debuggable，建议 [Context.getApplicationContext]
-     * @param baseUrl 根地址，必须以 `/` 结尾
-     * @param serviceClass 带 Retrofit 注解的 API 接口 Class
-     * @param extraInterceptors 可选额外应用拦截器
-     * @param defaultHeaders 可选 per-api 默认请求头
      */
     fun <T> createApi(
         context: Context,

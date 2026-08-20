@@ -2,11 +2,13 @@ package com.example.zhttaskflow.feature.task.navigation
 
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
+import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.zhttaskflow.feature.task.data.TaskMockDataSource
 import com.example.zhttaskflow.feature.task.data.TaskRepositoryImpl
 import com.example.zhttaskflow.feature.task.ui.TaskDetailPlaceholderScreen
 import com.example.zhttaskflow.feature.task.ui.TaskListScreen
 import com.example.zhttaskflow.feature.task.ui.TaskViewModel
+import com.example.zhttaskflow.feature.task.ui.TaskViewModelFactory
 import com.example.zhttaskflow.nav.TaskFlowNavigator
 import com.example.zhttaskflow.nav.route.TaskFlowRoute
 import com.example.zhttaskflow.nav.route.TaskFlowRouteRegistry
@@ -18,7 +20,7 @@ import com.example.zhttaskflow.nav.route.stringArgRouteEntry
  * - 前缀 `feature_task/` 与模块名对齐，避免跨 Feature 路由冲突
  * - 列表：`feature_task/list`；详情：`feature_task/detail/{taskId}`，参数名 [ARG_TASK_ID]
  *
- * 跳转范式：在 ViewModel 中调用 [TaskFlowNavigator.navigate]，目标 path 使用 [detailPath] 生成。
+ * 跳转范式：ViewModel 通过 [com.example.zhttaskflow.feature.task.ui.TaskUiEffect.NavigateToEdit] 下发路由 path，UI 层消费。
  */
 sealed interface TaskRoute : TaskFlowRoute {
 
@@ -41,7 +43,7 @@ sealed interface TaskRoute : TaskFlowRoute {
         const val ARG_TASK_ID: String = "taskId"
 
         /**
-         * 生成详情页完整路由 path（用于 [TaskFlowNavigator.navigate]）。
+         * 生成详情页完整路由 path（用于 [com.example.zhttaskflow.nav.TaskFlowNavigator.navigate]）。
          */
         fun detailPath(taskId: String): String = "feature_task/detail/$taskId"
     }
@@ -49,19 +51,15 @@ sealed interface TaskRoute : TaskFlowRoute {
 
 /**
  * 向 [TaskFlowRouteRegistry] 注册任务列表与详情路由。
- *
- * 业务层仅调用本方法注册页面，跳转由 [TaskViewModel] + [TaskFlowNavigator] 完成。
  */
 fun registerTaskRoutes(
     registry: TaskFlowRouteRegistry,
-    navigator: TaskFlowNavigator,
+    @Suppress("UNUSED_PARAMETER") navigator: TaskFlowNavigator,
 ) {
     registry.register(
         simpleRouteEntry(
             route = TaskRoute.ROUTE_LIST,
-            content = {
-                TaskListRouteHost(navigator = navigator)
-            },
+            content = { TaskListRouteHost() },
         ),
     )
     registry.register(
@@ -76,14 +74,13 @@ fun registerTaskRoutes(
 }
 
 @Composable
-private fun TaskListRouteHost(
-    navigator: TaskFlowNavigator,
-) {
-    val viewModel = remember(navigator) {
-        TaskViewModel(
-            repository = TaskRepositoryImpl(TaskMockDataSource()),
-            navigator = navigator,
-        )
+private fun TaskListRouteHost() {
+    val repository = remember {
+        TaskRepositoryImpl(TaskMockDataSource())
     }
+    val factory = remember(repository) {
+        TaskViewModelFactory(repository = repository)
+    }
+    val viewModel: TaskViewModel = viewModel(factory = factory)
     TaskListScreen(viewModel = viewModel)
 }

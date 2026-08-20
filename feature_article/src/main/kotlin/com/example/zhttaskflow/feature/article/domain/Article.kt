@@ -9,6 +9,8 @@ package com.example.zhttaskflow.feature.article.domain
  * @param coverUrl 封面图 URL（可为空）
  * @param author 作者
  * @param publishedAt 发布时间（毫秒时间戳）
+ * @param category 分类/栏目
+ * @param detailUrl 详情页 H5 链接（WebView 加载）
  */
 data class Article(
     val id: String,
@@ -17,4 +19,6 @@ data class Article(
     val coverUrl: String?,
     val author: String,
     val publishedAt: Long,
+    val category: String,
+    val detailUrl: String,
 )

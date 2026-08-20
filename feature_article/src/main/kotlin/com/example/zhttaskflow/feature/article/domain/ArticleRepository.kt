@@ -34,4 +34,9 @@ interface ArticleRepository {
         page: Int,
         pageSize: Int = ArticlePagingDefaults.DEFAULT_PAGE_SIZE,
     ): ArticlePage
+
+    /**
+     * 清空列表三级缓存中的内存层，下拉刷新前调用。
+     */
+    suspend fun clearMemoryCache()
 }

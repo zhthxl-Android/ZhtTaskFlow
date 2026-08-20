@@ -10,6 +10,8 @@ data class ArticleDto(
     val coverUrl: String?,
     val author: String,
     val publishedAt: Long,
+    val category: String? = null,
+    val detailUrl: String? = null,
 )
 
 /**

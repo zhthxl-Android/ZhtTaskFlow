@@ -1,10 +1,18 @@
 package com.example.zhttaskflow.core.network
 
 /**
- * 全局网络客户端配置（遗留数据结构，供扩展场景引用默认超时等语义）。
+ * 全局网络客户端配置（历史兼容数据结构）。
  *
- * 标准接入请使用 [RetrofitServiceFactory.createApi]；日志开关由宿主 [Context.isAppDebuggable] 运行时判断。
+ * @deprecated 请使用 [RetrofitServiceFactory.createApi] 创建 API Service；
+ * 超时、日志等策略已由工厂与 [TaskFlowNetworkDefaults] 统一维护。
  */
+@Deprecated(
+    message = "请使用 RetrofitServiceFactory.createApi 创建网络 API",
+    replaceWith = ReplaceWith(
+        expression = "RetrofitServiceFactory.createApi(context, baseUrl, serviceClass)",
+        imports = ["com.example.zhttaskflow.core.network.RetrofitServiceFactory"],
+    ),
+)
 data class TaskFlowNetworkConfig(
     val baseUrl: String,
     val connectTimeoutSeconds: Long = 30L,

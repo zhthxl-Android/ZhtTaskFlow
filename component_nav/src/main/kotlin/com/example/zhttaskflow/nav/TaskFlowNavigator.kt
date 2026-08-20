@@ -22,4 +22,9 @@ class TaskFlowNavigator {
     fun navigate(route: String) {
         navHostController?.navigate(route)
     }
+
+    /** 返回上一页 */
+    fun navigateUp() {
+        navHostController?.popBackStack()
+    }
 }

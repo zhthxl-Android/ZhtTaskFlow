@@ -1,26 +1,27 @@
 package com.example.zhttaskflow.feature.task.ui
 
-import com.example.zhttaskflow.base.foundation.TaskFlowIllegalStateException
-import com.example.zhttaskflow.base.foundation.TaskFlowLogger
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.ViewModelProvider
+import com.example.zhttaskflow.base.mvi.BaseUiState
 import com.example.zhttaskflow.base.mvi.BaseViewModel
+import com.example.zhttaskflow.base.mvi.getDataOrNull
 import com.example.zhttaskflow.feature.task.domain.Task
 import com.example.zhttaskflow.feature.task.domain.TaskRepository
 import com.example.zhttaskflow.feature.task.domain.TaskStatus
 import com.example.zhttaskflow.feature.task.navigation.TaskRoute
-import com.example.zhttaskflow.nav.TaskFlowNavigator
 
 /**
- * 任务列表 ViewModel：事件 → 仓库 / 导航 → 状态/副作用，严格 MVI 单向数据流。
+ * 任务列表 ViewModel：MVI 单向数据流，调度 [TaskRepository] 与 UI 状态/副作用。
  *
- * 路由跳转通过 [TaskFlowNavigator] 完成，不直接使用 Navigation Compose API。
+ * **调用方式**：UI 通过 [onEvent] 投递 [TaskUiEvent]；订阅 [uiState] 渲染，订阅 [uiEffect] 处理 Toast/导航。
  *
- * @param repository 由外部手动构造注入
- * @param navigator 与 [com.example.zhttaskflow.nav.TaskFlowNavHost] 绑定的导航器
+ * **线程约束**：数据操作在 [launchTask] 内执行（仓库层 IO）；本类不直接访问导航 API。
+ *
+ * @param repository 由 [TaskViewModelFactory] 手动注入
  */
 class TaskViewModel(
     private val repository: TaskRepository,
-    private val navigator: TaskFlowNavigator,
-) : BaseViewModel<TaskUiState, TaskUiEvent, TaskUiEffect>(TaskUiState()) {
+) : BaseViewModel<TaskUiState, TaskUiEvent, TaskUiEffect>(BaseUiState.Loading) {
 
     private val logTag = "TaskViewModel"
 
@@ -36,35 +37,16 @@ class TaskViewModel(
         }
     }
 
-    /**
-     * 跳转详情：路径规范见 [TaskRoute.detailPath]。
-     */
     private fun navigateToTaskDetail(taskId: String) {
         if (taskId.isBlank()) {
             sendEffect(TaskUiEffect.ShowToast("任务标识无效"))
             return
         }
-        launchTask(
-            tag = logTag,
-            onError = { throwable ->
-                TaskFlowLogger.e(logTag, "跳转任务详情失败", throwable)
-                sendEffect(
-                    TaskUiEffect.ShowToast(
-                        throwable.message ?: "无法打开任务详情",
-                    ),
-                )
-            },
-        ) {
-            val route = TaskRoute.detailPath(taskId)
-            try {
-                navigator.navigate(route)
-            } catch (throwable: Throwable) {
-                throw TaskFlowIllegalStateException(
-                    message = "路由跳转异常: $route",
-                    cause = throwable,
-                )
-            }
-        }
+        sendEffect(
+            TaskUiEffect.NavigateToEdit(
+                url = TaskRoute.detailPath(taskId),
+            ),
+        )
     }
 
     private fun loadTasks(isRefresh: Boolean) {
@@ -86,7 +68,6 @@ class TaskViewModel(
         launchTask(
             tag = logTag,
             onError = { throwable ->
-                setState { copy(errorMessage = throwable.message) }
                 sendEffect(TaskUiEffect.ShowToast(throwable.message ?: "新增任务失败"))
             },
         ) {
@@ -107,41 +88,78 @@ class TaskViewModel(
 
     private fun applyLoadingState(isRefresh: Boolean) {
         setState {
-            copy(
-                isLoading = if (isRefresh) isLoading else true,
-                isRefreshing = isRefresh,
-                errorMessage = null,
-            )
+            when (this) {
+                is BaseUiState.Success -> {
+                    BaseUiState.Success(data.copy(isRefreshing = isRefresh))
+                }
+                is BaseUiState.Error -> {
+                    if (isRefresh) {
+                        BaseUiState.Success(TaskListData(isRefreshing = true))
+                    } else {
+                        BaseUiState.Loading
+                    }
+                }
+                BaseUiState.Empty -> {
+                    if (isRefresh) {
+                        BaseUiState.Success(TaskListData(isRefreshing = true))
+                    } else {
+                        BaseUiState.Loading
+                    }
+                }
+                BaseUiState.Loading -> this
+            }
         }
     }
 
     private fun applyLoadSuccess(tasks: List<Task>) {
-        val wasRefreshing = currentState.isRefreshing
-        setState {
-            copy(
-                tasks = tasks,
-                isLoading = false,
-                isRefreshing = false,
-                errorMessage = null,
-            )
+        val wasRefreshing = when (val state = currentState) {
+            is BaseUiState.Success -> state.data.isRefreshing
+            else -> false
         }
-        if (wasRefreshing) {
+        if (tasks.isEmpty()) {
+            setState { BaseUiState.Empty }
+        } else {
+            setState {
+                BaseUiState.Success(
+                    TaskListData(
+                        tasks = tasks,
+                        isRefreshing = false,
+                    ),
+                )
+            }
+        }
+        if (wasRefreshing && tasks.isNotEmpty()) {
             sendEffect(TaskUiEffect.ShowToast("刷新成功"))
         }
     }
 
     private fun applyLoadError(throwable: Throwable) {
-        setState {
-            copy(
-                isLoading = false,
-                isRefreshing = false,
-                errorMessage = throwable.message,
-            )
+        val message = throwable.message ?: "加载任务失败"
+        val hasTasks = currentState.getDataOrNull()?.tasks?.isNotEmpty() == true
+        if (hasTasks) {
+            setState {
+                val data = (this as BaseUiState.Success).data
+                BaseUiState.Success(data.copy(isRefreshing = false))
+            }
+        } else {
+            setState { BaseUiState.Error(message) }
         }
-        sendEffect(
-            TaskUiEffect.ShowToast(
-                throwable.message ?: "加载任务失败",
-            ),
-        )
+        sendEffect(TaskUiEffect.ShowToast(message))
+    }
+}
+
+/**
+ * [TaskViewModel] 手动注入工厂（无 Hilt）。
+ */
+class TaskViewModelFactory(
+    private val repository: TaskRepository,
+) : ViewModelProvider.Factory {
+
+    @Suppress("UNCHECKED_CAST")
+    override fun <T : ViewModel> create(modelClass: Class<T>): T {
+        if (modelClass.isAssignableFrom(TaskViewModel::class.java)) {
+            return TaskViewModel(repository) as T
+        }
+        throw IllegalArgumentException("未知 ViewModel: ${modelClass.name}")
     }
 }

@@ -16,11 +16,13 @@ import kotlinx.coroutines.launch
 /**
  * MVI ViewModel 基类：聚合 [uiState] 与 [uiEffect]，统一协程异常日志。
  *
- * @param State 不可变页面状态
+ * 四件套约定：[BaseUiState]（泛型密封态 + 内层业务 data）、[BaseUiEvent]、[BaseUiEffect]、本类。
+ *
+ * @param State 页面状态，通常为 `BaseUiState<FeatureListData>`
  * @param Event 用户事件
  * @param Effect 一次性副作用
  */
-abstract class BaseViewModel<State : BaseUiState, Event : BaseUiEvent, Effect : BaseUiEffect>(
+abstract class BaseViewModel<State : BaseUiState<*>, Event : BaseUiEvent, Effect : BaseUiEffect>(
     initialState: State,
 ) : ViewModel() {
 

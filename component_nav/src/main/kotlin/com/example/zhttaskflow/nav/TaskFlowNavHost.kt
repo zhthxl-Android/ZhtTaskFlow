@@ -1,6 +1,7 @@
 package com.example.zhttaskflow.nav
 
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.navigation.compose.NavHost
@@ -19,13 +20,15 @@ fun TaskFlowNavHost(
 ) {
     val navController = rememberNavController()
     navigator.bind(navController)
-    NavHost(
-        navController = navController,
-        startDestination = startDestination,
-        modifier = modifier,
-    ) {
-        registry.entries().forEach { entry ->
-            entry.register(this, navController)
+    CompositionLocalProvider(LocalTaskFlowNavigator provides navigator) {
+        NavHost(
+            navController = navController,
+            startDestination = startDestination,
+            modifier = modifier,
+        ) {
+            registry.entries().forEach { entry ->
+                entry.register(this, navController)
+            }
         }
     }
 }

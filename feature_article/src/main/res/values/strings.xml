@@ -1,6 +1,14 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="article_str_module_name">feature_article</string>
-    <!-- 默认文章 API 根地址（须以 / 结尾）；集成时可由 ArticleDataConfig 覆盖 -->
     <string name="article_str_default_api_base_url">https://api.example.com/</string>
+    <string name="article_str_list_title">资讯</string>
+    <string name="article_str_empty_list">暂无资讯</string>
+    <string name="article_str_detail_title">详情 %1$s</string>
+    <string name="article_str_back">返回</string>
+    <string name="article_str_item_meta">%1$s · %2$s · %3$s</string>
+    <string name="article_str_no_more">没有更多了</string>
+    <string name="article_str_load_more_hint">上拉加载更多</string>
+    <string name="article_str_load_more_retry">加载失败，点击重试</string>
+    <string name="article_str_load_failed">加载失败</string>
 </resources>
