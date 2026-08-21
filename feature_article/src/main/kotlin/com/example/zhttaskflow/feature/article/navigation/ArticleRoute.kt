@@ -5,7 +5,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.viewmodel.compose.viewModel
-import com.example.zhttaskflow.feature.article.R
+import com.example.zhttaskflow.core.network.TaskFlowWanAndroidApiConfig
 import com.example.zhttaskflow.feature.article.data.ArticleDataConfig
 import com.example.zhttaskflow.feature.article.data.ArticleRepositoryFactory
 import com.example.zhttaskflow.feature.article.domain.ArticleRepository
@@ -81,7 +81,7 @@ private fun ArticleListRouteHost(
     val context = LocalContext.current
     val resolvedRepository = repository ?: remember(context, articleDataConfig, useMockRemote) {
         val config = articleDataConfig ?: ArticleDataConfig(
-            baseUrl = context.getString(R.string.article_str_default_api_base_url),
+            baseUrl = TaskFlowWanAndroidApiConfig.PRODUCTION_BASE_URL,
         )
         ArticleRepositoryFactory.create(
             context = context,

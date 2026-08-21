@@ -1,7 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="article_str_module_name">feature_article</string>
-    <string name="article_str_default_api_base_url">https://api.example.com/</string>
     <string name="article_str_list_title">资讯</string>
     <string name="article_str_empty_list">暂无资讯</string>
     <string name="article_str_detail_title">详情 %1$s</string>
