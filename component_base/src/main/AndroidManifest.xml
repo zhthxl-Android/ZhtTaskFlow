@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <!-- 网络访问基础权限：Retrofit 远程接口、WebView 加载资讯 H5 等场景必需 -->
+    <uses-permission android:name="android.permission.INTERNET" />
+
+    <!-- 网络连接状态检测：无网异常兜底、连接状态判断等基础能力支撑 -->
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+
+</manifest>
