@@ -7,7 +7,7 @@ import androidx.compose.runtime.remember
 import com.example.zhttaskflow.feature.home.navigation.registerHomeRoutes
 import com.example.zhttaskflow.nav.TaskFlowNavHost
 import com.example.zhttaskflow.nav.rememberTaskFlowNavigator
-import com.example.zhttaskflow.nav.route.TaskFlowNavRoutes
+import com.example.zhttaskflow.nav.route.TaskFlowHomeNavRoutes
 import com.example.zhttaskflow.nav.route.TaskFlowRouteRegistryImpl
 import com.example.zhttaskflow.nav.theme.TaskFlowTheme
 
@@ -33,7 +33,7 @@ class HomeDebugActivity : ComponentActivity() {
                 }
                 TaskFlowNavHost(
                     registry = routeRegistry,
-                    startDestination = TaskFlowNavRoutes.HOME_ROUTE,
+                    startDestination = TaskFlowHomeNavRoutes.HOME_ROUTE,
                     navigator = navigator,
                 )
             }
