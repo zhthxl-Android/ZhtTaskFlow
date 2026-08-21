@@ -10,20 +10,28 @@ import android.webkit.WebView
 import android.webkit.WebViewClient
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.key
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberUpdatedState
+import androidx.compose.runtime.setValue
+import androidx.compose.runtime.State
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.core.view.ViewCompat
+import com.example.zhttaskflow.base.mvi.BaseUiState
+import com.example.zhttaskflow.base.ui.StateBox
 import com.example.zhttaskflow.base.ui.TaskFlowScaffold
+import com.example.zhttaskflow.base.util.NetworkUtil
 import com.example.zhttaskflow.feature.article.R
 
 /**
@@ -40,12 +48,21 @@ fun ArticleDetailScreen(
     onNavigateUp: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    // 仅供 BackHandler 读取当前 WebView，不在 update 中写入，避免与 AndroidView lambda 捕获规则冲突
-    val webViewHolder = remember {
-        object {
-            var webView: WebView? = null
-        }
+    val context = LocalContext.current
+    val appContext = context.applicationContext
+    val networkErrorMessage = stringResource(id = R.string.article_str_network_unavailable)
+    var networkUiState by remember {
+        mutableStateOf<BaseUiState<Unit>>(BaseUiState.Loading)
     }
+
+    LaunchedEffect(detailUrl) {
+        networkUiState = resolveDetailNetworkUiState(
+            context = appContext,
+            networkErrorMessage = networkErrorMessage,
+        )
+    }
+
+    val webViewHolder = remember { ArticleDetailWebViewHolder() }
     val currentDetailUrl = rememberUpdatedState(detailUrl)
     val currentOnNavigateUp = rememberUpdatedState(onNavigateUp)
 
@@ -70,33 +87,71 @@ fun ArticleDetailScreen(
             }
         },
     ) { innerPadding ->
-        // URL 变化时重建 AndroidView，onRelease 与视图实例生命周期对齐
-        key(detailUrl) {
-            // 压制 Compose Lint 对 AndroidView 的 Applier 上下文误报，运行时无任何问题
-            @Suppress("COMPOSE_APPLIER_CALL_MISMATCH")
-            AndroidView(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(innerPadding),
-                factory = { context ->
-                    createArticleWebView(context = context).also { created ->
-                        webViewHolder.webView = created
-                    }
-                },
-                update = { webView ->
-                    val url = currentDetailUrl.value
-                    if (webView.url != url) {
-                        webView.loadUrl(url)
-                    }
-                },
-                onRelease = { webView ->
-                    if (webViewHolder.webView === webView) {
-                        webViewHolder.webView = null
-                    }
-                    releaseArticleWebView(webView)
-                },
+        StateBox(
+            uiState = networkUiState,
+            onRetry = {
+                networkUiState = resolveDetailNetworkUiState(
+                    context = appContext,
+                    networkErrorMessage = networkErrorMessage,
+                )
+            },
+            contentPadding = innerPadding,
+            modifier = Modifier.fillMaxSize(),
+        ) {
+            ArticleDetailWebView(
+                detailUrl = detailUrl,
+                webViewHolder = webViewHolder,
+                currentDetailUrl = currentDetailUrl,
             )
         }
+    }
+}
+
+@Composable
+private fun ArticleDetailWebView(
+    detailUrl: String,
+    webViewHolder: ArticleDetailWebViewHolder,
+    currentDetailUrl: State<String>,
+) {
+    // URL 变化时重建 AndroidView，onRelease 与视图实例生命周期对齐
+    key(detailUrl) {
+        // 压制 Compose Lint 对 AndroidView 的 Applier 上下文误报，运行时无任何问题
+        @Suppress("COMPOSE_APPLIER_CALL_MISMATCH")
+        AndroidView(
+            modifier = Modifier.fillMaxSize(),
+            factory = { context ->
+                createArticleWebView(context = context).also { created ->
+                    webViewHolder.webView = created
+                }
+            },
+            update = { webView ->
+                val url = currentDetailUrl.value
+                if (webView.url != url) {
+                    webView.loadUrl(url)
+                }
+            },
+            onRelease = { webView ->
+                if (webViewHolder.webView === webView) {
+                    webViewHolder.webView = null
+                }
+                releaseArticleWebView(webView)
+            },
+        )
+    }
+}
+
+private class ArticleDetailWebViewHolder {
+    var webView: WebView? = null
+}
+
+private fun resolveDetailNetworkUiState(
+    context: Context,
+    networkErrorMessage: String,
+): BaseUiState<Unit> {
+    return if (NetworkUtil.isNetworkAvailable(context)) {
+        BaseUiState.Success(Unit)
+    } else {
+        BaseUiState.Error(networkErrorMessage)
     }
 }
 
