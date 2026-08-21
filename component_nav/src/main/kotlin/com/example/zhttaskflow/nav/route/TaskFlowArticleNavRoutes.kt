@@ -8,10 +8,11 @@ import android.net.Uri
  * 业务 feature_article 仅引用本对象，不在模块内重复定义路由字符串。
  */
 object TaskFlowArticleNavRoutes {
-    const val LIST: String = "feature_article/list"
-    const val DETAIL: String = "feature_article/detail/{articleId}/{detailUrl}"
+    const val ARTICLE_LIST: String = "feature_article/list"
+    const val ARTICLE_DETAIL: String = "feature_article/detail/{articleId}/{detailUrl}"
     const val ARG_ARTICLE_ID: String = "articleId"
     const val ARG_DETAIL_URL: String = "detailUrl"
+
 
     /**
      * 生成详情页完整导航 path（用于 [com.example.zhttaskflow.nav.TaskFlowNavigator.navigate]）。

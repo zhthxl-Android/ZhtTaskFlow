@@ -28,7 +28,7 @@ import com.example.zhttaskflow.nav.route.stringArgRouteEntry
 sealed interface TaskRoute : TaskFlowRoute {
 
     data object List : TaskRoute {
-        override val route: String = TaskFlowTaskNavRoutes.LIST
+        override val route: String = TaskFlowTaskNavRoutes.TASK_LIST
     }
 
     data class Detail(val taskId: String) : TaskRoute {
@@ -45,13 +45,13 @@ fun registerTaskRoutes(
 ) {
     registry.register(
         simpleRouteEntry(
-            route = TaskFlowTaskNavRoutes.LIST,
+            route = TaskFlowTaskNavRoutes.TASK_LIST,
             content = { TaskListRouteHost() },
         ),
     )
     registry.register(
         stringArgRouteEntry(
-            route = TaskFlowTaskNavRoutes.DETAIL,
+            route = TaskFlowTaskNavRoutes.TASK_DETAIL,
             argumentName = TaskFlowTaskNavRoutes.ARG_TASK_ID,
             content = { taskId ->
                 TaskDetailPlaceholderScreen(taskId = taskId)

@@ -18,8 +18,8 @@ internal fun TaskFlowRouteRegistry.registerAppRoutes(
     registerHomeRoutes(
         registry = this,
         navigator = navigator,
-        taskListRoute = TaskFlowTaskNavRoutes.LIST,
-        articleListRoute = TaskFlowArticleNavRoutes.LIST,
+        taskListRoute = TaskFlowTaskNavRoutes.TASK_LIST,
+        articleListRoute = TaskFlowArticleNavRoutes.ARTICLE_LIST,
         onHomeBackPress = onHomeBackPress,
     )
     registerTaskRoutes(registry = this, navigator = navigator)

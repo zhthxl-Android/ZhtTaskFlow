@@ -28,7 +28,7 @@ import com.example.zhttaskflow.nav.route.twoStringArgsRouteEntry
 sealed interface ArticleRoute : TaskFlowRoute {
 
     data object List : ArticleRoute {
-        override val route: String = TaskFlowArticleNavRoutes.LIST
+        override val route: String = TaskFlowArticleNavRoutes.ARTICLE_LIST
     }
 }
 
@@ -44,7 +44,7 @@ fun registerArticleRoutes(
 ) {
     registry.register(
         simpleRouteEntry(
-            route = TaskFlowArticleNavRoutes.LIST,
+            route = TaskFlowArticleNavRoutes.ARTICLE_LIST,
             content = {
                 ArticleListRouteHost(
                     repository = repository,
@@ -56,7 +56,7 @@ fun registerArticleRoutes(
     )
     registry.register(
         twoStringArgsRouteEntry(
-            route = TaskFlowArticleNavRoutes.DETAIL,
+            route = TaskFlowArticleNavRoutes.ARTICLE_DETAIL,
             firstArgumentName = TaskFlowArticleNavRoutes.ARG_ARTICLE_ID,
             secondArgumentName = TaskFlowArticleNavRoutes.ARG_DETAIL_URL,
             content = { articleId, detailUrl ->

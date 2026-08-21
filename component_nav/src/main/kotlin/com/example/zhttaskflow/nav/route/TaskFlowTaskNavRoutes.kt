@@ -7,9 +7,9 @@ package com.example.zhttaskflow.nav.route
  */
 object TaskFlowTaskNavRoutes {
 
-    const val LIST: String = "feature_task/list"
+    const val TASK_LIST: String = "feature_task/list"
 
-    const val DETAIL: String = "feature_task/detail/{taskId}"
+    const val TASK_DETAIL: String = "feature_task/detail/{taskId}"
 
     const val ARG_TASK_ID: String = "taskId"
 
