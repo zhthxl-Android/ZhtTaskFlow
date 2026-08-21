@@ -1,5 +1,7 @@
 package com.example.zhttaskflow.feature.article.presentation
 
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.ViewModelProvider
 import com.example.zhttaskflow.base.mvi.BaseUiState
 import com.example.zhttaskflow.base.mvi.BaseViewModel
 import com.example.zhttaskflow.base.mvi.getDataOrNull
@@ -8,8 +10,6 @@ import com.example.zhttaskflow.feature.article.domain.ArticlePagingDefaults
 import com.example.zhttaskflow.feature.article.domain.usecase.GetArticlePageUseCase
 import com.example.zhttaskflow.feature.article.domain.usecase.RefreshArticlePageUseCase
 import com.example.zhttaskflow.nav.route.TaskFlowArticleNavRoutes
-import androidx.lifecycle.ViewModel
-import androidx.lifecycle.ViewModelProvider
 
 /**
  * 资讯列表 ViewModel：MVI 单向数据流，通过领域用例调度分页与 UI 状态。
@@ -26,9 +26,15 @@ class ArticleViewModel(
     private val logTag = "ArticleViewModel"
     private val pageSize = ArticlePagingDefaults.DEFAULT_PAGE_SIZE
 
+    // region 初始化入口
+
     init {
         loadFirstPage()
     }
+
+    // endregion
+
+    // region 事件分发
 
     override fun handleEvent(event: ArticleUiEvent) {
         when (event) {
@@ -37,6 +43,10 @@ class ArticleViewModel(
             is ArticleUiEvent.ArticleClicked -> navigateToDetail(event.articleId, event.detailUrl)
         }
     }
+
+    // endregion
+
+    // region 首页加载
 
     private fun loadFirstPage() {
         setState { BaseUiState.Loading }
@@ -63,17 +73,15 @@ class ArticleViewModel(
         }
     }
 
+    // endregion
+
+    // region 下拉刷新
+
     private fun refresh() {
         val current = currentState
         if (current is BaseUiState.Success) {
             setState {
-                BaseUiState.Success(
-                    current.data.copy(
-                        isRefreshing = true,
-                        isLoadingMore = false,
-                        isLoadMoreError = false,
-                    ),
-                )
+                BaseUiState.Success(current.data.withRefreshing())
             }
         }
         launchTask(
@@ -110,6 +118,10 @@ class ArticleViewModel(
         }
     }
 
+    // endregion
+
+    // region 加载更多
+
     private fun loadMore() {
         val state = currentState as? BaseUiState.Success ?: return
         val data = state.data
@@ -117,24 +129,14 @@ class ArticleViewModel(
             return
         }
         setState {
-            BaseUiState.Success(
-                data.copy(
-                    isLoadingMore = true,
-                    isLoadMoreError = false,
-                ),
-            )
+            BaseUiState.Success(data.withLoadingMore())
         }
         val nextPage = data.currentPage + 1
         launchTask(
             tag = logTag,
             onError = { throwable ->
                 setState {
-                    BaseUiState.Success(
-                        data.copy(
-                            isLoadingMore = false,
-                            isLoadMoreError = true,
-                        ),
-                    )
+                    BaseUiState.Success(data.withLoadMoreError())
                 }
                 sendEffect(
                     ArticleUiEffect.ShowToast(
@@ -159,6 +161,10 @@ class ArticleViewModel(
             }
         }
     }
+
+    // endregion
+
+    // region 结果统一处理
 
     private fun applyPageResult(
         page: ArticlePage,
@@ -192,6 +198,10 @@ class ArticleViewModel(
         }
     }
 
+    // endregion
+
+    // region 导航处理
+
     private fun navigateToDetail(articleId: String, detailUrl: String) {
         if (articleId.isBlank() || detailUrl.isBlank()) {
             sendEffect(ArticleUiEffect.ShowToast("无法打开详情"))
@@ -206,7 +216,25 @@ class ArticleViewModel(
             ),
         )
     }
+
+    // endregion
 }
+
+private fun ArticleListData.withRefreshing(): ArticleListData = copy(
+    isRefreshing = true,
+    isLoadingMore = false,
+    isLoadMoreError = false,
+)
+
+private fun ArticleListData.withLoadingMore(): ArticleListData = copy(
+    isLoadingMore = true,
+    isLoadMoreError = false,
+)
+
+private fun ArticleListData.withLoadMoreError(): ArticleListData = copy(
+    isLoadingMore = false,
+    isLoadMoreError = true,
+)
 
 /**
  * [ArticleViewModel] 手动注入工厂（无 Hilt）。

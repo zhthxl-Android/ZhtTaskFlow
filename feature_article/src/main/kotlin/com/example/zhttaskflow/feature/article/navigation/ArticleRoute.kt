@@ -78,6 +78,27 @@ private fun ArticleListRouteHost(
     articleDataConfig: ArticleDataConfig?,
     useMockRemote: Boolean,
 ) {
+    // UI 渲染层：仅获取 ViewModel 并挂载列表页，不含业务逻辑
+    val factory = rememberArticleViewModelFactory(
+        repository = repository,
+        articleDataConfig = articleDataConfig,
+        useMockRemote = useMockRemote,
+    )
+    val viewModel: ArticleViewModel = viewModel(factory = factory)
+    ArticleListScreen(viewModel = viewModel)
+}
+
+/**
+ * 依赖组装层：配置兜底 → Repository → UseCase → [ArticleViewModelFactory]。
+ *
+ * 不包含业务逻辑；[remember] 缓存 key 与生命周期与原 [ArticleListRouteHost] 内联实现一致。
+ */
+@Composable
+private fun rememberArticleViewModelFactory(
+    repository: ArticleRepository?,
+    articleDataConfig: ArticleDataConfig?,
+    useMockRemote: Boolean,
+): ArticleViewModelFactory {
     val context = LocalContext.current
     val resolvedRepository = repository ?: remember(context, articleDataConfig, useMockRemote) {
         val config = articleDataConfig ?: ArticleDataConfig(
@@ -89,7 +110,7 @@ private fun ArticleListRouteHost(
             useMockRemote = useMockRemote,
         )
     }
-    val factory = remember(resolvedRepository) {
+    return remember(resolvedRepository) {
         val getArticlePageUseCase = GetArticlePageUseCase(resolvedRepository)
         val refreshArticlePageUseCase = RefreshArticlePageUseCase(resolvedRepository)
         ArticleViewModelFactory(
@@ -97,6 +118,4 @@ private fun ArticleListRouteHost(
             refreshArticlePageUseCase = refreshArticlePageUseCase,
         )
     }
-    val viewModel: ArticleViewModel = viewModel(factory = factory)
-    ArticleListScreen(viewModel = viewModel)
 }
