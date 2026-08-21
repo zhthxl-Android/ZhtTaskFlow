@@ -62,10 +62,23 @@ fun registerTaskRoutes(
 
 @Composable
 private fun TaskListRouteHost() {
+    // UI 渲染层：仅获取 ViewModel 并挂载列表页，不含业务逻辑
+    val factory = rememberTaskViewModelFactory()
+    val viewModel: TaskViewModel = viewModel(factory = factory)
+    TaskListScreen(viewModel = viewModel)
+}
+
+/**
+ * 依赖组装层：Mock 仓库 → UseCase → [TaskViewModelFactory]。
+ *
+ * 不包含业务逻辑；[remember] 缓存 key 与生命周期与原 [TaskListRouteHost] 内联实现一致。
+ */
+@Composable
+private fun rememberTaskViewModelFactory(): TaskViewModelFactory {
     val repository = remember {
         TaskRepositoryImpl(TaskMockDataSource())
     }
-    val factory = remember(repository) {
+    return remember(repository) {
         TaskViewModelFactory(
             getTaskListUseCase = GetTaskListUseCase(repository),
             addTaskUseCase = AddTaskUseCase(repository),
@@ -73,6 +86,4 @@ private fun TaskListRouteHost() {
             deleteTaskUseCase = DeleteTaskUseCase(repository),
         )
     }
-    val viewModel: TaskViewModel = viewModel(factory = factory)
-    TaskListScreen(viewModel = viewModel)
 }

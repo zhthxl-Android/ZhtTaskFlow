@@ -31,9 +31,15 @@ class TaskViewModel(
 
     private val logTag = "TaskViewModel"
 
+    // region 初始化入口
+
     init {
         loadTasks(isRefresh = false)
     }
+
+    // endregion
+
+    // region 事件分发
 
     override fun handleEvent(event: TaskUiEvent) {
         when (event) {
@@ -43,17 +49,9 @@ class TaskViewModel(
         }
     }
 
-    private fun navigateToTaskDetail(taskId: String) {
-        if (taskId.isBlank()) {
-            sendEffect(TaskUiEffect.ShowToast("任务标识无效"))
-            return
-        }
-        sendEffect(
-            TaskUiEffect.NavigateToEdit(
-                url = TaskFlowTaskNavRoutes.detailPath(taskId),
-            ),
-        )
-    }
+    // endregion
+
+    // region 首页加载与下拉刷新
 
     private fun loadTasks(isRefresh: Boolean) {
         launchTask(
@@ -65,6 +63,10 @@ class TaskViewModel(
             applyLoadSuccess(tasks)
         }
     }
+
+    // endregion
+
+    // region 新增任务
 
     private fun addTask(title: String, content: String) {
         if (title.isBlank()) {
@@ -92,22 +94,26 @@ class TaskViewModel(
         }
     }
 
+    // endregion
+
+    // region 结果处理
+
     private fun applyLoadingState(isRefresh: Boolean) {
         setState {
             when (this) {
                 is BaseUiState.Success -> {
-                    BaseUiState.Success(data.copy(isRefreshing = isRefresh))
+                    BaseUiState.Success(data.withRefreshingFlag(isRefresh))
                 }
                 is BaseUiState.Error -> {
                     if (isRefresh) {
-                        BaseUiState.Success(TaskListData(isRefreshing = true))
+                        BaseUiState.Success(TaskListData().withRefreshing())
                     } else {
                         BaseUiState.Loading
                     }
                 }
                 BaseUiState.Empty -> {
                     if (isRefresh) {
-                        BaseUiState.Success(TaskListData(isRefreshing = true))
+                        BaseUiState.Success(TaskListData().withRefreshing())
                     } else {
                         BaseUiState.Loading
                     }
@@ -145,14 +151,39 @@ class TaskViewModel(
         if (hasTasks) {
             setState {
                 val data = (this as BaseUiState.Success).data
-                BaseUiState.Success(data.copy(isRefreshing = false))
+                BaseUiState.Success(data.withRefreshEnded())
             }
         } else {
             setState { BaseUiState.Error(message) }
         }
         sendEffect(TaskUiEffect.ShowToast(message))
     }
+
+    // endregion
+
+    // region 导航处理
+
+    private fun navigateToTaskDetail(taskId: String) {
+        if (taskId.isBlank()) {
+            sendEffect(TaskUiEffect.ShowToast("任务标识无效"))
+            return
+        }
+        sendEffect(
+            TaskUiEffect.NavigateToEdit(
+                url = TaskFlowTaskNavRoutes.detailPath(taskId),
+            ),
+        )
+    }
+
+    // endregion
 }
+
+private fun TaskListData.withRefreshing(): TaskListData = copy(isRefreshing = true)
+
+private fun TaskListData.withRefreshingFlag(isRefreshing: Boolean): TaskListData =
+    copy(isRefreshing = isRefreshing)
+
+private fun TaskListData.withRefreshEnded(): TaskListData = copy(isRefreshing = false)
 
 /**
  * [TaskViewModel] 手动注入工厂（无 Hilt）。
