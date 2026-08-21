@@ -19,15 +19,31 @@ internal class HomeViewModel(
     initialState = BaseUiState.Success(initialPageData),
 ) {
 
+    // region 初始化入口
+
     init {
         // 预留：后续可改为 setState(Loading) + launchTask { loadHomePageUseCase() }
     }
+
+    // endregion
+
+    // region 事件分发
 
     override fun handleEvent(event: HomeUiEvent) {
         when (event) {
             is HomeUiEvent.EntranceClicked -> onEntranceClicked(event.entranceId)
         }
     }
+
+    // endregion
+
+    // region 数据加载
+
+    // 当前首页数据由路由层注入 [HomePageData]；无异步加载逻辑。
+
+    // endregion
+
+    // region 入口跳转
 
     private fun onEntranceClicked(entranceId: String) {
         val route = entranceRouteById[entranceId]
@@ -36,6 +52,8 @@ internal class HomeViewModel(
         }
         sendEffect(HomeUiEffect.NavigateToRoute(url = route))
     }
+
+    // endregion
 }
 
 /**
