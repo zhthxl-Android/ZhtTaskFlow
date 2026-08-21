@@ -1,7 +1,8 @@
 package com.example.zhttaskflow.feature.article.data.remote
 
-import com.example.zhttaskflow.feature.article.data.ArticleDataConstants
+import com.example.zhttaskflow.feature.article.api.ArticleApiPaths
 import retrofit2.http.GET
+import retrofit2.http.Path
 import retrofit2.http.Query
 
 /**
@@ -10,14 +11,14 @@ import retrofit2.http.Query
 interface ArticleApi {
 
     /**
-     * 拉取分页文章列表。
+     * 拉取玩 Android 首页文章分页列表。
      *
-     * @param page 页码（从 1 开始）
-     * @param pageSize 每页条数
+     * @param page 页码，从 **0** 开始，对应路径占位符 `{page}`
+     * @param pageSize 每页条数，对应 query 参数 `page_size`（取值 1–40）
      */
-    @GET(ArticleDataConstants.API_PATH_ARTICLES)
+    @GET(ArticleApiPaths.ARTICLE_LIST)
     suspend fun getArticles(
-        @Query("page") page: Int,
-        @Query("pageSize") pageSize: Int,
+        @Path("page") page: Int,
+        @Query("page_size") pageSize: Int,
     ): ArticlePageDto
 }

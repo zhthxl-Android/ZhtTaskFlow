@@ -26,7 +26,9 @@ class ArticleRemoteDataSource(
 
     override suspend fun fetchPage(page: Int, pageSize: Int): ApiResult<ArticlePage> {
         return safeApiCall(tag = logTag) {
-            val dto = articleApi.getArticles(page = page, pageSize = pageSize)
+            // 领域层页码从 1 开始，玩 Android 接口 path 中 page 从 0 开始
+            val apiPage = (page - 1).coerceAtLeast(0)
+            val dto = articleApi.getArticles(page = apiPage, pageSize = pageSize)
             ArticleMapper.pageDtoToDomain(dto)
         }
     }

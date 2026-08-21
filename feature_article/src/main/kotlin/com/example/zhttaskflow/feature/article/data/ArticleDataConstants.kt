@@ -1,11 +1,10 @@
 package com.example.zhttaskflow.feature.article.data
 
 /**
- * 文章数据层常量：网络路径、数据库名等（无硬编码魔法字符串散落）。
+ * 文章数据层常量：数据库、默认文案、兜底配置（无硬编码魔法字符串散落）。
  */
 internal object ArticleDataConstants {
     const val DATABASE_NAME = "article_feature.db"
-    const val API_PATH_ARTICLES = "articles"
 
     /** 列表默认分类展示文案（DTO 未返回时使用） */
     const val DEFAULT_CATEGORY = "资讯"
