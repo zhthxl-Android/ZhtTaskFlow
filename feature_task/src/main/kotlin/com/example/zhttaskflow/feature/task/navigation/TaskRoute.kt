@@ -1,7 +1,10 @@
 package com.example.zhttaskflow.feature.task.navigation
 
+import android.widget.Toast
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.remember
+import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.zhttaskflow.feature.task.data.TaskMockDataSource
 import com.example.zhttaskflow.feature.task.data.TaskRepositoryImpl
@@ -11,8 +14,10 @@ import com.example.zhttaskflow.feature.task.domain.usecase.GetTaskListUseCase
 import com.example.zhttaskflow.feature.task.domain.usecase.UpdateTaskUseCase
 import com.example.zhttaskflow.feature.task.presentation.TaskDetailPlaceholderScreen
 import com.example.zhttaskflow.feature.task.presentation.TaskListScreen
+import com.example.zhttaskflow.feature.task.presentation.TaskUiEffect
 import com.example.zhttaskflow.feature.task.presentation.TaskViewModel
 import com.example.zhttaskflow.feature.task.presentation.TaskViewModelFactory
+import com.example.zhttaskflow.nav.LocalTaskFlowNavigator
 import com.example.zhttaskflow.nav.TaskFlowNavigator
 import com.example.zhttaskflow.nav.route.TaskFlowRoute
 import com.example.zhttaskflow.nav.route.TaskFlowRouteRegistry
@@ -23,7 +28,7 @@ import com.example.zhttaskflow.nav.route.stringArgRouteEntry
 /**
  * 任务模块路由注册入口（路由常量统一引用 [TaskFlowTaskNavRoutes]）。
  *
- * 跳转范式：ViewModel 通过 [com.example.zhttaskflow.feature.task.presentation.TaskUiEffect.NavigateToEdit] 下发路由 path，UI 层消费。
+ * 跳转范式：ViewModel 通过 [com.example.zhttaskflow.feature.task.presentation.TaskUiEffect.NavigateToEdit] 下发路由 path，路由宿主消费。
  */
 sealed interface TaskRoute : TaskFlowRoute {
 
@@ -62,9 +67,24 @@ fun registerTaskRoutes(
 
 @Composable
 private fun TaskListRouteHost() {
-    // UI 渲染层：仅获取 ViewModel 并挂载列表页，不含业务逻辑
+    val context = LocalContext.current
+    val navigator = LocalTaskFlowNavigator.current
     val factory = rememberTaskViewModelFactory()
     val viewModel: TaskViewModel = viewModel(factory = factory)
+
+    LaunchedEffect(viewModel) {
+        viewModel.uiEffect.collect { effect ->
+            when (effect) {
+                is TaskUiEffect.ShowToast -> {
+                    Toast.makeText(context, effect.message, Toast.LENGTH_SHORT).show()
+                }
+                is TaskUiEffect.NavigateToEdit -> {
+                    navigator.navigate(effect.url)
+                }
+            }
+        }
+    }
+
     TaskListScreen(viewModel = viewModel)
 }
 

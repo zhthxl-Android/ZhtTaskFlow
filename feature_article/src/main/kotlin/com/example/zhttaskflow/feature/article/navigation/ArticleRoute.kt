@@ -1,7 +1,9 @@
 package com.example.zhttaskflow.feature.article.navigation
 
 import android.net.Uri
+import android.widget.Toast
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.remember
 import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -13,6 +15,7 @@ import com.example.zhttaskflow.feature.article.domain.usecase.GetArticlePageUseC
 import com.example.zhttaskflow.feature.article.domain.usecase.RefreshArticlePageUseCase
 import com.example.zhttaskflow.feature.article.presentation.ArticleDetailScreen
 import com.example.zhttaskflow.feature.article.presentation.ArticleListScreen
+import com.example.zhttaskflow.feature.article.presentation.ArticleUiEffect
 import com.example.zhttaskflow.feature.article.presentation.ArticleViewModel
 import com.example.zhttaskflow.feature.article.presentation.ArticleViewModelFactory
 import com.example.zhttaskflow.nav.LocalTaskFlowNavigator
@@ -78,13 +81,28 @@ private fun ArticleListRouteHost(
     articleDataConfig: ArticleDataConfig?,
     useMockRemote: Boolean,
 ) {
-    // UI 渲染层：仅获取 ViewModel 并挂载列表页，不含业务逻辑
+    val context = LocalContext.current
+    val navigator = LocalTaskFlowNavigator.current
     val factory = rememberArticleViewModelFactory(
         repository = repository,
         articleDataConfig = articleDataConfig,
         useMockRemote = useMockRemote,
     )
     val viewModel: ArticleViewModel = viewModel(factory = factory)
+
+    LaunchedEffect(viewModel) {
+        viewModel.uiEffect.collect { effect ->
+            when (effect) {
+                is ArticleUiEffect.ShowToast -> {
+                    Toast.makeText(context, effect.message, Toast.LENGTH_SHORT).show()
+                }
+                is ArticleUiEffect.NavigateToDetail -> {
+                    navigator.navigate(effect.url)
+                }
+            }
+        }
+    }
+
     ArticleListScreen(viewModel = viewModel)
 }
 

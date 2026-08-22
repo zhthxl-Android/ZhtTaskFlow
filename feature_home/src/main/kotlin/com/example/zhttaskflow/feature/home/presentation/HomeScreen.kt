@@ -17,25 +17,28 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import com.example.zhttaskflow.base.extension.collectUiStateWithLifecycle
 import com.example.zhttaskflow.base.ui.StateBox
 import com.example.zhttaskflow.base.ui.TaskFlowScaffold
 import com.example.zhttaskflow.feature.home.R
 import com.example.zhttaskflow.feature.home.domain.HomeEntranceIds
 
 /**
- * 首页纯 UI：仅根据 [uiState] 渲染，通过 [onEvent] 上报用户交互，不包含导航与业务编排。
+ * 首页纯 UI：订阅 [HomeViewModel] 状态并分发 [HomeUiEvent]，不包含导航与副作用消费。
  */
 @Composable
 internal fun HomeScreen(
-    uiState: HomeUiState,
-    onEvent: (HomeUiEvent) -> Unit,
+    viewModel: HomeViewModel,
     modifier: Modifier = Modifier,
 ) {
+    val uiState by viewModel.uiState.collectUiStateWithLifecycle()
+
     TaskFlowScaffold(
         modifier = modifier,
         title = stringResource(id = R.string.home_str_home_title),
@@ -49,7 +52,7 @@ internal fun HomeScreen(
             HomeEntranceList(
                 entrances = data.entrances,
                 onEntranceClick = { entranceId ->
-                    onEvent(HomeUiEvent.EntranceClicked(entranceId = entranceId))
+                    viewModel.onEvent(HomeUiEvent.EntranceClicked(entranceId = entranceId))
                 },
             )
         }
