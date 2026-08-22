@@ -68,7 +68,7 @@ internal fun NavGraphBuilder.registerHomeRoutes(
 }
 
 /**
- * 首页路由宿主：组装 ViewModel、导航器与 [HomeScreen]，消费 [HomeUiEffect] 完成跳转。
+ * 首页路由宿主：组装 ViewModel、导航器与 [HomeScreen]；仅消费跨页面导航类 [HomeUiEffect]。
  */
 @Composable
 private fun HomeRouteHost(

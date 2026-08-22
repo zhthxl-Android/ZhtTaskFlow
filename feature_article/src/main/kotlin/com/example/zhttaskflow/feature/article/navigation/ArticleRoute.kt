@@ -1,7 +1,6 @@
 package com.example.zhttaskflow.feature.article.navigation
 
 import android.net.Uri
-import android.widget.Toast
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.remember
@@ -81,7 +80,6 @@ private fun ArticleListRouteHost(
     articleDataConfig: ArticleDataConfig?,
     useMockRemote: Boolean,
 ) {
-    val context = LocalContext.current
     val navigator = LocalTaskFlowNavigator.current
     val factory = rememberArticleViewModelFactory(
         repository = repository,
@@ -93,11 +91,11 @@ private fun ArticleListRouteHost(
     LaunchedEffect(viewModel) {
         viewModel.uiEffect.collect { effect ->
             when (effect) {
-                is ArticleUiEffect.ShowToast -> {
-                    Toast.makeText(context, effect.message, Toast.LENGTH_SHORT).show()
-                }
                 is ArticleUiEffect.NavigateToDetail -> {
                     navigator.navigate(effect.url)
+                }
+                is ArticleUiEffect.ShowToast -> {
+                    // 页面内 UI 反馈：由 ArticleListScreen 消费，RouteHost 不处理
                 }
             }
         }

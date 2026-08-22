@@ -1,10 +1,8 @@
 package com.example.zhttaskflow.feature.task.navigation
 
-import android.widget.Toast
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.remember
-import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.zhttaskflow.feature.task.data.TaskMockDataSource
 import com.example.zhttaskflow.feature.task.data.TaskRepositoryImpl
@@ -67,7 +65,6 @@ fun registerTaskRoutes(
 
 @Composable
 private fun TaskListRouteHost() {
-    val context = LocalContext.current
     val navigator = LocalTaskFlowNavigator.current
     val factory = rememberTaskViewModelFactory()
     val viewModel: TaskViewModel = viewModel(factory = factory)
@@ -75,11 +72,11 @@ private fun TaskListRouteHost() {
     LaunchedEffect(viewModel) {
         viewModel.uiEffect.collect { effect ->
             when (effect) {
-                is TaskUiEffect.ShowToast -> {
-                    Toast.makeText(context, effect.message, Toast.LENGTH_SHORT).show()
-                }
                 is TaskUiEffect.NavigateToEdit -> {
                     navigator.navigate(effect.url)
+                }
+                is TaskUiEffect.ShowToast -> {
+                    // 页面内 UI 反馈：由 TaskListScreen 消费，RouteHost 不处理
                 }
             }
         }

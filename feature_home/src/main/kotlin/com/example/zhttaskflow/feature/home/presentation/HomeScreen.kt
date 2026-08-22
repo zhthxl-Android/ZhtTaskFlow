@@ -17,6 +17,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -30,7 +31,7 @@ import com.example.zhttaskflow.feature.home.R
 import com.example.zhttaskflow.feature.home.domain.HomeEntranceIds
 
 /**
- * 首页纯 UI：订阅 [HomeViewModel] 状态并分发 [HomeUiEvent]，不包含导航与副作用消费。
+ * 首页纯 UI：订阅状态并分发事件；消费全部页面内 UI 类 [HomeUiEffect]（导航类由路由宿主处理）。
  */
 @Composable
 internal fun HomeScreen(
@@ -38,6 +39,16 @@ internal fun HomeScreen(
     modifier: Modifier = Modifier,
 ) {
     val uiState by viewModel.uiState.collectUiStateWithLifecycle()
+
+    LaunchedEffect(viewModel) {
+        viewModel.uiEffect.collect { effect ->
+            when (effect) {
+                is HomeUiEffect.NavigateToRoute -> {
+                    // 跨页面导航：由 HomeRouteHost 消费，Screen 不处理
+                }
+            }
+        }
+    }
 
     TaskFlowScaffold(
         modifier = modifier,

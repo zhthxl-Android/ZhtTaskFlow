@@ -5,11 +5,12 @@ import androidx.lifecycle.viewModelScope
 import com.example.zhttaskflow.base.foundation.TaskFlowLogger
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.channels.Channel
-import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
@@ -29,8 +30,8 @@ abstract class BaseViewModel<State : BaseUiState<*>, Event : BaseUiEvent, Effect
     private val _uiState = MutableStateFlow(initialState)
     val uiState: StateFlow<State> = _uiState.asStateFlow()
 
-    private val _uiEffect = Channel<Effect>(Channel.BUFFERED)
-    val uiEffect: Flow<Effect> = _uiEffect.receiveAsFlow()
+    private val _uiEffect = MutableSharedFlow<Effect>(extraBufferCapacity = Channel.BUFFERED)
+    val uiEffect: SharedFlow<Effect> = _uiEffect.asSharedFlow()
 
     /** 当前快照，供子类读取 */
     protected val currentState: State
@@ -50,11 +51,11 @@ abstract class BaseViewModel<State : BaseUiState<*>, Event : BaseUiEvent, Effect
     }
 
     /**
-     * 发送一次性副作用，在 [viewModelScope] 内写入 Channel。
+     * 发送一次性副作用，在 [viewModelScope] 内写入 SharedFlow（支持多订阅方分别消费）。
      */
     protected fun sendEffect(effect: Effect) {
         viewModelScope.launch {
-            _uiEffect.send(effect)
+            _uiEffect.emit(effect)
         }
     }
 
