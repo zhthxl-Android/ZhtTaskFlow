@@ -1,5 +1,12 @@
 package com.example.zhttaskflow.feature.home.standalone
 
 import android.app.Application
+import com.example.zhttaskflow.core.network.bindTaskFlowNetworkDiagnostics
 
-class FeatureHomeStandaloneApplication : Application()
+class FeatureHomeStandaloneApplication : Application() {
+
+    override fun onCreate() {
+        super.onCreate()
+        bindTaskFlowNetworkDiagnostics(applicationContext)
+    }
+}

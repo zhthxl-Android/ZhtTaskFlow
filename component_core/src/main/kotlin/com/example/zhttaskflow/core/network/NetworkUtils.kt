@@ -4,22 +4,34 @@ import android.content.Context
 import android.content.pm.ApplicationInfo
 
 /**
- * 网络诊断开关：由 [RetrofitServiceFactory] 在首次构建 OkHttp 时同步宿主 debuggable 状态。
- *
- * 用于 [safeApiCall] 等数据层仅在 Debug 安装包输出详细诊断，Release 不重复打印 Error 堆栈。
+ * 网络诊断开关：由宿主 [bindTaskFlowNetworkDiagnostics] 或 [RetrofitServiceFactory.createApi] 兜底同步。
  */
 internal object TaskFlowNetworkDiagnostics {
 
     @Volatile
     var isDebuggable: Boolean = false
 
+    @Volatile
+    private var initialized: Boolean = false
+
     fun syncFrom(context: Context) {
         isDebuggable = context.isAppDebuggable()
+        initialized = true
+    }
+
+    /**
+     * 未初始化时从 [context] 同步一次；已初始化则直接返回（幂等）。
+     */
+    fun ensureSyncFrom(context: Context) {
+        if (initialized) {
+            return
+        }
+        syncFrom(context)
     }
 }
 
 /**
- * 在 Application 或首次发起网络请求前调用，同步 Debug/Release 下 [safeApiCall] 的日志策略。
+ * 宿主 Application 正式初始化入口：启动时同步 Debug/Release 下数据层日志策略。
  */
 fun bindTaskFlowNetworkDiagnostics(context: Context) {
     TaskFlowNetworkDiagnostics.syncFrom(context)

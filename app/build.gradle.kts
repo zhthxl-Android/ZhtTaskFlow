@@ -19,6 +19,8 @@ val homeStandalone = providers.gradleProperty("feature.home.standalone")
     .orElse(false)
 
 dependencies {
+    // 壳工程统一初始化 component_core 能力（如网络诊断开关），不承载业务逻辑
+    implementation(project(":component_core"))
     // component_nav 已通过 api 传递 component_base（coroutines、core-ktx 等），无需重复声明 base
     implementation(project(":component_nav"))
     if (!homeStandalone.get()) {

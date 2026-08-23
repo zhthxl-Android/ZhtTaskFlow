@@ -38,6 +38,7 @@ object RetrofitServiceFactory {
             "Retrofit baseUrl 必须以 / 结尾: $baseUrl"
         }
         val appContext = context.applicationContext
+        TaskFlowNetworkDiagnostics.ensureSyncFrom(appContext)
         val client = obtainOkHttpClient(appContext, extraInterceptors, defaultHeaders)
         val retrofit = obtainRetrofit(baseUrl, client)
         return retrofit.create(serviceClass)
@@ -82,7 +83,6 @@ object RetrofitServiceFactory {
     }
 
     private fun buildSharedOkHttpClient(context: Context): OkHttpClient {
-        TaskFlowNetworkDiagnostics.syncFrom(context)
         val builder = OkHttpClient.Builder()
             .connectTimeout(
                 TaskFlowNetworkDefaults.CONNECT_TIMEOUT_SECONDS,
@@ -98,7 +98,7 @@ object RetrofitServiceFactory {
             )
             .addInterceptor(TaskFlowHeaderInterceptor { emptyMap() })
             .addInterceptor(TaskFlowResponseInterceptor())
-        if (context.isAppDebuggable()) {
+        if (TaskFlowNetworkDiagnostics.isDebuggable) {
             builder.addInterceptor(
                 HttpLoggingInterceptor().apply {
                     level = HttpLoggingInterceptor.Level.BODY

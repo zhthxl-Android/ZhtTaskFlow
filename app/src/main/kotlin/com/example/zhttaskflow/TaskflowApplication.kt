@@ -1,6 +1,13 @@
 package com.example.zhttaskflow
 
 import android.app.Application
+import com.example.zhttaskflow.core.network.bindTaskFlowNetworkDiagnostics
 
-/** 壳 Application：无 DI、无业务初始化 */
-class TaskFlowApplication : Application()
+/** 壳 Application：全局同步网络/数据层 Debug 诊断开关。 */
+class TaskFlowApplication : Application() {
+
+    override fun onCreate() {
+        super.onCreate()
+        bindTaskFlowNetworkDiagnostics(applicationContext)
+    }
+}
