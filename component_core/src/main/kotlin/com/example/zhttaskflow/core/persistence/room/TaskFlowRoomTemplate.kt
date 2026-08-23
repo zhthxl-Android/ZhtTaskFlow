@@ -3,10 +3,8 @@ package com.example.zhttaskflow.core.persistence.room
 import android.content.Context
 import androidx.room.Room
 import androidx.room.RoomDatabase
-import android.util.Log
-import com.example.zhttaskflow.base.foundation.TaskFlowIllegalStateException
-import com.example.zhttaskflow.base.foundation.TaskFlowLogger
-import com.example.zhttaskflow.core.network.TaskFlowNetworkDiagnostics
+import com.example.zhttaskflow.core.foundation.TaskFlowIllegalStateException
+import com.example.zhttaskflow.core.log.TaskFlowLogger
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -76,7 +74,7 @@ object TaskFlowRoomTemplate {
                     config.databaseName,
                 ).build()
             } catch (throwable: Throwable) {
-                logRoomDebug(
+                logRoomFailure(
                     tag = DEFAULT_LOG_TAG,
                     summary = "打开 Room 数据库失败 name=${config.databaseName}",
                     throwable = throwable,
@@ -95,7 +93,7 @@ object TaskFlowRoomTemplate {
         } catch (cancellation: CancellationException) {
             throw cancellation
         } catch (throwable: Throwable) {
-            logRoomDebug(
+            logRoomFailure(
                 tag = tag,
                 summary = throwable.message ?: "Room 操作失败",
                 throwable = throwable,
@@ -107,17 +105,11 @@ object TaskFlowRoomTemplate {
         }
     }
 
-    private fun logRoomDebug(
+    private fun logRoomFailure(
         tag: String,
         summary: String,
         throwable: Throwable,
     ) {
-        if (!TaskFlowNetworkDiagnostics.isDebuggable) {
-            return
-        }
-        TaskFlowLogger.d(
-            tag,
-            "$summary\n${Log.getStackTraceString(throwable)}",
-        )
+        TaskFlowLogger.d(tag, throwable) { summary }
     }
 }

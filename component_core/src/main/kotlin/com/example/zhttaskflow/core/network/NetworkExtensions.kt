@@ -1,7 +1,7 @@
 package com.example.zhttaskflow.core.network
 
-import com.example.zhttaskflow.base.foundation.TaskFlowIllegalStateException
-import com.example.zhttaskflow.base.foundation.TaskFlowNetworkException
+import com.example.zhttaskflow.core.foundation.TaskFlowIllegalStateException
+import com.example.zhttaskflow.core.foundation.TaskFlowNetworkException
 import com.google.gson.JsonIOException
 import com.google.gson.JsonSyntaxException
 import kotlinx.coroutines.CancellationException

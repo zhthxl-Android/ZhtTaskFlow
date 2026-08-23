@@ -1,4 +1,4 @@
-package com.example.zhttaskflow.base.foundation
+package com.example.zhttaskflow.core.foundation
 
 /**
  * TaskFlow 业务异常基类。

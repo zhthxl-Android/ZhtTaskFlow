@@ -5,3 +5,7 @@ plugins {
 taskFlow {
     resourcePrefix.set("base_")
 }
+
+dependencies {
+    implementation(project(":component_core"))
+}

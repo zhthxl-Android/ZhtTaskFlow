@@ -1,7 +1,6 @@
 package com.example.zhttaskflow.core.persistence.datastore
 
 import android.content.Context
-import android.util.Log
 import androidx.datastore.core.DataStore
 import androidx.datastore.core.IOException as DataStoreIOException
 import androidx.datastore.preferences.core.Preferences
@@ -11,9 +10,8 @@ import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.intPreferencesKey
 import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.preferencesDataStoreFile
-import com.example.zhttaskflow.base.foundation.TaskFlowIllegalStateException
-import com.example.zhttaskflow.base.foundation.TaskFlowLogger
-import com.example.zhttaskflow.core.network.TaskFlowNetworkDiagnostics
+import com.example.zhttaskflow.core.foundation.TaskFlowIllegalStateException
+import com.example.zhttaskflow.core.log.TaskFlowLogger
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
@@ -89,21 +87,15 @@ private suspend fun DataStore<Preferences>.runDataStoreIo(
         } catch (cancellation: kotlinx.coroutines.CancellationException) {
             throw cancellation
         } catch (io: DataStoreIOException) {
-            logDataStoreDebug("DataStore IO 失败: $operation", io)
+            logDataStoreFailure("DataStore IO 失败: $operation", io)
             throw TaskFlowIllegalStateException(message = "本地偏好存储失败", cause = io)
         } catch (throwable: Throwable) {
-            logDataStoreDebug("DataStore 操作失败: $operation", throwable)
+            logDataStoreFailure("DataStore 操作失败: $operation", throwable)
             throw TaskFlowIllegalStateException(message = "本地偏好存储失败", cause = throwable)
         }
     }
 }
 
-private fun logDataStoreDebug(summary: String, throwable: Throwable) {
-    if (!TaskFlowNetworkDiagnostics.isDebuggable) {
-        return
-    }
-    TaskFlowLogger.d(
-        DATA_STORE_LOG_TAG,
-        "$summary\n${Log.getStackTraceString(throwable)}",
-    )
+private fun logDataStoreFailure(summary: String, throwable: Throwable) {
+    TaskFlowLogger.d(DATA_STORE_LOG_TAG, throwable) { summary }
 }

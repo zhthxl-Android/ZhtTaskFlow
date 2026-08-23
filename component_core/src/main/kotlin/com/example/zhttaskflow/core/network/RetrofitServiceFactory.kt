@@ -98,7 +98,7 @@ object RetrofitServiceFactory {
             )
             .addInterceptor(TaskFlowHeaderInterceptor { emptyMap() })
             .addInterceptor(TaskFlowResponseInterceptor())
-        if (TaskFlowNetworkDiagnostics.isDebuggable) {
+        if (isTaskFlowDebugLoggingEnabled()) {
             builder.addInterceptor(
                 HttpLoggingInterceptor().apply {
                     level = HttpLoggingInterceptor.Level.BODY

@@ -2,10 +2,9 @@ package com.example.zhttaskflow.base.mvi
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.zhttaskflow.base.foundation.TaskFlowLogger
+import com.example.zhttaskflow.core.log.TaskFlowLogger
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.channels.BufferOverflow
-import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharedFlow
@@ -77,9 +76,9 @@ abstract class BaseViewModel<State : BaseUiState<*>, Event : BaseUiEvent, Effect
                 throw cancellation
             } catch (throwable: Throwable) {
                 val scenePrefix = scene?.let { "[$it] " }.orEmpty()
-                TaskFlowLogger.e(
+                TaskFlowLogger.errorAlways(
                     tag,
-                    "$scenePrefix${throwable.message ?: "协程任务失败"}",
+                    { "$scenePrefix${throwable.message ?: "协程任务失败"}" },
                     throwable,
                 )
                 onError?.invoke(throwable)

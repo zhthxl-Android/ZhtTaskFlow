@@ -1,8 +1,7 @@
 package com.example.zhttaskflow.feature.article.data.local
 
 import android.content.Context
-import com.example.zhttaskflow.base.foundation.TaskFlowLogger
-import com.example.zhttaskflow.core.network.isTaskFlowDebugLoggingEnabled
+import com.example.zhttaskflow.core.log.TaskFlowLogger
 import com.example.zhttaskflow.core.persistence.room.TaskFlowRoomConfig
 import com.example.zhttaskflow.core.persistence.room.TaskFlowRoomTemplate
 import com.example.zhttaskflow.feature.article.data.ArticleDataConstants
@@ -76,9 +75,6 @@ class ArticleLocalDataSource private constructor(
     }
 
     private fun logLocalDebug(message: String) {
-        if (!isTaskFlowDebugLoggingEnabled()) {
-            return
-        }
-        TaskFlowLogger.d(LOCAL_DATA_SOURCE_LOG_TAG, message)
+        TaskFlowLogger.d(LOCAL_DATA_SOURCE_LOG_TAG) { message }
     }
 }

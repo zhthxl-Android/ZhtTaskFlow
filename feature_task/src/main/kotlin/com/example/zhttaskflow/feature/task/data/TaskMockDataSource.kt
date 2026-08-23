@@ -1,8 +1,7 @@
 package com.example.zhttaskflow.feature.task.data
 
-import com.example.zhttaskflow.base.foundation.TaskFlowIllegalStateException
-import com.example.zhttaskflow.base.foundation.TaskFlowLogger
-import com.example.zhttaskflow.core.network.isTaskFlowDebugLoggingEnabled
+import com.example.zhttaskflow.core.foundation.TaskFlowIllegalStateException
+import com.example.zhttaskflow.core.log.TaskFlowLogger
 import com.example.zhttaskflow.feature.task.domain.Task
 import com.example.zhttaskflow.feature.task.domain.TaskStatus
 import kotlinx.coroutines.sync.Mutex
@@ -89,9 +88,6 @@ class TaskMockDataSource {
     }
 
     private fun logTaskDataDebug(message: String) {
-        if (!isTaskFlowDebugLoggingEnabled()) {
-            return
-        }
-        TaskFlowLogger.d(TASK_DATA_SOURCE_LOG_TAG, message)
+        TaskFlowLogger.d(TASK_DATA_SOURCE_LOG_TAG) { message }
     }
 }

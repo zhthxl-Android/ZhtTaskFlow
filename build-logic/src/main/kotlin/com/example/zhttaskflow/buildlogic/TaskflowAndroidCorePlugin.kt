@@ -8,8 +8,7 @@ import org.gradle.kotlin.dsl.dependencies
  * 基础设施约定插件：复用 [TaskFlowAndroidLibraryPlugin]，在 **component_core** 内装配第三方能力。
  *
  * ## 依赖隔离（防腐层）
- * - **api**：仅 [component_base]（基础能力向上传递）
- * - **implementation**：Retrofit、OkHttp、Room、DataStore、Coil 等具体技术栈，**不向 feature / app 透传**
+ * - **api**：无业务 base 依赖（异常与日志收口在 core）；第三方能力 **implementation** 不透传
  *
  * 业务模块仅通过 core 包下的封装类访问能力（如 [com.example.zhttaskflow.core.network.ApiResult]、
  * [com.example.zhttaskflow.core.network.safeApiCall]、[com.example.zhttaskflow.core.persistence.room.TaskFlowRoomTemplate]），
@@ -29,8 +28,6 @@ class TaskFlowAndroidCorePlugin : Plugin<Project> {
     private fun Project.injectCoreDependencies() {
         val catalog = libsCatalog()
         dependencies {
-            add("api", project(":component_base"))
-
             add("implementation", catalog.findLibrary("retrofit").get())
             add("implementation", catalog.findLibrary("retrofit-converter-gson").get())
             add("implementation", catalog.findLibrary("okhttp").get())
