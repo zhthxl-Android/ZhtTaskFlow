@@ -4,6 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.zhttaskflow.base.foundation.TaskFlowLogger
 import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.channels.BufferOverflow
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -30,7 +31,10 @@ abstract class BaseViewModel<State : BaseUiState<*>, Event : BaseUiEvent, Effect
     private val _uiState = MutableStateFlow(initialState)
     val uiState: StateFlow<State> = _uiState.asStateFlow()
 
-    private val _uiEffect = MutableSharedFlow<Effect>(extraBufferCapacity = Channel.BUFFERED)
+    private val _uiEffect = MutableSharedFlow<Effect>(
+        extraBufferCapacity = 2,
+        onBufferOverflow = BufferOverflow.DROP_OLDEST
+    )
     val uiEffect: SharedFlow<Effect> = _uiEffect.asSharedFlow()
 
     /** 当前快照，供子类读取 */
@@ -54,9 +58,7 @@ abstract class BaseViewModel<State : BaseUiState<*>, Event : BaseUiEvent, Effect
      * 发送一次性副作用，在 [viewModelScope] 内写入 SharedFlow（支持多订阅方分别消费）。
      */
     protected fun sendEffect(effect: Effect) {
-        viewModelScope.launch {
-            _uiEffect.emit(effect)
-        }
+        _uiEffect.tryEmit(effect)
     }
 
     /**
@@ -64,6 +66,7 @@ abstract class BaseViewModel<State : BaseUiState<*>, Event : BaseUiEvent, Effect
      */
     protected fun launchTask(
         tag: String = "BaseViewModel",
+        scene: String? = null,
         onError: ((Throwable) -> Unit)? = null,
         block: suspend () -> Unit,
     ) {
@@ -73,7 +76,12 @@ abstract class BaseViewModel<State : BaseUiState<*>, Event : BaseUiEvent, Effect
             } catch (cancellation: CancellationException) {
                 throw cancellation
             } catch (throwable: Throwable) {
-                TaskFlowLogger.e(tag, throwable.message ?: "协程任务失败", throwable)
+                val scenePrefix = scene?.let { "[$it] " }.orEmpty()
+                TaskFlowLogger.e(
+                    tag,
+                    "$scenePrefix${throwable.message ?: "协程任务失败"}",
+                    throwable,
+                )
                 onError?.invoke(throwable)
             }
         }

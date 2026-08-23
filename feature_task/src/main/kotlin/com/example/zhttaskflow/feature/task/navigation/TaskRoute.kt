@@ -3,7 +3,9 @@ package com.example.zhttaskflow.feature.task.navigation
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.remember
+import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.example.zhttaskflow.core.network.bindTaskFlowNetworkDiagnostics
 import com.example.zhttaskflow.feature.task.data.TaskMockDataSource
 import com.example.zhttaskflow.feature.task.data.TaskRepositoryImpl
 import com.example.zhttaskflow.feature.task.domain.usecase.AddTaskUseCase
@@ -65,6 +67,8 @@ fun registerTaskRoutes(
 
 @Composable
 private fun TaskListRouteHost() {
+    val context = LocalContext.current
+    bindTaskFlowNetworkDiagnostics(context)
     val navigator = LocalTaskFlowNavigator.current
     val factory = rememberTaskViewModelFactory()
     val viewModel: TaskViewModel = viewModel(factory = factory)

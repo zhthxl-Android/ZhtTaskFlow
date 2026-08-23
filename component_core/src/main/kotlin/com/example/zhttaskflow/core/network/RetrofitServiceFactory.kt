@@ -82,6 +82,7 @@ object RetrofitServiceFactory {
     }
 
     private fun buildSharedOkHttpClient(context: Context): OkHttpClient {
+        TaskFlowNetworkDiagnostics.syncFrom(context)
         val builder = OkHttpClient.Builder()
             .connectTimeout(
                 TaskFlowNetworkDefaults.CONNECT_TIMEOUT_SECONDS,

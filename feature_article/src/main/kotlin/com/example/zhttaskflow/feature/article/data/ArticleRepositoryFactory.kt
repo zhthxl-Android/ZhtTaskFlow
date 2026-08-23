@@ -2,6 +2,7 @@ package com.example.zhttaskflow.feature.article.data
 
 import android.content.Context
 import com.example.zhttaskflow.core.network.RetrofitServiceFactory
+import com.example.zhttaskflow.core.network.bindTaskFlowNetworkDiagnostics
 import com.example.zhttaskflow.feature.article.data.local.ArticleLocalDataSource
 import com.example.zhttaskflow.feature.article.data.remote.ArticleApi
 import com.example.zhttaskflow.feature.article.data.remote.ArticleRemoteDataSource
@@ -26,6 +27,7 @@ object ArticleRepositoryFactory {
         config: ArticleDataConfig,
         useMockRemote: Boolean = false,
     ): ArticleRepository {
+        bindTaskFlowNetworkDiagnostics(context)
         val localDataSource = ArticleLocalDataSource.create(context)
 
         val remoteDataSource = if (useMockRemote) {

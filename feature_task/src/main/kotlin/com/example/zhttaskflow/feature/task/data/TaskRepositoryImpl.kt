@@ -1,6 +1,5 @@
 package com.example.zhttaskflow.feature.task.data
 
-import com.example.zhttaskflow.base.foundation.TaskFlowLogger
 import com.example.zhttaskflow.core.network.ApiResult
 import com.example.zhttaskflow.core.network.safeApiCall
 import com.example.zhttaskflow.feature.task.domain.Task
@@ -14,8 +13,6 @@ import com.example.zhttaskflow.feature.task.domain.TaskRepository
 class TaskRepositoryImpl(
     private val dataSource: TaskMockDataSource,
 ) : TaskRepository {
-
-    private val logTag = "TaskRepositoryImpl"
 
     override suspend fun getTaskById(id: String): Task? {
         return unwrapOrThrow(safeApiCall { dataSource.getById(id) })
@@ -38,16 +35,12 @@ class TaskRepositoryImpl(
     }
 
     /**
-     * 将 [ApiResult] 转为业务返回值；失败时记录日志并向上抛出领域可识别的 [TaskFlowException]。
+     * 将 [ApiResult] 转为业务返回值；失败时向上抛出，由 ViewModel 统一记录 Error 日志。
      */
     private fun <T> unwrapOrThrow(result: ApiResult<T>): T {
         return when (result) {
             is ApiResult.Success -> result.data
-            is ApiResult.Failure -> {
-                val error = result.exception
-                TaskFlowLogger.e(logTag, error.message ?: "任务数据操作失败", error)
-                throw error
-            }
+            is ApiResult.Failure -> throw result.exception
         }
     }
 }

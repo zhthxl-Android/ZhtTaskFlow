@@ -1,6 +1,7 @@
 package com.example.zhttaskflow.core.cache
 
 import com.example.zhttaskflow.base.foundation.TaskFlowLogger
+import com.example.zhttaskflow.core.network.TaskFlowNetworkDiagnostics
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
@@ -43,6 +44,9 @@ class TaskFlowThreeTierCache<Key, Value>(
     fun observe(key: Key): Flow<Value> = flow {
         var fallback: Value? = mutex.withLock { memoryCache[key] }
         if (fallback != null) {
+            if (TaskFlowNetworkDiagnostics.isDebuggable) {
+                TaskFlowLogger.d(CACHE_LOG_TAG, "内存命中 key=$key")
+            }
             emit(fallback)
         }
         val local = withContext(Dispatchers.IO) {
@@ -51,9 +55,15 @@ class TaskFlowThreeTierCache<Key, Value>(
         if (local != null) {
             fallback = local
             mutex.withLock { memoryCache[key] = local }
+            if (TaskFlowNetworkDiagnostics.isDebuggable) {
+                TaskFlowLogger.d(CACHE_LOG_TAG, "本地命中 key=$key")
+            }
             emit(local)
         }
         try {
+            if (TaskFlowNetworkDiagnostics.isDebuggable) {
+                TaskFlowLogger.d(CACHE_LOG_TAG, "请求远程 key=$key")
+            }
             val remote = withContext(Dispatchers.IO) { readRemote(key) }
             withContext(Dispatchers.IO) { writeLocal(key, remote) }
             mutex.withLock { memoryCache[key] = remote }
@@ -61,11 +71,12 @@ class TaskFlowThreeTierCache<Key, Value>(
         } catch (cancellation: CancellationException) {
             throw cancellation
         } catch (throwable: Throwable) {
-            TaskFlowLogger.w(
-                CACHE_LOG_TAG,
-                "远程层加载失败，已降级为本地/内存数据（若有）",
-                throwable,
-            )
+            if (TaskFlowNetworkDiagnostics.isDebuggable) {
+                TaskFlowLogger.d(
+                    CACHE_LOG_TAG,
+                    "远程层加载失败，已降级为本地/内存数据（若有）: ${throwable.message}",
+                )
+            }
             if (fallback == null) {
                 throw throwable
             }

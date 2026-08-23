@@ -1,7 +1,6 @@
 package com.example.zhttaskflow.core.network
 
 import com.example.zhttaskflow.base.foundation.TaskFlowIllegalStateException
-import com.example.zhttaskflow.base.foundation.TaskFlowLogger
 import com.example.zhttaskflow.base.foundation.TaskFlowNetworkException
 import com.google.gson.JsonIOException
 import com.google.gson.JsonSyntaxException
@@ -14,7 +13,9 @@ import java.net.SocketTimeoutException
 import java.net.UnknownHostException
 
 /**
- * 在 IO 线程执行挂起块，并包装为 [ApiResult]；记录日志并区分网络 / 业务 / 解析异常。
+ * 在 IO 线程执行挂起块，并包装为 [ApiResult]；区分网络 / 业务 / 解析异常。
+ *
+ * **日志**：Release 不打印 Error；Debug 安装包输出一条 Debug 级详细日志（含堆栈）。业务 Error 由 ViewModel [launchTask] 统一记录。
  *
  * @param tag 日志 Tag
  * @param block 网络或 IO 挂起调用
@@ -30,7 +31,7 @@ suspend fun <T> safeApiCall(
     } catch (httpException: HttpException) {
         val code = httpException.code()
         val message = httpException.message() ?: "HTTP $code"
-        TaskFlowLogger.e(tag, message, httpException)
+        logSafeApiCallFailure(tag, "HTTP 失败 code=$code message=$message", httpException)
         val kind = if (code in 400..499) {
             ApiErrorKind.BUSINESS
         } else {
@@ -42,7 +43,7 @@ suspend fun <T> safeApiCall(
             kind = kind,
         )
     } catch (parseError: JsonSyntaxException) {
-        TaskFlowLogger.e(tag, "JSON 解析失败", parseError)
+        logSafeApiCallFailure(tag, "JSON 解析失败", parseError)
         ApiResult.Failure(
             exception = TaskFlowIllegalStateException(
                 message = "数据解析失败",
@@ -51,7 +52,7 @@ suspend fun <T> safeApiCall(
             kind = ApiErrorKind.PARSE,
         )
     } catch (parseIo: JsonIOException) {
-        TaskFlowLogger.e(tag, "JSON IO 异常", parseIo)
+        logSafeApiCallFailure(tag, "JSON IO 异常", parseIo)
         ApiResult.Failure(
             exception = TaskFlowIllegalStateException(
                 message = "数据解析失败",
@@ -60,7 +61,7 @@ suspend fun <T> safeApiCall(
             kind = ApiErrorKind.PARSE,
         )
     } catch (io: IOException) {
-        TaskFlowLogger.e(tag, "网络 IO 异常", io)
+        logSafeApiCallFailure(tag, "网络 IO 异常: ${io.message}", io)
         ApiResult.Failure(
             exception = TaskFlowNetworkException(
                 message = io.message ?: "网络请求失败",
@@ -72,7 +73,7 @@ suspend fun <T> safeApiCall(
             },
         )
     } catch (throwable: Throwable) {
-        TaskFlowLogger.e(tag, throwable.message ?: "未知错误", throwable)
+        logSafeApiCallFailure(tag, throwable.message ?: "未知错误", throwable)
         ApiResult.Failure(
             exception = TaskFlowNetworkException(
                 message = "请求失败",

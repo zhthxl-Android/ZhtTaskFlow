@@ -52,6 +52,7 @@ class ArticleViewModel(
         setState { BaseUiState.Loading }
         launchTask(
             tag = logTag,
+            scene = "loadFirstPage",
             onError = { throwable ->
                 setState {
                     BaseUiState.Error(
@@ -86,6 +87,7 @@ class ArticleViewModel(
         }
         launchTask(
             tag = logTag,
+            scene = "refresh",
             onError = { throwable ->
                 when (val state = currentState) {
                     is BaseUiState.Success -> {
@@ -134,6 +136,7 @@ class ArticleViewModel(
         val nextPage = data.currentPage + 1
         launchTask(
             tag = logTag,
+            scene = "loadMore",
             onError = { throwable ->
                 setState {
                     BaseUiState.Success(data.withLoadMoreError())

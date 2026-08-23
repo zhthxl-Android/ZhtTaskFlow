@@ -1,6 +1,5 @@
 package com.example.zhttaskflow.feature.article.data
 
-import com.example.zhttaskflow.base.foundation.TaskFlowLogger
 import com.example.zhttaskflow.core.cache.TaskFlowThreeTierCache
 import com.example.zhttaskflow.core.network.ApiResult
 import com.example.zhttaskflow.feature.article.data.remote.ArticlePageRemoteFetcher
@@ -30,8 +29,6 @@ class ArticleRepositoryImpl(
     private val remoteDataSource: ArticlePageRemoteFetcher,
 ) : ArticleRepository {
 
-    private val logTag = "ArticleRepositoryImpl"
-
     private val pageTierCache = TaskFlowThreeTierCache<ArticlePageCacheKey, ArticlePage>(
         readLocal = { key -> localDataSource.loadPage(key.page, key.pageSize) },
         readRemote = { key ->
@@ -55,11 +52,7 @@ class ArticleRepositoryImpl(
     private fun <T> unwrapOrThrow(result: ApiResult<T>): T {
         return when (result) {
             is ApiResult.Success -> result.data
-            is ApiResult.Failure -> {
-                val error = result.exception
-                TaskFlowLogger.e(logTag, error.message ?: "文章数据操作失败", error)
-                throw error
-            }
+            is ApiResult.Failure -> throw result.exception
         }
     }
 }
