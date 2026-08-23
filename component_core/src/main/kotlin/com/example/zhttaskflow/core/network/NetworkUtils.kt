@@ -25,6 +25,9 @@ fun bindTaskFlowNetworkDiagnostics(context: Context) {
     TaskFlowNetworkDiagnostics.syncFrom(context)
 }
 
+/** 是否输出数据层 Debug 诊断日志（与 Debug 安装包一致）。 */
+fun isTaskFlowDebugLoggingEnabled(): Boolean = TaskFlowNetworkDiagnostics.isDebuggable
+
 /**
  * 通过宿主 [ApplicationInfo.FLAG_DEBUGGABLE] 判断是否为可调试构建。
  *

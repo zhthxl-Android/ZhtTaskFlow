@@ -3,8 +3,10 @@ package com.example.zhttaskflow.core.persistence.room
 import android.content.Context
 import androidx.room.Room
 import androidx.room.RoomDatabase
+import android.util.Log
 import com.example.zhttaskflow.base.foundation.TaskFlowIllegalStateException
 import com.example.zhttaskflow.base.foundation.TaskFlowLogger
+import com.example.zhttaskflow.core.network.TaskFlowNetworkDiagnostics
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -19,7 +21,8 @@ import java.util.concurrent.ConcurrentHashMap
  * - 业务模块仅使用 Room **编译期注解**（@Entity / @Dao），禁止调用 [Room.databaseBuilder]
  *
  * **线程约束**：所有 [runWithDao] / [runIo] 均在 [Dispatchers.IO] 执行，主线程安全；
- * 非 [CancellationException] 统一记录日志并包装为 [TaskFlowIllegalStateException]。
+ * 非 [CancellationException] 在 Debug 安装包记录详细日志并包装为 [TaskFlowIllegalStateException] 向上抛出；
+ * Error 级业务日志由 ViewModel [com.example.zhttaskflow.base.mvi.BaseViewModel.launchTask] 统一输出。
  */
 object TaskFlowRoomTemplate {
 
@@ -66,11 +69,20 @@ object TaskFlowRoomTemplate {
         databaseClass: Class<T>,
     ): T {
         return databaseCache.getOrPut(config.databaseName) {
-            Room.databaseBuilder(
-                context.applicationContext,
-                databaseClass,
-                config.databaseName,
-            ).build()
+            try {
+                Room.databaseBuilder(
+                    context.applicationContext,
+                    databaseClass,
+                    config.databaseName,
+                ).build()
+            } catch (throwable: Throwable) {
+                logRoomDebug(
+                    tag = DEFAULT_LOG_TAG,
+                    summary = "打开 Room 数据库失败 name=${config.databaseName}",
+                    throwable = throwable,
+                )
+                throw throwable
+            }
         } as T
     }
 
@@ -83,11 +95,29 @@ object TaskFlowRoomTemplate {
         } catch (cancellation: CancellationException) {
             throw cancellation
         } catch (throwable: Throwable) {
-            TaskFlowLogger.e(tag, throwable.message ?: "Room 操作失败", throwable)
+            logRoomDebug(
+                tag = tag,
+                summary = throwable.message ?: "Room 操作失败",
+                throwable = throwable,
+            )
             throw TaskFlowIllegalStateException(
                 message = "本地数据库操作失败",
                 cause = throwable,
             )
         }
+    }
+
+    private fun logRoomDebug(
+        tag: String,
+        summary: String,
+        throwable: Throwable,
+    ) {
+        if (!TaskFlowNetworkDiagnostics.isDebuggable) {
+            return
+        }
+        TaskFlowLogger.d(
+            tag,
+            "$summary\n${Log.getStackTraceString(throwable)}",
+        )
     }
 }
