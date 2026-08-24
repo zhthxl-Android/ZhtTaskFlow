@@ -31,6 +31,8 @@ import androidx.core.view.ViewCompat
 import com.example.zhttaskflow.base.mvi.BaseUiState
 import com.example.zhttaskflow.base.ui.StateBox
 import com.example.zhttaskflow.base.ui.TaskFlowScaffold
+import com.example.zhttaskflow.base.ui.extension.PageLifecycleLog
+import com.example.zhttaskflow.base.ui.extension.logUiInteraction
 import com.example.zhttaskflow.base.util.NetworkUtil
 import com.example.zhttaskflow.feature.article.R
 
@@ -66,6 +68,11 @@ fun ArticleDetailScreen(
     val currentDetailUrl = rememberUpdatedState(detailUrl)
     val currentOnNavigateUp = rememberUpdatedState(onNavigateUp)
 
+    PageLifecycleLog(
+        pageName = "ArticleDetail",
+        pageArgs = "articleId=$articleId url=$detailUrl",
+    )
+
     BackHandler {
         val webView = webViewHolder.webView
         if (webView != null && webView.canGoBack()) {
@@ -79,7 +86,12 @@ fun ArticleDetailScreen(
         modifier = modifier,
         title = stringResource(id = R.string.article_str_detail_title, articleId),
         navigationIcon = {
-            IconButton(onClick = onNavigateUp) {
+            IconButton(
+                onClick = {
+                    logUiInteraction(action = "click", identifier = "article_detail_back")
+                    onNavigateUp()
+                },
+            ) {
                 Icon(
                     imageVector = Icons.AutoMirrored.Filled.ArrowBack,
                     contentDescription = stringResource(id = R.string.article_str_back),
@@ -90,6 +102,7 @@ fun ArticleDetailScreen(
         StateBox(
             uiState = networkUiState,
             onRetry = {
+                logUiInteraction(action = "click", identifier = "article_detail_network_retry")
                 networkUiState = resolveDetailNetworkUiState(
                     context = appContext,
                     networkErrorMessage = networkErrorMessage,

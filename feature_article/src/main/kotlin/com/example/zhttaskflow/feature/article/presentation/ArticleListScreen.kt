@@ -1,7 +1,6 @@
 package com.example.zhttaskflow.feature.article.presentation
 
 import android.widget.Toast
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -11,7 +10,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -30,8 +29,12 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import com.example.zhttaskflow.base.extension.collectUiStateWithLifecycle
+import com.example.zhttaskflow.base.mvi.BaseUiState
 import com.example.zhttaskflow.base.ui.StateBox
 import com.example.zhttaskflow.base.ui.TaskFlowScaffold
+import com.example.zhttaskflow.base.ui.extension.PageLifecycleLog
+import com.example.zhttaskflow.base.ui.extension.listItemClickWithLog
+import com.example.zhttaskflow.base.ui.extension.logUiInteraction
 import com.example.zhttaskflow.feature.article.R
 import com.example.zhttaskflow.feature.article.domain.Article
 import java.text.SimpleDateFormat
@@ -48,6 +51,17 @@ fun ArticleListScreen(
 ) {
     val uiState by viewModel.uiState.collectUiStateWithLifecycle()
     val context = LocalContext.current
+    val lifecycleArgs = when (val state = uiState) {
+        is BaseUiState.Success -> "page=${state.data.currentPage} count=${state.data.articles.size}"
+        is BaseUiState.Loading -> "loading"
+        is BaseUiState.Error -> "error"
+        is BaseUiState.Empty -> "empty"
+    }
+
+    PageLifecycleLog(
+        pageName = "ArticleList",
+        pageArgs = lifecycleArgs,
+    )
 
     LaunchedEffect(viewModel) {
         viewModel.uiEffect.collect { effect ->
@@ -83,7 +97,10 @@ private fun ArticleListContent(
 ) {
     StateBox(
         uiState = uiState,
-        onRetry = { onEvent(ArticleUiEvent.Refresh) },
+        onRetry = {
+            logUiInteraction(action = "click", identifier = "article_list_retry")
+            onEvent(ArticleUiEvent.Refresh)
+        },
         contentPadding = contentPadding,
         modifier = modifier.fillMaxSize(),
         emptyMessage = stringResource(id = R.string.article_str_empty_list),
@@ -127,7 +144,10 @@ private fun ArticleSuccessList(
 
     PullToRefreshBox(
         isRefreshing = state.isRefreshing,
-        onRefresh = { onEvent(ArticleUiEvent.Refresh) },
+        onRefresh = {
+            logUiInteraction(action = "pullRefresh", identifier = "article_list")
+            onEvent(ArticleUiEvent.Refresh)
+        },
         modifier = modifier.fillMaxSize(),
     ) {
         LazyColumn(
@@ -136,12 +156,13 @@ private fun ArticleSuccessList(
             verticalArrangement = Arrangement.spacedBy(8.dp),
             contentPadding = PaddingValues(vertical = 8.dp),
         ) {
-            items(
+            itemsIndexed(
                 items = state.articles,
-                key = { it.id },
-            ) { article ->
+                key = { _, article -> article.id },
+            ) { index, article ->
                 ArticleListItem(
                     article = article,
+                    index = index,
                     onClick = {
                         onEvent(
                             ArticleUiEvent.ArticleClicked(
@@ -167,13 +188,19 @@ private fun ArticleSuccessList(
 @Composable
 private fun ArticleListItem(
     article: Article,
+    index: Int,
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     Card(
         modifier = modifier
             .fillMaxWidth()
-            .clickable(onClick = onClick),
+            .listItemClickWithLog(
+                identifier = "article_list_item",
+                index = index,
+                detail = "articleId=${article.id}",
+                onClick = onClick,
+            ),
         colors = CardDefaults.cardColors(
             containerColor = MaterialTheme.colorScheme.surfaceContainerLow,
         ),
@@ -231,7 +258,12 @@ private fun ArticleLoadMoreFooter(
                 CircularProgressIndicator()
             }
             isLoadMoreError -> {
-                TextButton(onClick = onRetryLoadMore) {
+                TextButton(
+                    onClick = {
+                        logUiInteraction(action = "click", identifier = "article_list_load_more_retry")
+                        onRetryLoadMore()
+                    },
+                ) {
                     Text(text = stringResource(id = R.string.article_str_load_more_retry))
                 }
             }

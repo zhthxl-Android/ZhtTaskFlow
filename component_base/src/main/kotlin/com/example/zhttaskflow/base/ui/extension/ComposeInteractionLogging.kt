@@ -4,7 +4,6 @@ import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.composed
 import com.example.zhttaskflow.core.log.TaskFlowLogger
 
 private const val UI_CLICK_LOG_TAG = "UiClick"
@@ -24,6 +23,20 @@ private fun buildInteractionLogMessage(
 }
 
 /**
+ * 非 [Modifier] 交互（如 [androidx.compose.material3.IconButton]、下拉刷新）的统一 Debug 日志。
+ */
+fun logUiInteraction(
+    action: String,
+    identifier: String,
+    detail: String? = null,
+    tag: String = UI_CLICK_LOG_TAG,
+) {
+    TaskFlowLogger.d(tag) {
+        buildInteractionLogMessage(action, identifier, detail)
+    }
+}
+
+/**
  * 带 Debug 点击日志的 [Modifier.clickable] 封装，仅在点击时输出，不影响重组。
  */
 fun Modifier.clickWithLog(
@@ -32,17 +45,15 @@ fun Modifier.clickWithLog(
     detail: String? = null,
     enabled: Boolean = true,
     onClick: () -> Unit,
-): Modifier = composed {
-    Modifier.clickable(
-        enabled = enabled,
-        onClick = {
-            TaskFlowLogger.d(tag) {
-                buildInteractionLogMessage("click", identifier, detail)
-            }
-            onClick()
-        },
-    )
-}
+): Modifier = clickable(
+    enabled = enabled,
+    onClick = {
+        TaskFlowLogger.d(tag) {
+            buildInteractionLogMessage("click", identifier, detail)
+        }
+        onClick()
+    },
+)
 
 /**
  * 带 Debug 长按日志的点击封装（短按不消费，仅长按触发 [onLongClick]）。
@@ -54,18 +65,16 @@ fun Modifier.longClickWithLog(
     detail: String? = null,
     enabled: Boolean = true,
     onLongClick: () -> Unit,
-): Modifier = composed {
-    Modifier.combinedClickable(
-        enabled = enabled,
-        onClick = {},
-        onLongClick = {
-            TaskFlowLogger.d(tag) {
-                buildInteractionLogMessage("longClick", identifier, detail)
-            }
-            onLongClick()
-        },
-    )
-}
+): Modifier = combinedClickable(
+    enabled = enabled,
+    onClick = {},
+    onLongClick = {
+        TaskFlowLogger.d(tag) {
+            buildInteractionLogMessage("longClick", identifier, detail)
+        }
+        onLongClick()
+    },
+)
 
 /**
  * 列表项点击日志：自动携带 [index] 与 [identifier]。
