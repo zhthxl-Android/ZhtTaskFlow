@@ -20,5 +20,5 @@ interface ArticleApi {
     suspend fun getArticles(
         @Path("page") page: Int,
         @Query("page_size") pageSize: Int,
-    ): ArticlePageDto
+    ): WanAndroidArticleListResponse
 }

@@ -1,7 +1,7 @@
 package com.example.zhttaskflow.core.network
 
 import android.content.Context
-import com.google.gson.GsonBuilder
+import com.example.zhttaskflow.core.network.gson.buildSafeGson
 import okhttp3.Interceptor
 import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
@@ -73,7 +73,7 @@ object RetrofitServiceFactory {
     private fun obtainRetrofit(baseUrl: String, client: OkHttpClient): Retrofit {
         val cacheKey = "$baseUrl@${client.hashCode()}"
         return retrofitCache.getOrPut(cacheKey) {
-            val gson = GsonBuilder().create()
+            val gson = buildSafeGson()
             Retrofit.Builder()
                 .baseUrl(baseUrl)
                 .client(client)

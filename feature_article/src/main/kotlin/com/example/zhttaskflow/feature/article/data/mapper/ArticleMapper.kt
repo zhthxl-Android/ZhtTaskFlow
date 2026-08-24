@@ -1,8 +1,9 @@
 package com.example.zhttaskflow.feature.article.data.mapper
 
+import com.example.zhttaskflow.feature.article.data.ArticleDataConstants
 import com.example.zhttaskflow.feature.article.data.local.ArticleEntity
 import com.example.zhttaskflow.feature.article.data.local.ArticlePageMetaEntity
-import com.example.zhttaskflow.feature.article.data.remote.ArticleDto
+import com.example.zhttaskflow.feature.article.data.remote.ArticleItemDto
 import com.example.zhttaskflow.feature.article.data.remote.ArticlePageDto
 import com.example.zhttaskflow.feature.article.domain.Article
 import com.example.zhttaskflow.feature.article.domain.ArticlePage
@@ -12,18 +13,22 @@ import com.example.zhttaskflow.feature.article.domain.ArticlePage
  */
 object ArticleMapper {
 
-    fun dtoToDomain(dto: ArticleDto): Article = Article(
-        id = dto.id,
-        title = dto.title,
-        summary = dto.summary,
-        coverUrl = dto.coverUrl,
-        author = dto.author,
-        publishedAt = dto.publishedAt,
-        category = dto.category?.takeIf { it.isNotBlank() }
-            ?: com.example.zhttaskflow.feature.article.data.ArticleDataConstants.DEFAULT_CATEGORY,
-        detailUrl = dto.detailUrl?.takeIf { it.isNotBlank() }
-            ?: "${com.example.zhttaskflow.feature.article.data.ArticleDataConstants.DEFAULT_DETAIL_URL_PREFIX}${dto.id}",
-    )
+    fun itemDtoToDomain(dto: ArticleItemDto): Article {
+        val articleId = dto.id?.toString() ?: ""
+        val detailUrl = dto.link?.takeIf { it.isNotBlank() }
+            ?: "${ArticleDataConstants.DEFAULT_DETAIL_URL_PREFIX}$articleId"
+        return Article(
+            id = articleId,
+            title = dto.title.orEmpty(),
+            summary = dto.niceShareDate?.takeIf { it.isNotBlank() }
+                ?: dto.niceDate.orEmpty(),
+            coverUrl = null,
+            author = dto.author.orEmpty(),
+            publishedAt = 0L,
+            category = ArticleDataConstants.DEFAULT_CATEGORY,
+            detailUrl = detailUrl,
+        )
+    }
 
     fun domainToEntity(
         article: Article,
@@ -47,16 +52,21 @@ object ArticleMapper {
         coverUrl = entity.coverUrl,
         author = entity.author,
         publishedAt = entity.publishedAt,
-        category = com.example.zhttaskflow.feature.article.data.ArticleDataConstants.DEFAULT_CATEGORY,
-        detailUrl = "${com.example.zhttaskflow.feature.article.data.ArticleDataConstants.DEFAULT_DETAIL_URL_PREFIX}${entity.id}",
+        category = ArticleDataConstants.DEFAULT_CATEGORY,
+        detailUrl = "${ArticleDataConstants.DEFAULT_DETAIL_URL_PREFIX}${entity.id}",
     )
 
-    fun pageDtoToDomain(dto: ArticlePageDto): ArticlePage = ArticlePage(
-        articles = dto.list.map { dtoToDomain(it) },
-        page = dto.page,
-        pageSize = dto.pageSize,
-        hasMore = dto.hasMore,
-    )
+    fun pageDtoToDomain(dto: ArticlePageDto, requestedPageSize: Int): ArticlePage {
+        val page = dto.curPage ?: 1
+        val pageSize = dto.size ?: requestedPageSize
+        val hasMore = dto.over?.let { !it } ?: (dto.articleList.size >= pageSize)
+        return ArticlePage(
+            articles = dto.articleList.map { itemDtoToDomain(it) },
+            page = page,
+            pageSize = pageSize,
+            hasMore = hasMore,
+        )
+    }
 
     fun pageDomainToEntities(page: ArticlePage): Pair<List<ArticleEntity>, ArticlePageMetaEntity> {
         val entities = page.articles.mapIndexed { index, article ->

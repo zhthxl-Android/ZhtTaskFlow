@@ -1,5 +1,6 @@
 package com.example.zhttaskflow.feature.article.data.remote
 
+import com.example.zhttaskflow.core.foundation.TaskFlowIllegalStateException
 import com.example.zhttaskflow.core.network.ApiResult
 import com.example.zhttaskflow.core.network.safeApiCall
 import com.example.zhttaskflow.feature.article.data.ArticleDataConstants
@@ -28,8 +29,17 @@ class ArticleRemoteDataSource(
         return safeApiCall(tag = logTag) {
             // 领域层页码从 1 开始，玩 Android 接口 path 中 page 从 0 开始
             val apiPage = (page - 1).coerceAtLeast(0)
-            val dto = articleApi.getArticles(page = apiPage, pageSize = pageSize)
-            ArticleMapper.pageDtoToDomain(dto)
+            val response = articleApi.getArticles(page = apiPage, pageSize = pageSize)
+            val pageDto = response.articlePage
+                ?: throw TaskFlowIllegalStateException(
+                    response.errorMsg ?: "接口未返回 data",
+                )
+            if (response.errorCode != null && response.errorCode != 0) {
+                throw TaskFlowIllegalStateException(
+                    response.errorMsg ?: "errorCode=${response.errorCode}",
+                )
+            }
+            ArticleMapper.pageDtoToDomain(pageDto, pageSize)
         }
     }
 }
