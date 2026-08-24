@@ -4,6 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import com.example.zhttaskflow.base.mvi.BaseUiState
 import com.example.zhttaskflow.base.mvi.BaseViewModel
+import com.example.zhttaskflow.core.util.nullIfBlank
 
 /**
  * 首页 ViewModel：MVI 单向数据流，负责入口列表状态与点击副作用下发。
@@ -47,10 +48,8 @@ internal class HomeViewModel(
 
     private fun onEntranceClicked(entranceId: String) {
         val route = entranceRouteById[entranceId]
-        if (route.isNullOrBlank()) {
-            return
-        }
-        sendEffect(HomeUiEffect.NavigateToRoute(url = route))
+        val targetRoute = route.nullIfBlank() ?: return
+        sendEffect(HomeUiEffect.NavigateToRoute(url = targetRoute))
     }
 
     // endregion

@@ -3,6 +3,8 @@ package com.example.zhttaskflow.base.mvi
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.zhttaskflow.core.log.TaskFlowLogger
+import com.example.zhttaskflow.core.util.nullIfBlank
+import com.example.zhttaskflow.core.util.orEmpty
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.channels.BufferOverflow
 import kotlinx.coroutines.flow.MutableSharedFlow
@@ -78,7 +80,7 @@ abstract class BaseViewModel<State : BaseUiState<*>, Event : BaseUiEvent, Effect
                 val scenePrefix = scene?.let { "[$it] " }.orEmpty()
                 TaskFlowLogger.errorAlways(
                     tag,
-                    { "$scenePrefix${throwable.message ?: "协程任务失败"}" },
+                    { "$scenePrefix${throwable.message.nullIfBlank() ?: "协程任务失败"}" },
                     throwable,
                 )
                 onError?.invoke(throwable)

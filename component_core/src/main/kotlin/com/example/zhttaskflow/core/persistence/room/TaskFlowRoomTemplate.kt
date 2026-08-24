@@ -5,6 +5,7 @@ import androidx.room.Room
 import androidx.room.RoomDatabase
 import com.example.zhttaskflow.core.foundation.TaskFlowIllegalStateException
 import com.example.zhttaskflow.core.log.TaskFlowLogger
+import com.example.zhttaskflow.core.util.nullIfBlank
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -95,7 +96,7 @@ object TaskFlowRoomTemplate {
         } catch (throwable: Throwable) {
             logRoomFailure(
                 tag = tag,
-                summary = throwable.message ?: "Room 操作失败",
+                summary = throwable.message.nullIfBlank() ?: "Room 操作失败",
                 throwable = throwable,
             )
             throw TaskFlowIllegalStateException(

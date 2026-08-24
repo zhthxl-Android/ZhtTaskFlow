@@ -1,5 +1,7 @@
 package com.example.zhttaskflow.feature.article.data.mapper
 
+import com.example.zhttaskflow.core.util.blankToEmpty
+import com.example.zhttaskflow.core.util.nullIfBlank
 import com.example.zhttaskflow.feature.article.data.ArticleDataConstants
 import com.example.zhttaskflow.feature.article.data.local.ArticleEntity
 import com.example.zhttaskflow.feature.article.data.local.ArticlePageMetaEntity
@@ -16,24 +18,24 @@ import com.example.zhttaskflow.feature.article.domain.ArticlePage
 object ArticleMapper {
 
     fun itemDtoToDomain(dto: ArticleItemDto): Article {
-        val articleId = dto.id?.toString() ?: ""
-        val detailUrl = dto.link?.takeIf { it.isNotBlank() }
+        val articleId = dto.id?.toString().blankToEmpty()
+        val detailUrl = dto.link.nullIfBlank()
             ?: "${ArticleDataConstants.DEFAULT_DETAIL_URL_PREFIX}$articleId"
-        val summary = dto.desc?.takeIf { it.isNotBlank() }
-            ?: dto.niceShareDate?.takeIf { it.isNotBlank() }
-            ?: dto.niceDate?.takeIf { it.isNotBlank() }
-            ?: ""
+        val summary = dto.desc.blankToEmpty()
+            .ifEmpty { dto.niceShareDate.blankToEmpty() }
+            .ifEmpty { dto.niceDate.blankToEmpty() }
         val publishedAt = dto.shareDate ?: dto.publishTime ?: 0L
+        val category = dto.superChapterName.nullIfBlank()
+            ?: dto.chapterName.nullIfBlank()
+            ?: ArticleDataConstants.DEFAULT_CATEGORY
         return Article(
             id = articleId,
-            title = dto.title?.takeIf { it.isNotBlank() } ?: "",
+            title = dto.title.blankToEmpty(),
             summary = summary,
-            coverUrl = dto.envelopePic?.takeIf { it.isNotBlank() },
-            author = dto.author?.takeIf { it.isNotBlank() } ?: "",
+            coverUrl = dto.envelopePic.nullIfBlank(),
+            author = dto.author.blankToEmpty(),
             publishedAt = publishedAt,
-            category = dto.superChapterName?.takeIf { it.isNotBlank() }
-                ?: dto.chapterName?.takeIf { it.isNotBlank() }
-                ?: ArticleDataConstants.DEFAULT_CATEGORY,
+            category = category,
             detailUrl = detailUrl,
         )
     }

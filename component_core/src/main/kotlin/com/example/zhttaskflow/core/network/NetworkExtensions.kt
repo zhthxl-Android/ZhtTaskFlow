@@ -1,6 +1,7 @@
 package com.example.zhttaskflow.core.network
 
 import com.example.zhttaskflow.core.foundation.TaskFlowNetworkException
+import com.example.zhttaskflow.core.util.nullIfBlank
 import com.google.gson.JsonIOException
 import com.google.gson.JsonSyntaxException
 import kotlinx.coroutines.CancellationException
@@ -46,7 +47,7 @@ internal suspend fun <T> executeSafeApiCall(
         throw cancellation
     } catch (httpException: HttpException) {
         val code = httpException.code()
-        val message = httpException.message() ?: "HTTP $code"
+        val message = httpException.message().nullIfBlank() ?: "HTTP $code"
         logSafeApiCallFailure(tag, "HTTP 失败 code=$code message=$message", httpException)
         val kind = if (code in 400..499) {
             ApiErrorKind.BUSINESS
@@ -80,7 +81,7 @@ internal suspend fun <T> executeSafeApiCall(
         logSafeApiCallFailure(tag, "网络 IO 异常: ${io.message}", io)
         ApiResult.Failure(
             exception = TaskFlowNetworkException(
-                message = io.message ?: "网络请求失败",
+                message = io.message.nullIfBlank() ?: "网络请求失败",
                 cause = io,
             ),
             kind = when (io) {
@@ -89,14 +90,14 @@ internal suspend fun <T> executeSafeApiCall(
             },
         )
     } catch (network: TaskFlowNetworkException) {
-        logSafeApiCallFailure(tag, network.message ?: "业务请求失败", network)
+        logSafeApiCallFailure(tag, network.message.nullIfBlank() ?: "业务请求失败", network)
         ApiResult.Failure(
             exception = network,
             code = network.errorCode,
             kind = ApiErrorKind.BUSINESS,
         )
     } catch (throwable: Throwable) {
-        logSafeApiCallFailure(tag, throwable.message ?: "未知错误", throwable)
+        logSafeApiCallFailure(tag, throwable.message.nullIfBlank() ?: "未知错误", throwable)
         ApiResult.Failure(
             exception = TaskFlowNetworkException(
                 message = "请求失败",

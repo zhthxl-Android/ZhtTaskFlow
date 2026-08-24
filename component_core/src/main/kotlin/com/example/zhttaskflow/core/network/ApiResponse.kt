@@ -1,6 +1,7 @@
 package com.example.zhttaskflow.core.network
 
 import com.example.zhttaskflow.core.foundation.TaskFlowNetworkException
+import com.example.zhttaskflow.core.util.nullIfBlank
 import com.google.gson.annotations.SerializedName
 
 /**
@@ -31,14 +32,13 @@ fun <T> unwrapApiResponse(response: ApiResponse<T>): T {
     val code = response.errorCode ?: -1
     if (code != ApiResponse.SUCCESS_CODE) {
         throw TaskFlowNetworkException(
-            message = response.errorMsg?.takeIf { it.isNotBlank() }
-                ?: "errorCode=$code",
+            message = response.errorMsg.nullIfBlank() ?: "errorCode=$code",
             errorCode = code,
             rawErrorMsg = response.errorMsg,
         )
     }
     return response.data ?: throw TaskFlowNetworkException(
-        message = response.errorMsg?.takeIf { it.isNotBlank() }
+        message = response.errorMsg.nullIfBlank()
             ?: "接口未返回 data",
         errorCode = code,
         rawErrorMsg = response.errorMsg,

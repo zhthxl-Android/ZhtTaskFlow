@@ -5,6 +5,7 @@ import androidx.lifecycle.ViewModelProvider
 import com.example.zhttaskflow.base.mvi.BaseUiState
 import com.example.zhttaskflow.base.mvi.BaseViewModel
 import com.example.zhttaskflow.base.mvi.getDataOrNull
+import com.example.zhttaskflow.core.util.isNotNullOrBlank
 import com.example.zhttaskflow.feature.article.domain.ArticlePage
 import com.example.zhttaskflow.feature.article.domain.ArticlePagingDefaults
 import com.example.zhttaskflow.feature.article.domain.usecase.GetArticlePageUseCase
@@ -206,7 +207,7 @@ class ArticleViewModel(
     // region 导航处理
 
     private fun navigateToDetail(articleId: String, detailUrl: String) {
-        if (articleId.isBlank() || detailUrl.isBlank()) {
+        if (!articleId.isNotNullOrBlank() || !detailUrl.isNotNullOrBlank()) {
             sendEffect(ArticleUiEffect.ShowToast("无法打开详情"))
             return
         }
