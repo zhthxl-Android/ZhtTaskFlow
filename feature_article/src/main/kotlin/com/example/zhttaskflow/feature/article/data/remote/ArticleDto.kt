@@ -4,12 +4,14 @@ import com.google.gson.annotations.SerializedName
 
 /**
  * 玩 Android 分页 `data` 块（嵌套于 [com.example.zhttaskflow.core.network.ApiResponse.data]）。
+ *
+ * 字段均按服务端契约可空声明；集合与展示数据在 [com.example.zhttaskflow.feature.article.data.mapper.ArticleMapper] 兜底。
  */
 data class ArticlePageDto(
     @SerializedName("curPage")
     val curPage: Int?,
     @SerializedName("datas")
-    val articleList: List<ArticleItemDto>,
+    val articleList: List<ArticleItemDto>?,
     @SerializedName("offset")
     val offset: Int?,
     @SerializedName("over")
@@ -71,7 +73,7 @@ data class ArticleItemDto(
     @SerializedName("superChapterName")
     val superChapterName: String?,
     @SerializedName("tags")
-    val tags: List<ArticleTagDto>,
+    val tags: List<ArticleTagDto>?,
     @SerializedName("title")
     val title: String?,
     @SerializedName("type")

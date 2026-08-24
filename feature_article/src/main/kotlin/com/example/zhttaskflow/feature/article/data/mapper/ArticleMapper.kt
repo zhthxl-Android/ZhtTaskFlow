@@ -10,6 +10,8 @@ import com.example.zhttaskflow.feature.article.domain.ArticlePage
 
 /**
  * 领域 / 网络 / 本地实体之间的手动映射，隔离各层数据模型。
+ *
+ * DTO 可空字段在此做业务兜底，输出领域模型保证非空集合与核心展示字段默认值。
  */
 object ArticleMapper {
 
@@ -19,14 +21,15 @@ object ArticleMapper {
             ?: "${ArticleDataConstants.DEFAULT_DETAIL_URL_PREFIX}$articleId"
         val summary = dto.desc?.takeIf { it.isNotBlank() }
             ?: dto.niceShareDate?.takeIf { it.isNotBlank() }
-            ?: dto.niceDate.orEmpty()
+            ?: dto.niceDate?.takeIf { it.isNotBlank() }
+            ?: ""
         val publishedAt = dto.shareDate ?: dto.publishTime ?: 0L
         return Article(
             id = articleId,
-            title = dto.title.orEmpty(),
+            title = dto.title?.takeIf { it.isNotBlank() } ?: "",
             summary = summary,
             coverUrl = dto.envelopePic?.takeIf { it.isNotBlank() },
-            author = dto.author.orEmpty(),
+            author = dto.author?.takeIf { it.isNotBlank() } ?: "",
             publishedAt = publishedAt,
             category = dto.superChapterName?.takeIf { it.isNotBlank() }
                 ?: dto.chapterName?.takeIf { it.isNotBlank() }
@@ -62,11 +65,12 @@ object ArticleMapper {
     )
 
     fun pageDtoToDomain(dto: ArticlePageDto, requestedPageSize: Int): ArticlePage {
+        val articlesDto = dto.articleList ?: emptyList()
         val page = dto.curPage ?: 1
         val pageSize = dto.size ?: requestedPageSize
-        val hasMore = dto.over?.let { !it } ?: (dto.articleList.size >= pageSize)
+        val hasMore = dto.over?.let { !it } ?: (articlesDto.size >= pageSize)
         return ArticlePage(
-            articles = dto.articleList.map { itemDtoToDomain(it) },
+            articles = articlesDto.map { itemDtoToDomain(it) },
             page = page,
             pageSize = pageSize,
             hasMore = hasMore,
