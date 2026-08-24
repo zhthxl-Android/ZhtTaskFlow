@@ -17,15 +17,20 @@ object ArticleMapper {
         val articleId = dto.id?.toString() ?: ""
         val detailUrl = dto.link?.takeIf { it.isNotBlank() }
             ?: "${ArticleDataConstants.DEFAULT_DETAIL_URL_PREFIX}$articleId"
+        val summary = dto.desc?.takeIf { it.isNotBlank() }
+            ?: dto.niceShareDate?.takeIf { it.isNotBlank() }
+            ?: dto.niceDate.orEmpty()
+        val publishedAt = dto.shareDate ?: dto.publishTime ?: 0L
         return Article(
             id = articleId,
             title = dto.title.orEmpty(),
-            summary = dto.niceShareDate?.takeIf { it.isNotBlank() }
-                ?: dto.niceDate.orEmpty(),
-            coverUrl = null,
+            summary = summary,
+            coverUrl = dto.envelopePic?.takeIf { it.isNotBlank() },
             author = dto.author.orEmpty(),
-            publishedAt = 0L,
-            category = ArticleDataConstants.DEFAULT_CATEGORY,
+            publishedAt = publishedAt,
+            category = dto.superChapterName?.takeIf { it.isNotBlank() }
+                ?: dto.chapterName?.takeIf { it.isNotBlank() }
+                ?: ArticleDataConstants.DEFAULT_CATEGORY,
             detailUrl = detailUrl,
         )
     }

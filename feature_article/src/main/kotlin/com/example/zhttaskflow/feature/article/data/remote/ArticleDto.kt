@@ -3,7 +3,7 @@ package com.example.zhttaskflow.feature.article.data.remote
 import com.google.gson.annotations.SerializedName
 
 /**
- * 分页数据块（对应 JSON 内 `data` 对象）。
+ * 玩 Android 分页 `data` 块（嵌套于 [com.example.zhttaskflow.core.network.ApiResponse.data]）。
  */
 data class ArticlePageDto(
     @SerializedName("curPage")
@@ -23,11 +23,27 @@ data class ArticlePageDto(
 )
 
 /**
- * 网络层文章条目 DTO（玩 Android `datas` 元素）。
+ * 玩 Android 首页文章列表单条 `datas` 元素。
  */
 data class ArticleItemDto(
+    @SerializedName("apkLink")
+    val apkLink: String?,
     @SerializedName("author")
     val author: String?,
+    @SerializedName("chapterId")
+    val chapterId: Int?,
+    @SerializedName("chapterName")
+    val chapterName: String?,
+    @SerializedName("collect")
+    val collect: Boolean?,
+    @SerializedName("courseId")
+    val courseId: Int?,
+    @SerializedName("desc")
+    val desc: String?,
+    @SerializedName("envelopePic")
+    val envelopePic: String?,
+    @SerializedName("fresh")
+    val fresh: Boolean?,
     @SerializedName("id")
     val id: Int?,
     @SerializedName("link")
@@ -36,10 +52,44 @@ data class ArticleItemDto(
     val niceDate: String?,
     @SerializedName("niceShareDate")
     val niceShareDate: String?,
+    @SerializedName("origin")
+    val origin: String?,
+    @SerializedName("prefix")
+    val prefix: String?,
+    @SerializedName("projectType")
+    val projectType: Int?,
+    @SerializedName("publishTime")
+    val publishTime: Long?,
+    @SerializedName("selfVisible")
+    val selfVisible: Int?,
+    @SerializedName("shareDate")
+    val shareDate: Long?,
+    @SerializedName("shareUser")
+    val shareUser: String?,
+    @SerializedName("superChapterId")
+    val superChapterId: Int?,
+    @SerializedName("superChapterName")
+    val superChapterName: String?,
+    @SerializedName("tags")
+    val tags: List<ArticleTagDto>,
     @SerializedName("title")
     val title: String?,
+    @SerializedName("type")
+    val type: Int?,
     @SerializedName("userId")
     val userId: Int?,
+    @SerializedName("visible")
+    val visible: Int?,
     @SerializedName("zan")
     val zan: Int?,
+)
+
+/**
+ * 文章标签（玩 Android `tags` 元素，按需解析）。
+ */
+data class ArticleTagDto(
+    @SerializedName("name")
+    val name: String?,
+    @SerializedName("url")
+    val url: String?,
 )

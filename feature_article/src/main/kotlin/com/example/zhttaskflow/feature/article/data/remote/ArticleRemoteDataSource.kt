@@ -2,7 +2,7 @@ package com.example.zhttaskflow.feature.article.data.remote
 
 import com.example.zhttaskflow.core.network.ApiResult
 import com.example.zhttaskflow.core.network.safeApiCall
-import com.example.zhttaskflow.core.network.safeApiCallResponse
+import com.example.zhttaskflow.core.network.unwrapApiResponse
 import com.example.zhttaskflow.feature.article.data.ArticleDataConstants
 import com.example.zhttaskflow.feature.article.data.mapper.ArticleMapper
 import com.example.zhttaskflow.feature.article.domain.Article
@@ -26,18 +26,12 @@ class ArticleRemoteDataSource(
     private val logTag = "ArticleRemoteDataSource"
 
     override suspend fun fetchPage(page: Int, pageSize: Int): ApiResult<ArticlePage> {
-        val apiPage = (page - 1).coerceAtLeast(0)
-        return when (
-            val pageResult = safeApiCallResponse(tag = logTag) {
-                articleApi.getArticles(page = apiPage, pageSize = pageSize)
-            }
-        ) {
-            is ApiResult.Success -> {
-                ApiResult.Success(
-                    ArticleMapper.pageDtoToDomain(pageResult.data, pageSize),
-                )
-            }
-            is ApiResult.Failure -> pageResult
+        return safeApiCall(tag = logTag) {
+            val apiPage = (page - 1).coerceAtLeast(0)
+            val pageDto = unwrapApiResponse(
+                articleApi.getArticles(page = apiPage, pageSize = pageSize),
+            )
+            ArticleMapper.pageDtoToDomain(pageDto, pageSize)
         }
     }
 }
