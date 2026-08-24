@@ -3,18 +3,6 @@ package com.example.zhttaskflow.feature.article.data.remote
 import com.google.gson.annotations.SerializedName
 
 /**
- * 玩 Android 列表接口外层包装：`data` + `errorCode` + `errorMsg`。
- */
-data class WanAndroidArticleListResponse(
-    @SerializedName("data")
-    val articlePage: ArticlePageDto?,
-    @SerializedName("errorCode")
-    val errorCode: Int?,
-    @SerializedName("errorMsg")
-    val errorMsg: String?,
-)
-
-/**
  * 分页数据块（对应 JSON 内 `data` 对象）。
  */
 data class ArticlePageDto(

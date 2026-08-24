@@ -17,9 +17,11 @@ class TaskFlowIllegalStateException(
 ) : TaskFlowException(message, cause)
 
 /**
- * 网络层异常：由 [com.example.zhttaskflow.core.network.safeApiCall] 等统一映射。
+ * 网络层异常：由 [com.example.zhttaskflow.core.network.safeApiCall]、[unwrapApiResponse] 等统一映射。
  */
 class TaskFlowNetworkException(
     message: String? = null,
     cause: Throwable? = null,
+    val errorCode: Int? = null,
+    val rawErrorMsg: String? = null,
 ) : TaskFlowException(message, cause)

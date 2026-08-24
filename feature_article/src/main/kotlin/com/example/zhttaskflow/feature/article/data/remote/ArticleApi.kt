@@ -1,5 +1,6 @@
 package com.example.zhttaskflow.feature.article.data.remote
 
+import com.example.zhttaskflow.core.network.ApiResponse
 import com.example.zhttaskflow.feature.article.api.ArticleApiPaths
 import retrofit2.http.GET
 import retrofit2.http.Path
@@ -20,5 +21,5 @@ interface ArticleApi {
     suspend fun getArticles(
         @Path("page") page: Int,
         @Query("page_size") pageSize: Int,
-    ): WanAndroidArticleListResponse
+    ): ApiResponse<ArticlePageDto>
 }

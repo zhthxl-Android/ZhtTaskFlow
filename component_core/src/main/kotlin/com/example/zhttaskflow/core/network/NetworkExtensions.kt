@@ -1,6 +1,5 @@
 package com.example.zhttaskflow.core.network
 
-import com.example.zhttaskflow.core.foundation.TaskFlowIllegalStateException
 import com.example.zhttaskflow.core.foundation.TaskFlowNetworkException
 import com.google.gson.JsonIOException
 import com.google.gson.JsonSyntaxException
@@ -17,11 +16,28 @@ import java.net.UnknownHostException
  *
  * **日志**：Release 不打印 Error；Debug 安装包输出一条 Debug 级详细日志（含堆栈）。业务 Error 由 ViewModel [launchTask] 统一记录。
  *
+ * 若 [block] 返回 [ApiResponse]，请使用返回 [ApiResponse] 的 [safeApiCall] 重载，自动拆包 [ApiResponse.data] 并校验 [ApiResponse.errorCode]。
+ *
  * @param tag 日志 Tag
  * @param block 网络或 IO 挂起调用
  */
 suspend fun <T> safeApiCall(
     tag: String = "safeApiCall",
+    block: suspend () -> T,
+): ApiResult<T> = executeSafeApiCall(tag, block)
+
+/**
+ * 针对标准外层 [ApiResponse] 的拆包调用：成功时返回剥离后的业务 [T]。
+ */
+suspend fun <T> safeApiCallResponse(
+    tag: String = "safeApiCall",
+    block: suspend () -> ApiResponse<T>,
+): ApiResult<T> = executeSafeApiCall(tag) {
+    unwrapApiResponse(block())
+}
+
+internal suspend fun <T> executeSafeApiCall(
+    tag: String,
     block: suspend () -> T,
 ): ApiResult<T> = withContext(Dispatchers.IO) {
     try {
@@ -45,7 +61,7 @@ suspend fun <T> safeApiCall(
     } catch (parseError: JsonSyntaxException) {
         logSafeApiCallFailure(tag, "JSON 解析失败", parseError)
         ApiResult.Failure(
-            exception = TaskFlowIllegalStateException(
+            exception = TaskFlowNetworkException(
                 message = "数据解析失败",
                 cause = parseError,
             ),
@@ -54,7 +70,7 @@ suspend fun <T> safeApiCall(
     } catch (parseIo: JsonIOException) {
         logSafeApiCallFailure(tag, "JSON IO 异常", parseIo)
         ApiResult.Failure(
-            exception = TaskFlowIllegalStateException(
+            exception = TaskFlowNetworkException(
                 message = "数据解析失败",
                 cause = parseIo,
             ),
@@ -71,6 +87,13 @@ suspend fun <T> safeApiCall(
                 is UnknownHostException, is SocketTimeoutException -> ApiErrorKind.NETWORK
                 else -> ApiErrorKind.NETWORK
             },
+        )
+    } catch (network: TaskFlowNetworkException) {
+        logSafeApiCallFailure(tag, network.message ?: "业务请求失败", network)
+        ApiResult.Failure(
+            exception = network,
+            code = network.errorCode,
+            kind = ApiErrorKind.BUSINESS,
         )
     } catch (throwable: Throwable) {
         logSafeApiCallFailure(tag, throwable.message ?: "未知错误", throwable)
