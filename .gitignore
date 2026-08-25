@@ -16,3 +16,6 @@ captures/
 !gradle/wrapper/gradle-wrapper.jar
 !gradle/wrapper/gradle-wrapper.properties
 /ques/
+# 编译与检查报告
+compile-warnings.txt
+lint-output.txt
