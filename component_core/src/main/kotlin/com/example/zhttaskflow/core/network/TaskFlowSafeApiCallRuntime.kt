@@ -3,7 +3,7 @@ package com.example.zhttaskflow.core.network
 import android.content.Context
 
 /**
- * [safeApiCall] 运行时上下文：用于 [NetworkChecker] 前置检查，由宿主 [bindTaskFlowNetworkDiagnostics] 绑定。
+ * [safeApiCall] 运行时上下文：用于 [NetworkChecker] 前置检查，由宿主 [com.example.zhttaskflow.core.util.bindTaskFlowNetworkDiagnostics] 绑定。
  */
 internal object TaskFlowSafeApiCallRuntime {
 

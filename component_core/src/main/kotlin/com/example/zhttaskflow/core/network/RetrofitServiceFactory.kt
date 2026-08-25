@@ -2,6 +2,8 @@ package com.example.zhttaskflow.core.network
 
 import android.content.Context
 import com.example.zhttaskflow.core.network.gson.buildSafeGson
+import com.example.zhttaskflow.core.util.TaskFlowRuntimeUtils
+import com.example.zhttaskflow.core.util.isTaskFlowDebugLoggingEnabled
 import okhttp3.Interceptor
 import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
@@ -38,7 +40,7 @@ object RetrofitServiceFactory {
             "Retrofit baseUrl 必须以 / 结尾: $baseUrl"
         }
         val appContext = context.applicationContext
-        TaskFlowNetworkDiagnostics.ensureSyncFrom(appContext)
+        TaskFlowRuntimeUtils.ensureSyncFrom(appContext)
         TaskFlowSafeApiCallRuntime.bindContext(appContext)
         val client = obtainOkHttpClient(appContext, extraInterceptors, defaultHeaders)
         val retrofit = obtainRetrofit(baseUrl, client)

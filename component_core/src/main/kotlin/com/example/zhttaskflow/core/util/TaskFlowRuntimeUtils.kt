@@ -1,12 +1,13 @@
-package com.example.zhttaskflow.core.network
+package com.example.zhttaskflow.core.util
 
 import android.content.Context
 import android.content.pm.ApplicationInfo
+import com.example.zhttaskflow.core.network.TaskFlowSafeApiCallRuntime
 
 /**
- * 网络诊断开关：由宿主 [bindTaskFlowNetworkDiagnostics] 或 [RetrofitServiceFactory.createApi] 兜底同步。
+ * 运行时诊断开关：由宿主 [bindTaskFlowNetworkDiagnostics] 或 [com.example.zhttaskflow.core.network.RetrofitServiceFactory.createApi] 兜底同步。
  */
-internal object TaskFlowNetworkDiagnostics {
+object TaskFlowRuntimeUtils {
 
     @Volatile
     var isDebuggable: Boolean = false
@@ -32,16 +33,6 @@ internal object TaskFlowNetworkDiagnostics {
 }
 
 /**
- * 宿主 Application 正式初始化入口：启动时同步 Debug/Release 下数据层日志策略。
- */
-fun bindTaskFlowNetworkDiagnostics(context: Context) {
-    TaskFlowNetworkDiagnostics.syncFrom(context)
-}
-
-/** 是否输出数据层 Debug 诊断日志（与 Debug 安装包一致）。 */
-fun isTaskFlowDebugLoggingEnabled(): Boolean = TaskFlowNetworkDiagnostics.isDebuggable
-
-/**
  * 通过宿主 [ApplicationInfo.FLAG_DEBUGGABLE] 判断是否为可调试构建。
  *
  * 不依赖各模块 [android.os.Build] 或模块级 BuildConfig，基础库随宿主 App 的 Debug/Release 变体自动生效。
@@ -52,3 +43,13 @@ internal fun Context.isAppDebuggable(): Boolean {
     val applicationInfo = applicationContext.applicationInfo
     return (applicationInfo.flags and ApplicationInfo.FLAG_DEBUGGABLE) != 0
 }
+
+/**
+ * 宿主 Application 正式初始化入口：启动时同步 Debug/Release 下数据层日志策略。
+ */
+fun bindTaskFlowNetworkDiagnostics(context: Context) {
+    TaskFlowRuntimeUtils.syncFrom(context)
+}
+
+/** 是否输出数据层 Debug 诊断日志（与 Debug 安装包一致）。 */
+fun isTaskFlowDebugLoggingEnabled(): Boolean = TaskFlowRuntimeUtils.isDebuggable
