@@ -37,4 +37,12 @@ sealed class ApiResult<out T> {
         val code: Int? = null,
         val kind: ApiErrorKind = ApiErrorKind.UNKNOWN,
     ) : ApiResult<Nothing>()
+
+    /**
+     * 成功时映射业务数据；失败原样透传。
+     */
+    inline fun <R> mapSuccess(transform: (T) -> R): ApiResult<R> = when (this) {
+        is Success -> Success(transform(data))
+        is Failure -> this
+    }
 }

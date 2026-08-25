@@ -5,6 +5,7 @@ import androidx.lifecycle.ViewModelProvider
 import com.example.zhttaskflow.base.mvi.BaseUiState
 import com.example.zhttaskflow.base.mvi.BaseViewModel
 import com.example.zhttaskflow.base.mvi.getDataOrNull
+import com.example.zhttaskflow.core.foundation.userDisplayMessage
 import com.example.zhttaskflow.core.util.isNotNullOrBlank
 import com.example.zhttaskflow.feature.article.domain.ArticlePage
 import com.example.zhttaskflow.feature.article.domain.ArticlePagingDefaults
@@ -26,6 +27,8 @@ class ArticleViewModel(
 
     private val logTag = "ArticleViewModel"
     private val pageSize = ArticlePagingDefaults.DEFAULT_PAGE_SIZE
+
+    private fun Throwable.uiErrorMessage(fallback: String): String = userDisplayMessage(fallback)
 
     // region 初始化入口
 
@@ -55,15 +58,12 @@ class ArticleViewModel(
             tag = logTag,
             scene = "loadFirstPage",
             onError = { throwable ->
+                val message = throwable.uiErrorMessage("加载失败，请稍后重试")
                 setState {
-                    BaseUiState.Error(
-                        throwable.message ?: "加载失败",
-                    )
+                    BaseUiState.Error(message)
                 }
                 sendEffect(
-                    ArticleUiEffect.ShowToast(
-                        throwable.message ?: "加载失败",
-                    ),
+                    ArticleUiEffect.ShowToast(message),
                 )
             },
         ) {
@@ -90,6 +90,7 @@ class ArticleViewModel(
             tag = logTag,
             scene = "refresh",
             onError = { throwable ->
+                val message = throwable.uiErrorMessage("刷新失败，请稍后重试")
                 when (val state = currentState) {
                     is BaseUiState.Success -> {
                         setState {
@@ -100,16 +101,12 @@ class ArticleViewModel(
                     }
                     else -> {
                         setState {
-                            BaseUiState.Error(
-                                throwable.message ?: "刷新失败",
-                            )
+                            BaseUiState.Error(message)
                         }
                     }
                 }
                 sendEffect(
-                    ArticleUiEffect.ShowToast(
-                        throwable.message ?: "刷新失败",
-                    ),
+                    ArticleUiEffect.ShowToast(message),
                 )
             },
         ) {
@@ -139,13 +136,12 @@ class ArticleViewModel(
             tag = logTag,
             scene = "loadMore",
             onError = { throwable ->
+                val message = throwable.uiErrorMessage("加载更多失败，请稍后重试")
                 setState {
                     BaseUiState.Success(data.withLoadMoreError())
                 }
                 sendEffect(
-                    ArticleUiEffect.ShowToast(
-                        throwable.message ?: "加载更多失败",
-                    ),
+                    ArticleUiEffect.ShowToast(message),
                 )
             },
         ) {

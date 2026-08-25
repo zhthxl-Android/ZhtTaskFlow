@@ -4,6 +4,8 @@ import com.example.zhttaskflow.core.foundation.TaskFlowNetworkException
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Test
+import java.io.IOException
+import java.net.SocketTimeoutException
 
 class ApiResponseTest {
 
@@ -21,7 +23,8 @@ class ApiResponseTest {
             error("应抛出异常")
         } catch (e: TaskFlowNetworkException) {
             assertEquals(-1, e.errorCode)
-            assertEquals("业务失败", e.message)
+            assertEquals("业务失败", e.userMessage)
+            assertTrue(e.message?.contains("errorCode=-1") == true)
         }
     }
 
@@ -32,5 +35,35 @@ class ApiResponseTest {
         }
         assertTrue(result is ApiResult.Success)
         assertEquals(42, (result as ApiResult.Success).data)
+    }
+
+    @Test
+    fun safeApiCall_api_response_via_safeApiCallResponse() = kotlinx.coroutines.test.runTest {
+        val result = safeApiCallResponse {
+            ApiResponse(data = "ok", errorCode = 0, errorMsg = "")
+        }
+        assertTrue(result is ApiResult.Success)
+        assertEquals("ok", (result as ApiResult.Success).data)
+    }
+
+    @Test
+    fun safeApiCall_maps_socket_timeout_user_message() = kotlinx.coroutines.test.runTest {
+        val result = safeApiCall<Unit> {
+            throw SocketTimeoutException("timeout")
+        }
+        assertTrue(result is ApiResult.Failure)
+        val ex = (result as ApiResult.Failure).exception as TaskFlowNetworkException
+        assertEquals(TaskFlowNetworkUserMessages.NETWORK_TIMEOUT, ex.userMessage)
+        assertTrue(ex.message?.contains("SocketTimeoutException") == true)
+    }
+
+    @Test
+    fun safeApiCall_maps_io_user_message() = kotlinx.coroutines.test.runTest {
+        val result = safeApiCall<Unit> {
+            throw IOException("connection reset")
+        }
+        assertTrue(result is ApiResult.Failure)
+        val ex = (result as ApiResult.Failure).exception as TaskFlowNetworkException
+        assertEquals(TaskFlowNetworkUserMessages.NETWORK_IO, ex.userMessage)
     }
 }

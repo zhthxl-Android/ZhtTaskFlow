@@ -31,16 +31,29 @@ data class ApiResponse<T>(
 fun <T> unwrapApiResponse(response: ApiResponse<T>): T {
     val code = response.errorCode ?: -1
     if (code != ApiResponse.SUCCESS_CODE) {
-        throw TaskFlowNetworkException(
-            message = response.errorMsg.nullIfBlank() ?: "errorCode=$code",
-            errorCode = code,
+        throw businessApiException(
+            code = code,
             rawErrorMsg = response.errorMsg,
+            technicalDetail = "服务端业务失败 errorCode=$code",
         )
     }
-    return response.data ?: throw TaskFlowNetworkException(
-        message = response.errorMsg.nullIfBlank()
-            ?: "接口未返回 data",
-        errorCode = code,
+    return response.data ?: throw businessApiException(
+        code = code,
         rawErrorMsg = response.errorMsg,
+        technicalDetail = "接口成功但 data 为空 errorCode=$code",
+    )
+}
+
+internal fun businessApiException(
+    code: Int,
+    rawErrorMsg: String?,
+    technicalDetail: String,
+): TaskFlowNetworkException {
+    val userMessage = rawErrorMsg.nullIfBlank() ?: TaskFlowNetworkUserMessages.BUSINESS_FALLBACK
+    return TaskFlowNetworkException(
+        message = "$technicalDetail rawErrorMsg=${rawErrorMsg.orEmpty()}",
+        errorCode = code,
+        rawErrorMsg = rawErrorMsg,
+        userMessage = userMessage,
     )
 }
