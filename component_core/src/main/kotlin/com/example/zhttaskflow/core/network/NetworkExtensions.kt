@@ -158,10 +158,19 @@ private suspend fun <T> runSafeApiCallBlock(
     }
 }
 
+/**
+ * 检查网络是否可用，如果不可用则抛出异常
+ * 该函数用于确保在进行任务流操作前网络连接是正常的
+ *
+ * @throws NetworkChecker.unavailableNetworkException 当网络不可用时抛出异常
+ */
 private fun ensureNetworkAvailableOrThrow() {
+    // 检查任务流网络是否已连接
     if (NetworkChecker.isTaskFlowNetworkConnected()) {
+        // 如果网络已连接，则直接返回
         return
     }
+    // 如果网络未连接，抛出网络不可用异常
     throw NetworkChecker.unavailableNetworkException()
 }
 

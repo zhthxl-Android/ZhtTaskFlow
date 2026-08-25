@@ -44,6 +44,7 @@ sealed interface TaskRoute : TaskFlowRoute {
  */
 fun registerTaskRoutes(
     registry: TaskFlowRouteRegistry,
+    /** 与全局路由注册签名对齐，跳转由 Composable 内 [LocalTaskFlowNavigator] 消费。 */
     @Suppress("UNUSED_PARAMETER") navigator: TaskFlowNavigator,
 ) {
     registry.register(

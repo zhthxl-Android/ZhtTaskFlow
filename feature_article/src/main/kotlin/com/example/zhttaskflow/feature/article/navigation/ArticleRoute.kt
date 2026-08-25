@@ -40,6 +40,7 @@ sealed interface ArticleRoute : TaskFlowRoute {
  */
 fun registerArticleRoutes(
     registry: TaskFlowRouteRegistry,
+    /** 与全局路由注册签名对齐，详情跳转由 Composable 内 [LocalTaskFlowNavigator] 消费。 */
     @Suppress("UNUSED_PARAMETER") navigator: TaskFlowNavigator,
     repository: ArticleRepository? = null,
     articleDataConfig: ArticleDataConfig? = null,

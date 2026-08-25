@@ -23,8 +23,10 @@ import com.example.zhttaskflow.nav.route.TaskFlowTaskNavRoutes
 class TaskViewModel(
     private val getTaskListUseCase: GetTaskListUseCase,
     private val addTaskUseCase: AddTaskUseCase,
+    /** 预留：任务编辑能力接入后使用，工厂保持完整注入避免后续改签名。 */
     @Suppress("UnusedPrivateProperty")
     private val updateTaskUseCase: UpdateTaskUseCase,
+    /** 预留：任务删除能力接入后使用，工厂保持完整注入避免后续改签名。 */
     @Suppress("UnusedPrivateProperty")
     private val deleteTaskUseCase: DeleteTaskUseCase,
 ) : BaseViewModel<TaskUiState, TaskUiEvent, TaskUiEffect>(BaseUiState.Loading) {

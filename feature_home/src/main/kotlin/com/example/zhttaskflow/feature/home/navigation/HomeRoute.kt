@@ -31,6 +31,7 @@ import com.example.zhttaskflow.nav.route.TaskFlowRouteRegistry
  */
 fun registerHomeRoutes(
     registry: TaskFlowRouteRegistry,
+    /** 与全局路由注册签名对齐，导航由 Composable 内 [LocalTaskFlowNavigator] 消费。 */
     @Suppress("UNUSED_PARAMETER") navigator: TaskFlowNavigator,
     taskListRoute: String? = null,
     articleListRoute: String? = null,
