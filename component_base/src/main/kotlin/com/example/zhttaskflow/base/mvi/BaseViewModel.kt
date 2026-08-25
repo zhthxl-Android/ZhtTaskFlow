@@ -2,7 +2,9 @@ package com.example.zhttaskflow.base.mvi
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.zhttaskflow.core.foundation.userDisplayMessage
 import com.example.zhttaskflow.core.log.TaskFlowLogger
+import com.example.zhttaskflow.core.network.NetworkChecker
 import com.example.zhttaskflow.core.util.nullIfBlank
 import com.example.zhttaskflow.core.util.orEmpty
 import kotlinx.coroutines.CancellationException
@@ -63,28 +65,58 @@ abstract class BaseViewModel<State : BaseUiState<*>, Event : BaseUiEvent, Effect
     }
 
     /**
+     * 提取面向用户的友好文案：优先网络层 [com.example.zhttaskflow.core.foundation.TaskFlowNetworkException.userMessage]。
+     */
+    protected fun getUserFriendlyMessage(
+        throwable: Throwable,
+        fallback: String = DEFAULT_USER_MESSAGE_FALLBACK,
+    ): String = throwable.userDisplayMessage(fallback)
+
+    /**
      * 在 ViewModel 生命周期内执行挂起任务，统一捕获非取消异常并记录日志。
+     *
+     * @param precheckNetwork 是否在执行 [block] 前做同步强无网预检；默认 `true`，无网时直接 [onError] 且不启动协程
+     * @param userMessageFallback [onError] 第二参数在无 [userMessage] 时的兜底文案
+     * @param onError 失败回调：`userMessage` 为友好文案，可直接用于 Error 态 / Toast；日志仍使用原始 [Throwable.message]
      */
     protected fun launchTask(
         tag: String = "BaseViewModel",
         scene: String? = null,
-        onError: ((Throwable) -> Unit)? = null,
+        precheckNetwork: Boolean = true,
+        userMessageFallback: String = DEFAULT_USER_MESSAGE_FALLBACK,
+        onError: ((throwable: Throwable, userMessage: String) -> Unit)? = null,
         block: suspend () -> Unit,
     ) {
+        if (precheckNetwork && !NetworkChecker.isTaskFlowNetworkConnected()) {
+            val networkError = NetworkChecker.unavailableNetworkException()
+            val userMessage = getUserFriendlyMessage(networkError, userMessageFallback)
+            logLaunchTaskFailure(tag, scene, networkError)
+            onError?.invoke(networkError, userMessage)
+            return
+        }
         viewModelScope.launch {
             try {
                 block()
             } catch (cancellation: CancellationException) {
                 throw cancellation
             } catch (throwable: Throwable) {
-                val scenePrefix = scene?.let { "[$it] " }.orEmpty()
-                TaskFlowLogger.errorAlways(
-                    tag,
-                    { "$scenePrefix${throwable.message.nullIfBlank() ?: "协程任务失败"}" },
-                    throwable,
-                )
-                onError?.invoke(throwable)
+                val userMessage = getUserFriendlyMessage(throwable, userMessageFallback)
+                logLaunchTaskFailure(tag, scene, throwable)
+                onError?.invoke(throwable, userMessage)
             }
         }
+    }
+
+    private fun logLaunchTaskFailure(tag: String, scene: String?, throwable: Throwable) {
+        val scenePrefix = scene?.let { "[$it] " }.orEmpty()
+        TaskFlowLogger.errorAlways(
+            tag,
+            { "$scenePrefix${throwable.message.nullIfBlank() ?: "协程任务失败"}" },
+            throwable,
+        )
+    }
+
+    companion object {
+        const val DEFAULT_USER_MESSAGE_FALLBACK: String = "加载失败，请稍后重试"
     }
 }

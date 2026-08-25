@@ -159,14 +159,10 @@ private suspend fun <T> runSafeApiCallBlock(
 }
 
 private fun ensureNetworkAvailableOrThrow() {
-    val context = TaskFlowSafeApiCallRuntime.applicationContextOrNull() ?: return
-    if (NetworkChecker.isNetworkAvailable(context)) {
+    if (NetworkChecker.isTaskFlowNetworkConnected()) {
         return
     }
-    throw TaskFlowNetworkException(
-        message = "NetworkChecker: no active network connection",
-        userMessage = TaskFlowNetworkUserMessages.NETWORK_IO,
-    )
+    throw NetworkChecker.unavailableNetworkException()
 }
 
 private fun logSafeApiCallRetry(

@@ -5,7 +5,6 @@ import androidx.lifecycle.ViewModelProvider
 import com.example.zhttaskflow.base.mvi.BaseUiState
 import com.example.zhttaskflow.base.mvi.BaseViewModel
 import com.example.zhttaskflow.base.mvi.getDataOrNull
-import com.example.zhttaskflow.core.foundation.userDisplayMessage
 import com.example.zhttaskflow.core.util.isNotNullOrBlank
 import com.example.zhttaskflow.feature.article.domain.ArticlePage
 import com.example.zhttaskflow.feature.article.domain.ArticlePagingDefaults
@@ -27,8 +26,6 @@ class ArticleViewModel(
 
     private val logTag = "ArticleViewModel"
     private val pageSize = ArticlePagingDefaults.DEFAULT_PAGE_SIZE
-
-    private fun Throwable.uiErrorMessage(fallback: String): String = userDisplayMessage(fallback)
 
     // region 初始化入口
 
@@ -57,8 +54,8 @@ class ArticleViewModel(
         launchTask(
             tag = logTag,
             scene = "loadFirstPage",
-            onError = { throwable ->
-                val message = throwable.uiErrorMessage("加载失败，请稍后重试")
+            userMessageFallback = "加载失败，请稍后重试",
+            onError = { _, message ->
                 setState {
                     BaseUiState.Error(message)
                 }
@@ -89,8 +86,8 @@ class ArticleViewModel(
         launchTask(
             tag = logTag,
             scene = "refresh",
-            onError = { throwable ->
-                val message = throwable.uiErrorMessage("刷新失败，请稍后重试")
+            userMessageFallback = "刷新失败，请稍后重试",
+            onError = { _, message ->
                 when (val state = currentState) {
                     is BaseUiState.Success -> {
                         setState {
@@ -135,8 +132,8 @@ class ArticleViewModel(
         launchTask(
             tag = logTag,
             scene = "loadMore",
-            onError = { throwable ->
-                val message = throwable.uiErrorMessage("加载更多失败，请稍后重试")
+            userMessageFallback = "加载更多失败，请稍后重试",
+            onError = { _, message ->
                 setState {
                     BaseUiState.Success(data.withLoadMoreError())
                 }

@@ -56,7 +56,8 @@ class TaskViewModel(
     private fun loadTasks(isRefresh: Boolean) {
         launchTask(
             tag = logTag,
-            onError = { throwable -> applyLoadError(throwable) },
+            userMessageFallback = "加载任务失败，请稍后重试",
+            onError = { _, message -> applyLoadError(userMessage = message) },
         ) {
             applyLoadingState(isRefresh)
             val tasks = getTaskListUseCase()
@@ -75,8 +76,9 @@ class TaskViewModel(
         }
         launchTask(
             tag = logTag,
-            onError = { throwable ->
-                sendEffect(TaskUiEffect.ShowToast(throwable.message ?: "新增任务失败"))
+            userMessageFallback = "新增任务失败，请稍后重试",
+            onError = { _, message ->
+                sendEffect(TaskUiEffect.ShowToast(message))
             },
         ) {
             val task = Task(
@@ -145,8 +147,7 @@ class TaskViewModel(
         }
     }
 
-    private fun applyLoadError(throwable: Throwable) {
-        val message = throwable.message ?: "加载任务失败"
+    private fun applyLoadError(userMessage: String) {
         val hasTasks = currentState.getDataOrNull()?.tasks?.isNotEmpty() == true
         if (hasTasks) {
             setState {
@@ -154,9 +155,9 @@ class TaskViewModel(
                 BaseUiState.Success(data.withRefreshEnded())
             }
         } else {
-            setState { BaseUiState.Error(message) }
+            setState { BaseUiState.Error(userMessage) }
         }
-        sendEffect(TaskUiEffect.ShowToast(message))
+        sendEffect(TaskUiEffect.ShowToast(userMessage))
     }
 
     // endregion
