@@ -39,6 +39,7 @@ object RetrofitServiceFactory {
         }
         val appContext = context.applicationContext
         TaskFlowNetworkDiagnostics.ensureSyncFrom(appContext)
+        TaskFlowSafeApiCallRuntime.bindContext(appContext)
         val client = obtainOkHttpClient(appContext, extraInterceptors, defaultHeaders)
         val retrofit = obtainRetrofit(baseUrl, client)
         return retrofit.create(serviceClass)

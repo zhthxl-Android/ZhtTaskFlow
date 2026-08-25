@@ -16,6 +16,7 @@ internal object TaskFlowNetworkDiagnostics {
 
     fun syncFrom(context: Context) {
         isDebuggable = context.isAppDebuggable()
+        TaskFlowSafeApiCallRuntime.bindContext(context)
         initialized = true
     }
 

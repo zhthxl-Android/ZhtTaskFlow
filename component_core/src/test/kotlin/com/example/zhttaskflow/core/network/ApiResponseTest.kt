@@ -58,12 +58,30 @@ class ApiResponseTest {
     }
 
     @Test
-    fun safeApiCall_maps_io_user_message() = kotlinx.coroutines.test.runTest {
+    fun safeApiCall_retries_once_on_socket_timeout() = kotlinx.coroutines.test.runTest {
+        var attempts = 0
         val result = safeApiCall<Unit> {
-            throw IOException("connection reset")
+            attempts++
+            if (attempts == 1) {
+                throw SocketTimeoutException("timeout")
+            }
+        }
+        assertTrue(result is ApiResult.Success)
+        assertEquals(2, attempts)
+    }
+
+    @Test
+    fun safeApiCall_no_retry_on_business_exception() = kotlinx.coroutines.test.runTest {
+        var attempts = 0
+        val result = safeApiCall<Unit> {
+            attempts++
+            throw TaskFlowNetworkException(
+                message = "errorCode=-1",
+                errorCode = -1,
+                userMessage = "业务失败",
+            )
         }
         assertTrue(result is ApiResult.Failure)
-        val ex = (result as ApiResult.Failure).exception as TaskFlowNetworkException
-        assertEquals(TaskFlowNetworkUserMessages.NETWORK_IO, ex.userMessage)
+        assertEquals(1, attempts)
     }
 }

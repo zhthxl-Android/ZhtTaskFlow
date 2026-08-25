@@ -6,6 +6,7 @@ import com.google.gson.JsonIOException
 import com.google.gson.JsonParseException
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.withContext
 import retrofit2.HttpException
 import java.io.IOException
@@ -14,34 +15,43 @@ import java.net.SocketTimeoutException
 /**
  * 在 IO 线程执行挂起块，并包装为 [ApiResult]；区分网络 / 业务 / 解析异常。
  *
+ * **前置检查**：已绑定 Application 上下文时，无可用网络则毫秒级失败，不发起真实请求。
+ * **自动重试**：默认对网络 IO 类异常额外重试 1 次（200ms 间隔），业务错误不重试。
+ *
  * **日志**：Release 不打印 Error；Debug 安装包输出一条 Debug 级详细日志（含堆栈）。业务 Error 由 ViewModel [launchTask] 统一记录。
  *
  * 当 [block] 返回 [ApiResponse] 时，请使用 [safeApiCallResponse] 自动拆包，无需手动 [unwrapApiResponse]。
  *
  * @param tag 日志 Tag
+ * @param retryPolicy 重试策略，默认 [SafeApiCallRetryPolicy.Default]
  * @param block 网络或 IO 挂起调用
  */
 suspend fun <T> safeApiCall(
     tag: String = "safeApiCall",
+    retryPolicy: SafeApiCallRetryPolicy = SafeApiCallRetryPolicy.Default,
     block: suspend () -> T,
-): ApiResult<T> = executeSafeApiCall(tag, block)
+): ApiResult<T> = executeSafeApiCall(tag, retryPolicy, block)
 
 /**
  * [block] 返回标准外层 [ApiResponse] 时自动拆包：成功 [ApiResult] 直接承载业务 DTO。
  */
 suspend fun <T> safeApiCallResponse(
     tag: String = "safeApiCall",
+    retryPolicy: SafeApiCallRetryPolicy = SafeApiCallRetryPolicy.Default,
     block: suspend () -> ApiResponse<T>,
-): ApiResult<T> = executeSafeApiCall(tag) {
+): ApiResult<T> = executeSafeApiCall(tag, retryPolicy) {
     unwrapApiResponse(block())
 }
 
 internal suspend fun <T> executeSafeApiCall(
     tag: String,
+    retryPolicy: SafeApiCallRetryPolicy,
     block: suspend () -> T,
 ): ApiResult<T> = withContext(Dispatchers.IO) {
     try {
-        ApiResult.Success(block())
+        ApiResult.Success(
+            runSafeApiCallBlock(tag = tag, retryPolicy = retryPolicy, block = block),
+        )
     } catch (cancellation: CancellationException) {
         throw cancellation
     } catch (timeout: SocketTimeoutException) {
@@ -116,6 +126,60 @@ internal suspend fun <T> executeSafeApiCall(
             kind = ApiErrorKind.UNKNOWN,
         )
     }
+}
+
+private suspend fun <T> runSafeApiCallBlock(
+    tag: String,
+    retryPolicy: SafeApiCallRetryPolicy,
+    block: suspend () -> T,
+): T {
+    ensureNetworkAvailableOrThrow()
+    val maxAttempts = retryPolicy.maxRetries + 1
+    var attempt = 0
+    while (true) {
+        try {
+            return block()
+        } catch (cancellation: CancellationException) {
+            throw cancellation
+        } catch (throwable: Throwable) {
+            val shouldRetry = attempt < maxAttempts - 1 && retryPolicy.retryOn(throwable)
+            if (!shouldRetry) {
+                throw throwable
+            }
+            attempt++
+            logSafeApiCallRetry(
+                tag = tag,
+                attempt = attempt,
+                maxRetries = retryPolicy.maxRetries,
+                throwable = throwable,
+            )
+            delay(retryPolicy.delayMillis)
+        }
+    }
+}
+
+private fun ensureNetworkAvailableOrThrow() {
+    val context = TaskFlowSafeApiCallRuntime.applicationContextOrNull() ?: return
+    if (NetworkChecker.isNetworkAvailable(context)) {
+        return
+    }
+    throw TaskFlowNetworkException(
+        message = "NetworkChecker: no active network connection",
+        userMessage = TaskFlowNetworkUserMessages.NETWORK_IO,
+    )
+}
+
+private fun logSafeApiCallRetry(
+    tag: String,
+    attempt: Int,
+    maxRetries: Int,
+    throwable: Throwable,
+) {
+    logSafeApiCallFailure(
+        tag,
+        "网络请求重试 attempt=$attempt/$maxRetries cause=${throwable.javaClass.simpleName}",
+        throwable,
+    )
 }
 
 private fun parseFailure(cause: Throwable): ApiResult.Failure {
