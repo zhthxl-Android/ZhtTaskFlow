@@ -18,6 +18,7 @@ import com.example.zhttaskflow.feature.task.presentation.TaskViewModel
 import com.example.zhttaskflow.feature.task.presentation.TaskViewModelFactory
 import com.example.zhttaskflow.nav.LocalTaskFlowNavigator
 import com.example.zhttaskflow.nav.TaskFlowNavigator
+import com.example.zhttaskflow.nav.interceptor.TaskFlowRouteAuthMarker
 import com.example.zhttaskflow.nav.route.TaskFlowRoute
 import com.example.zhttaskflow.nav.route.TaskFlowRouteRegistry
 import com.example.zhttaskflow.nav.route.TaskFlowTaskNavRoutes
@@ -38,6 +39,27 @@ sealed interface TaskRoute : TaskFlowRoute {
     data class Detail(val taskId: String) : TaskRoute {
         override val route: String = TaskFlowTaskNavRoutes.detailPath(taskId)
     }
+}
+
+/**
+ * **登录拦截业务接入模板（示范：任务详情）**
+ *
+ * 1. ViewModel 仍下发「纯净」Navigation path（不含 query），见 [TaskUiEffect.NavigateToEdit]。
+ * 2. RouteHost 在调用 [TaskFlowNavigator.navigate] 前，对需登录页面包一层 [TaskFlowRouteAuthMarker.withNeedLogin]。
+ * 3. App / 调试壳已装配 [com.example.zhttaskflow.nav.interceptor.rememberTaskFlowAppRouterInterceptorChain]，
+ *    未登录将弹出全局 [com.example.zhttaskflow.base.ext.TaskFlowDialogController] 登录引导，成功后自动继续跳转。
+ *
+ * 复制到其他 Feature：将 [taskDetailPathRequireLogin] 换为对应 path 即可；未标记路由不受拦截。
+ */
+internal fun taskDetailPathRequireLogin(taskId: String): String {
+    return TaskFlowRouteAuthMarker.withNeedLogin(TaskFlowTaskNavRoutes.detailPath(taskId))
+}
+
+/**
+ * RouteHost 侧：对任意目标 path 施加登录标记（与 [taskDetailPathRequireLogin] 等价写法）。
+ */
+internal fun navigationPathRequireLogin(targetRoute: String): String {
+    return TaskFlowRouteAuthMarker.withNeedLogin(targetRoute)
 }
 
 /**
@@ -83,7 +105,8 @@ private fun TaskListRouteHost() {
         viewModel.uiEffect.collect { effect ->
             when (effect) {
                 is TaskUiEffect.NavigateToEdit -> {
-                    navigator.navigate(effect.url)
+                    // 示范：仅详情跳转加 needLogin；列表等未标记路由不受影响
+                    navigator.navigate(navigationPathRequireLogin(effect.url))
                 }
                 else -> {
                     // TaskFlowPresentationUiEffect：由 TaskListScreen 消费
