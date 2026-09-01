@@ -25,9 +25,11 @@ import com.example.zhttaskflow.base.ext.SnackbarType
 import com.example.zhttaskflow.base.ext.TaskFlowSnackbarDispatcher
 import com.example.zhttaskflow.base.ext.rememberTaskFlowSnackbarDispatcher
 import com.example.zhttaskflow.base.ext.showSnackbar
+import com.example.zhttaskflow.base.mvi.BaseUiState
 import com.example.zhttaskflow.base.ui.StateBox
 import com.example.zhttaskflow.base.ui.TaskFlowListScaffold
 import com.example.zhttaskflow.base.ui.TaskFlowUiConstants
+import com.example.zhttaskflow.base.ui.extension.PageLifecycleLog
 import com.example.zhttaskflow.base.ui.rememberTaskFlowStateBoxContentPadding
 import com.example.zhttaskflow.feature.home.domain.HomeEntranceIds
 
@@ -41,6 +43,17 @@ internal fun HomeScreen(
     onTabRootBackPress: (() -> Unit)? = null,
 ) {
     val uiState by viewModel.uiState.collectUiStateWithLifecycle()
+    val lifecycleArgs = when (val state = uiState) {
+        is BaseUiState.Success -> "entrances=${state.data.entrances.size}"
+        is BaseUiState.Loading -> "loading"
+        is BaseUiState.Error -> "error"
+        is BaseUiState.Empty -> "empty"
+    }
+
+    PageLifecycleLog(
+        pageName = "Home",
+        pageArgs = lifecycleArgs,
+    )
 
     TaskFlowListScaffold(
         modifier = modifier,

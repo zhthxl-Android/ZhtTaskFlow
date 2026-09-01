@@ -12,6 +12,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import com.example.zhttaskflow.base.ui.TaskFlowScaffold
 import com.example.zhttaskflow.base.ui.TaskFlowUiConstants
+import com.example.zhttaskflow.base.ui.extension.PageLifecycleLog
 import com.example.zhttaskflow.base.ui.icon.TaskFlowIcons
 import com.example.zhttaskflow.feature.task.R
 
@@ -25,6 +26,11 @@ fun TaskDetailPlaceholderScreen(
     taskId: String,
     modifier: Modifier = Modifier,
 ) {
+    PageLifecycleLog(
+        pageName = "TaskDetail",
+        pageArgs = "taskId=$taskId",
+    )
+
     val backDispatcher = LocalOnBackPressedDispatcherOwner.current?.onBackPressedDispatcher
     TaskFlowScaffold(
         modifier = modifier,
