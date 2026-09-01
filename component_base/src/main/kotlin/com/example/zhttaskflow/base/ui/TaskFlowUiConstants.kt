@@ -28,5 +28,17 @@ object TaskFlowUiConstants {
 
     /** 阻塞加载全屏遮罩不透明度（0~1）。 */
     const val LoadingScrimAlpha: Float = 0.45f
+
+    /** 确认弹窗圆角。 */
+    val DialogCornerRadius = 20.dp
+
+    /** 底部弹窗顶部圆角。 */
+    val BottomSheetTopCornerRadius = 20.dp
+
+    /** 弹窗主操作按钮最小高度。 */
+    val DialogActionHeight = 48.dp
+
+    /** 底部弹窗顶部拖拽条宽度。 */
+    val BottomSheetDragHandleWidth = 32.dp
 }
 

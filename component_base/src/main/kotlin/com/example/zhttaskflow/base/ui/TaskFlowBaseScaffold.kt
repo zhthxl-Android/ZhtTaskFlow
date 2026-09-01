@@ -16,15 +16,18 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
 import com.example.zhttaskflow.base.ext.LocalTaskFlowLoadingController
+import com.example.zhttaskflow.base.ext.LocalTaskFlowDialogController
 import com.example.zhttaskflow.base.ext.LocalTaskFlowSnackbarDispatcher
 import com.example.zhttaskflow.base.ext.LocalTaskFlowSnackbarHostState
+import com.example.zhttaskflow.base.ext.TaskFlowDialogController
 import com.example.zhttaskflow.base.ext.TaskFlowLoadingController
 import com.example.zhttaskflow.base.ext.TaskFlowSnackbarDispatcher
+import com.example.zhttaskflow.base.ui.dialog.TaskFlowDialogHost
 
 /**
  * 核心页面脚手架：统一 [TaskFlowInsetsPolicy]、系统栏与内容区边距，不含顶栏/导航等业务层级 UI。
  *
- * 内置全局 [TaskFlowSnackbarHost]、[TaskFlowBlockingLoadingOverlay] 及对应 CompositionLocal。
+ * 内置全局 Snackbar、阻塞加载与确认/底部弹窗宿主及对应 CompositionLocal。
  */
 @Composable
 fun TaskFlowBaseScaffold(
@@ -45,15 +48,20 @@ fun TaskFlowBaseScaffold(
         )
     }
     val loadingController = remember { TaskFlowLoadingController() }
+    val dialogController = remember { TaskFlowDialogController() }
 
     DisposableEffect(loadingController) {
         onDispose { loadingController.hideLoading() }
+    }
+    DisposableEffect(dialogController) {
+        onDispose { dialogController.dismissAll() }
     }
 
     CompositionLocalProvider(
         LocalTaskFlowSnackbarHostState provides snackbarHostState,
         LocalTaskFlowSnackbarDispatcher provides snackbarDispatcher,
         LocalTaskFlowLoadingController provides loadingController,
+        LocalTaskFlowDialogController provides dialogController,
     ) {
         Box(modifier = modifier.fillMaxSize()) {
             Scaffold(
@@ -89,6 +97,7 @@ fun TaskFlowBaseScaffold(
                 visible = loadingState.visible,
                 message = loadingState.message,
             )
+            TaskFlowDialogHost(controller = dialogController)
         }
     }
 }
