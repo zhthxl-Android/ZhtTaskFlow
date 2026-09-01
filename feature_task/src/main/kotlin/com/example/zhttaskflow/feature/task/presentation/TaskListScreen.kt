@@ -28,6 +28,7 @@ import com.example.zhttaskflow.base.ext.rememberTaskFlowSnackbarDispatcher
 import com.example.zhttaskflow.base.ext.showSnackbar
 import com.example.zhttaskflow.base.extension.collectUiStateWithLifecycle
 import com.example.zhttaskflow.base.mvi.BaseUiState
+import com.example.zhttaskflow.base.ui.TaskFlowImeAvoidanceMode
 import com.example.zhttaskflow.base.ui.TaskFlowListScaffold
 import com.example.zhttaskflow.base.ui.TaskFlowRefreshableListPayload
 import com.example.zhttaskflow.base.ui.TaskFlowStateRefreshableListContent
@@ -35,7 +36,10 @@ import com.example.zhttaskflow.base.ui.TaskFlowUiConstants
 import com.example.zhttaskflow.base.ui.dialog.TaskFlowConfirmDialog
 import com.example.zhttaskflow.base.ui.extension.PageLifecycleLog
 import com.example.zhttaskflow.base.ui.extension.logUiInteraction
+import com.example.zhttaskflow.base.ui.rememberTaskFlowImePadding
 import com.example.zhttaskflow.base.ui.rememberTaskFlowListLazyContentPadding
+import com.example.zhttaskflow.base.ui.taskFlowImeBringIntoViewOnFocus
+import com.example.zhttaskflow.base.ui.taskFlowImePadding
 import com.example.zhttaskflow.feature.task.R
 import com.example.zhttaskflow.feature.task.domain.Task
 import com.example.zhttaskflow.feature.task.domain.TaskStatus
@@ -205,6 +209,7 @@ private fun AddTaskDialog(
 ) {
     var title by remember { mutableStateOf("") }
     var content by remember { mutableStateOf("") }
+    val imePadding = rememberTaskFlowImePadding(mode = TaskFlowImeAvoidanceMode.BringIntoView)
 
     TaskFlowConfirmDialog(
         title = stringResource(id = R.string.task_str_dialog_title),
@@ -213,17 +218,28 @@ private fun AddTaskDialog(
         confirmText = stringResource(id = R.string.task_str_confirm),
         dismissText = stringResource(id = R.string.task_str_cancel),
     ) {
-        Column(verticalArrangement = Arrangement.spacedBy(TaskFlowUiConstants.ListVerticalSpacing)) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .taskFlowImePadding(imePadding),
+            verticalArrangement = Arrangement.spacedBy(TaskFlowUiConstants.ListVerticalSpacing),
+        ) {
             OutlinedTextField(
                 value = title,
                 onValueChange = { title = it },
                 label = { Text(text = stringResource(id = R.string.task_str_field_title)) },
                 singleLine = true,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .taskFlowImeBringIntoViewOnFocus(),
             )
             OutlinedTextField(
                 value = content,
                 onValueChange = { content = it },
                 label = { Text(text = stringResource(id = R.string.task_str_field_content)) },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .taskFlowImeBringIntoViewOnFocus(),
             )
         }
     }
