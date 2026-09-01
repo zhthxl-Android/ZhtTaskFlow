@@ -81,7 +81,11 @@ fun registerTaskRoutes(
             route = TaskFlowTaskNavRoutes.TASK_DETAIL,
             argumentName = TaskFlowTaskNavRoutes.ARG_TASK_ID,
             content = { taskId ->
-                TaskDetailPlaceholderScreen(taskId = taskId)
+                val navigator = LocalTaskFlowNavigator.current
+                TaskDetailPlaceholderScreen(
+                    taskId = taskId,
+                    onNavigateUp = { navigator.navigateUp() },
+                )
             },
         ),
     )
