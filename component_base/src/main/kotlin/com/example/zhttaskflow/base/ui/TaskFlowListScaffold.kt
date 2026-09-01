@@ -169,6 +169,14 @@ data class TaskFlowPaginatedListPayload<T>(
 )
 
 /**
+ * 与 [StateBox] 配合的成功态列表载荷：业务列表 + 下拉刷新中状态（非分页场景）。
+ */
+data class TaskFlowRefreshableListPayload<T>(
+    val items: List<T>,
+    val isRefreshing: Boolean = false,
+)
+
+/**
  * 分页页码辅助：ViewModel 在刷新/加载更多成功后调用 [applyPageResult] 更新页码与 hasMore。
  */
 @Stable
@@ -362,7 +370,58 @@ fun <T> TaskFlowPaginatedList(
 }
 
 /**
- * 列表脚手架默认首屏加载骨架（与 [TaskFlowStatePaginatedListContent] 默认 loading 一致）。
+ * 带下拉刷新的 [LazyColumn] 列表（不含首屏四态与分页尾部，成功态数据展示用）。
+ */
+@Composable
+fun <T> TaskFlowRefreshableList(
+    items: List<T>,
+    isRefreshing: Boolean,
+    onRefresh: () -> Unit,
+    listContentPadding: PaddingValues,
+    modifier: Modifier = Modifier,
+    key: ((index: Int, item: T) -> Any)? = null,
+    itemContent: @Composable (index: Int, item: T) -> Unit,
+) {
+    val listModifier = Modifier.fillMaxSize()
+    if (items.isEmpty() && isRefreshing) {
+        TaskFlowPullToRefreshBox(
+            isRefreshing = true,
+            onRefresh = onRefresh,
+            modifier = modifier.fillMaxSize(),
+        ) {
+            Box(modifier = listModifier)
+        }
+        return
+    }
+
+    TaskFlowPullToRefreshBox(
+        isRefreshing = isRefreshing,
+        onRefresh = onRefresh,
+        modifier = modifier.fillMaxSize(),
+    ) {
+        LazyColumn(
+            modifier = listModifier,
+            verticalArrangement = Arrangement.spacedBy(TaskFlowUiConstants.ListVerticalSpacing),
+            contentPadding = listContentPadding,
+        ) {
+            if (key != null) {
+                itemsIndexed(
+                    items = items,
+                    key = { index, item -> key(index, item) },
+                ) { index, item ->
+                    itemContent(index, item)
+                }
+            } else {
+                itemsIndexed(items = items) { index, item ->
+                    itemContent(index, item)
+                }
+            }
+        }
+    }
+}
+
+/**
+ * 列表脚手架默认首屏加载骨架（与 [TaskFlowStatePaginatedListContent]、[TaskFlowStateRefreshableListContent] 默认 loading 一致）。
  */
 @Composable
 fun TaskFlowListSkeletonLoading(
@@ -445,6 +504,54 @@ fun <T> TaskFlowStatePaginatedListContent(
             onRefresh = onRefresh,
             onLoadMore = onLoadMore,
             onRetryLoadMore = onRetryLoadMore,
+            listContentPadding = listContentPadding,
+            key = key,
+            itemContent = itemContent,
+        )
+    }
+}
+
+/**
+ * [StateBox] + 下拉刷新 + 非分页列表一站式封装：首屏 Loading/Empty/Error 与成功态列表统一处理。
+ *
+ * API 与 [TaskFlowStatePaginatedListContent] 对齐（无加载更多与分页尾部）。
+ */
+@Composable
+fun <T> TaskFlowStateRefreshableListContent(
+    uiState: BaseUiState<TaskFlowRefreshableListPayload<T>>,
+    onRetry: () -> Unit,
+    onRefresh: () -> Unit,
+    listContentPadding: PaddingValues,
+    modifier: Modifier = Modifier,
+    contentPadding: PaddingValues = PaddingValues(
+        horizontal = TaskFlowUiConstants.PageHorizontalPadding,
+    ),
+    emptyMessage: String = stringResource(id = R.string.base_str_empty),
+    skeletonTemplate: TaskFlowSkeletonTemplate = TaskFlowSkeletonTemplate.List,
+    skeletonItemCount: Int = TaskFlowSkeletonDefaults.DefaultListItemCount,
+    loading: @Composable (Modifier) -> Unit = { loadingModifier ->
+        TaskFlowListSkeletonLoading(
+            listContentPadding = listContentPadding,
+            modifier = loadingModifier,
+            itemCount = skeletonItemCount,
+            template = skeletonTemplate,
+        )
+    },
+    key: ((index: Int, item: T) -> Any)? = null,
+    itemContent: @Composable (index: Int, item: T) -> Unit,
+) {
+    StateBox(
+        uiState = uiState,
+        onRetry = onRetry,
+        contentPadding = contentPadding,
+        modifier = modifier.fillMaxSize(),
+        emptyMessage = emptyMessage,
+        loading = loading,
+    ) { payload ->
+        TaskFlowRefreshableList(
+            items = payload.items,
+            isRefreshing = payload.isRefreshing,
+            onRefresh = onRefresh,
             listContentPadding = listContentPadding,
             key = key,
             itemContent = itemContent,

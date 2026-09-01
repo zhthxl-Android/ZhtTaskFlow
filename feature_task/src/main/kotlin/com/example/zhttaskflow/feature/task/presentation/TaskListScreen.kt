@@ -2,14 +2,11 @@ package com.example.zhttaskflow.feature.task.presentation
 
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.FloatingActionButton
@@ -30,15 +27,14 @@ import com.example.zhttaskflow.base.ext.showSnackbar
 import com.example.zhttaskflow.base.extension.collectUiStateWithLifecycle
 import com.example.zhttaskflow.base.mvi.BaseUiState
 import com.example.zhttaskflow.base.ui.TaskFlowSnackbarType
-import com.example.zhttaskflow.base.ui.StateBox
 import com.example.zhttaskflow.base.ui.TaskFlowListScaffold
-import com.example.zhttaskflow.base.ui.TaskFlowPullToRefreshBox
+import com.example.zhttaskflow.base.ui.TaskFlowRefreshableListPayload
+import com.example.zhttaskflow.base.ui.TaskFlowStateRefreshableListContent
 import com.example.zhttaskflow.base.ui.TaskFlowUiConstants
 import com.example.zhttaskflow.base.ui.dialog.TaskFlowConfirmDialog
 import com.example.zhttaskflow.base.ui.extension.PageLifecycleLog
 import com.example.zhttaskflow.base.ui.extension.logUiInteraction
 import com.example.zhttaskflow.base.ui.rememberTaskFlowListLazyContentPadding
-import com.example.zhttaskflow.base.ui.rememberTaskFlowListSkeletonLoading
 import com.example.zhttaskflow.feature.task.R
 import com.example.zhttaskflow.feature.task.domain.Task
 import com.example.zhttaskflow.feature.task.domain.TaskStatus
@@ -141,73 +137,34 @@ private fun TaskListContent(
     onTaskClick: (String) -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    val listSkeletonLoading = rememberTaskFlowListSkeletonLoading(listContentPadding = listContentPadding)
-    StateBox(
-        uiState = uiState,
+    TaskFlowStateRefreshableListContent(
+        uiState = uiState.toRefreshableUiState(),
         onRetry = onRetry,
-        contentPadding = PaddingValues(
-            horizontal = TaskFlowUiConstants.PageHorizontalPadding,
-        ),
+        onRefresh = onRefresh,
+        listContentPadding = listContentPadding,
         modifier = modifier.fillMaxSize(),
         emptyMessage = stringResource(id = R.string.task_str_empty_list),
-        loading = listSkeletonLoading,
-    ) { data ->
-        TaskRefreshableList(
-            tasks = data.tasks,
-            isRefreshing = data.isRefreshing,
-            listContentPadding = listContentPadding,
-            onRefresh = onRefresh,
-            onTaskClick = onTaskClick,
+        key = { _, task -> task.id },
+    ) { _, task ->
+        TaskListItem(
+            task = task,
+            onClick = { onTaskClick(task.id) },
         )
     }
 }
 
-/**
- * 非分页列表：统一下拉刷新 + [LazyColumn]（与 [com.example.zhttaskflow.base.ui.TaskFlowPaginatedList] 成功态刷新区一致）。
- */
-@Composable
-private fun TaskRefreshableList(
-    tasks: List<Task>,
-    isRefreshing: Boolean,
-    listContentPadding: PaddingValues,
-    onRefresh: () -> Unit,
-    onTaskClick: (String) -> Unit,
-    modifier: Modifier = Modifier,
-) {
-    val listModifier = Modifier.fillMaxSize()
-    if (tasks.isEmpty() && isRefreshing) {
-        TaskFlowPullToRefreshBox(
-            isRefreshing = true,
-            onRefresh = onRefresh,
-            modifier = modifier.fillMaxSize(),
-        ) {
-            Box(modifier = listModifier)
-        }
-        return
+private fun TaskUiState.toRefreshableUiState(): BaseUiState<TaskFlowRefreshableListPayload<Task>> =
+    when (this) {
+        BaseUiState.Loading -> BaseUiState.Loading
+        BaseUiState.Empty -> BaseUiState.Empty
+        is BaseUiState.Error -> BaseUiState.Error(message = message)
+        is BaseUiState.Success -> BaseUiState.Success(
+            data = TaskFlowRefreshableListPayload(
+                items = data.tasks,
+                isRefreshing = data.isRefreshing,
+            ),
+        )
     }
-
-    TaskFlowPullToRefreshBox(
-        isRefreshing = isRefreshing,
-        onRefresh = onRefresh,
-        modifier = modifier.fillMaxSize(),
-    ) {
-        LazyColumn(
-            modifier = listModifier,
-            verticalArrangement = Arrangement.spacedBy(TaskFlowUiConstants.ListVerticalSpacing),
-            contentPadding = listContentPadding,
-        ) {
-            items(
-                items = tasks,
-                key = { it.id },
-            ) { task ->
-                TaskListItem(
-                    task = task,
-                    onClick = { onTaskClick(task.id) },
-                )
-            }
-        }
-    }
-}
 
 /**
  * 单条任务列表项：标题、状态、创建时间。
