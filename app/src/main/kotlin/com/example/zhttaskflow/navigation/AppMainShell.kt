@@ -1,20 +1,19 @@
 package com.example.zhttaskflow.navigation
 
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
-import com.example.zhttaskflow.base.ui.TaskFlowInsetsPolicy
-import com.example.zhttaskflow.base.ui.rememberTaskFlowScaffoldContentPadding
+import com.example.zhttaskflow.base.ui.TaskFlowBaseScaffold
 import com.example.zhttaskflow.nav.TaskFlowNavHost
 import com.example.zhttaskflow.nav.TaskFlowNavigator
+import com.example.zhttaskflow.nav.interceptor.rememberTaskFlowAppRouterInterceptorChain
 import com.example.zhttaskflow.nav.route.TaskFlowRouteRegistry
 
 /**
- * 应用主界面骨架：底部 Tab + NavHost；inset 策略与 [TaskFlowInsetsPolicy] 对齐，不向子页面传递状态栏 top。
+ * 应用主界面骨架：底部 Tab + NavHost；全局 Snackbar / Loading / 弹窗由 [TaskFlowBaseScaffold] 托管，
+ * 路由拦截链与导航宿主同层装配，保障拦截过程 UI 与全站交互规范一致。
  */
 @Composable
 fun AppMainShell(
@@ -27,10 +26,11 @@ fun AppMainShell(
     val navBackStackEntry = navController.currentBackStackEntryAsState().value
     val currentRoute = navBackStackEntry?.destination?.route
     val selectedTab = MainTab.fromRoute(currentRoute)
+    val routerInterceptorChain = rememberTaskFlowAppRouterInterceptorChain()
 
-    Scaffold(
+    TaskFlowBaseScaffold(
         modifier = modifier.fillMaxSize(),
-        contentWindowInsets = TaskFlowInsetsPolicy.scaffoldContentWindowInsets,
+        consumeStatusBarsInContent = false,
         bottomBar = {
             selectedTab?.let { tab ->
                 MainBottomNavigationBar(
@@ -41,17 +41,14 @@ fun AppMainShell(
                 )
             }
         },
-    ) { innerPadding ->
-        val shellContentPadding = rememberTaskFlowScaffoldContentPadding(scaffoldPadding = innerPadding)
+    ) { _ ->
         TaskFlowNavHost(
             registry = registry,
             startDestination = startDestination,
             navigator = navigator,
             navController = navController,
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(shellContentPadding),
+            routerInterceptorChain = routerInterceptorChain,
+            modifier = Modifier.fillMaxSize(),
         )
     }
 }
-

@@ -3,4 +3,10 @@
     <string name="nav_str_module_name">component_nav</string>
     <string name="nav_standalone_debug_tab_placeholder">调试</string>
     <string name="nav_str_route_intercept_failed">页面跳转失败，请稍后重试</string>
+    <string name="nav_str_login_guide_title">登录提示</string>
+    <string name="nav_str_login_guide_message">该功能需要登录后使用，是否立即登录？</string>
+    <string name="nav_str_login_confirm">去登录</string>
+    <string name="nav_str_login_cancel">暂不登录</string>
+    <string name="nav_str_login_success">登录成功</string>
+    <string name="nav_str_login_cancelled">已取消登录</string>
 </resources>
