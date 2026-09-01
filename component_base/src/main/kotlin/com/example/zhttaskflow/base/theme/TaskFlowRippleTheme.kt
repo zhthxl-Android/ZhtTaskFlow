@@ -2,7 +2,7 @@ package com.example.zhttaskflow.base.theme
 
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
-import androidx.compose.foundation.isSystemInDarkTheme
+import com.example.zhttaskflow.base.theme.isAppDarkTheme
 import androidx.compose.material.ripple.RippleAlpha
 import androidx.compose.material3.ColorScheme
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -60,7 +60,7 @@ object TaskFlowRippleTokens {
 fun TaskFlowRippleTheme(
     content: @Composable () -> Unit,
 ) {
-    val darkTheme = isSystemInDarkTheme()
+    val darkTheme = isAppDarkTheme()
     val colorScheme = MaterialTheme.colorScheme
     val rippleAlpha = remember(darkTheme) { TaskFlowRippleTokens.rippleAlpha(darkTheme) }
     val rippleColor = remember(colorScheme, darkTheme) {
