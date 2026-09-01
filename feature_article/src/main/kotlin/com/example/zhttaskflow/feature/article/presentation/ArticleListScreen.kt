@@ -1,6 +1,5 @@
 package com.example.zhttaskflow.feature.article.presentation
 
-import android.widget.Toast
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -15,11 +14,13 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import com.example.zhttaskflow.base.ext.rememberTaskFlowSnackbarDispatcher
+import com.example.zhttaskflow.base.ext.showSnackbar
 import com.example.zhttaskflow.base.extension.collectUiStateWithLifecycle
 import com.example.zhttaskflow.base.mvi.BaseUiState
+import com.example.zhttaskflow.base.ui.TaskFlowSnackbarType
 import com.example.zhttaskflow.base.ui.TaskFlowListPaginationState
 import com.example.zhttaskflow.base.ui.TaskFlowListScaffold
 import com.example.zhttaskflow.base.ui.TaskFlowPaginatedListPayload
@@ -44,7 +45,6 @@ fun ArticleListScreen(
     modifier: Modifier = Modifier,
 ) {
     val uiState by viewModel.uiState.collectUiStateWithLifecycle()
-    val context = LocalContext.current
     val lifecycleArgs = when (val state = uiState) {
         is BaseUiState.Success -> "page=${state.data.currentPage} count=${state.data.articles.size}"
         is BaseUiState.Loading -> "loading"
@@ -57,24 +57,28 @@ fun ArticleListScreen(
         pageArgs = lifecycleArgs,
     )
 
-    LaunchedEffect(viewModel) {
-        viewModel.uiEffect.collect { effect ->
-            when (effect) {
-                is ArticleUiEffect.ShowToast -> {
-                    Toast.makeText(context, effect.message, Toast.LENGTH_SHORT).show()
-                }
-                is ArticleUiEffect.NavigateToDetail -> {
-                    // 跨页面导航：由 ArticleListRouteHost 消费，Screen 不处理
-                }
-            }
-        }
-    }
-
     TaskFlowListScaffold(
         modifier = modifier,
         collapsibleTopBarOnScroll = true,
         interceptTabRootBackToDesktop = true,
     ) { scaffoldContentPadding ->
+        val snackbarDispatcher = rememberTaskFlowSnackbarDispatcher()
+        LaunchedEffect(viewModel, snackbarDispatcher) {
+            viewModel.uiEffect.collect { effect ->
+                when (effect) {
+                    is ArticleUiEffect.ShowToast -> {
+                        showSnackbar(
+                            dispatcher = snackbarDispatcher,
+                            message = effect.message,
+                            type = snackbarTypeForUserFeedback(effect.message),
+                        )
+                    }
+                    is ArticleUiEffect.NavigateToDetail -> {
+                        // 跨页面导航：由 ArticleListRouteHost 消费，Screen 不处理
+                    }
+                }
+            }
+        }
         val listContentPadding = rememberTaskFlowListLazyContentPadding(
             scaffoldPadding = scaffoldContentPadding,
         )
@@ -196,4 +200,15 @@ private fun ArticleListItem(
 private fun formatPublishedAt(epochMillis: Long): String {
     val formatter = SimpleDateFormat("yyyy-MM-dd HH:mm", Locale.getDefault())
     return formatter.format(Date(epochMillis))
+}
+
+/** 按文案语义映射 Snackbar 样式（与 ViewModel [ArticleUiEffect.ShowToast] 触发场景一致）。 */
+private fun snackbarTypeForUserFeedback(message: String): TaskFlowSnackbarType = when (message) {
+    "刷新成功" -> TaskFlowSnackbarType.Success
+    "无法打开详情" -> TaskFlowSnackbarType.Error
+    else -> if (message.contains("失败")) {
+        TaskFlowSnackbarType.Error
+    } else {
+        TaskFlowSnackbarType.Normal
+    }
 }

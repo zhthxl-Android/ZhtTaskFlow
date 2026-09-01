@@ -13,4 +13,9 @@ sealed interface HomeUiEvent : BaseUiEvent {
      * @param entranceId 入口标识，见 [com.example.zhttaskflow.feature.home.domain.HomeEntranceIds]
      */
     data class EntranceClicked(val entranceId: String) : HomeUiEvent
+
+    /**
+     * 空态/错误态重试（占位：后续接入首页加载 UseCase 后替换为真实刷新）。
+     */
+    data object Retry : HomeUiEvent
 }

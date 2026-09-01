@@ -20,13 +20,11 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.unit.dp
 import com.example.zhttaskflow.base.extension.collectUiStateWithLifecycle
 import com.example.zhttaskflow.base.ui.StateBox
 import com.example.zhttaskflow.base.ui.TaskFlowListScaffold
+import com.example.zhttaskflow.base.ui.TaskFlowUiConstants
 import com.example.zhttaskflow.base.ui.rememberTaskFlowStateBoxContentPadding
-import com.example.zhttaskflow.feature.home.R
 import com.example.zhttaskflow.feature.home.domain.HomeEntranceIds
 
 /**
@@ -58,7 +56,7 @@ internal fun HomeScreen(
         val pagePadding = rememberTaskFlowStateBoxContentPadding()
         StateBox(
             uiState = uiState,
-            onRetry = { },
+            onRetry = { viewModel.onEvent(HomeUiEvent.Retry) },
             contentPadding = pagePadding,
             modifier = Modifier.fillMaxSize(),
         ) { data ->
@@ -81,8 +79,15 @@ private fun HomeEntranceList(
     Column(
         modifier = modifier
             .fillMaxSize()
-            .padding(horizontal = 24.dp, vertical = 16.dp),
-        verticalArrangement = Arrangement.spacedBy(16.dp, Alignment.CenterVertically),
+            .padding(
+                horizontal = TaskFlowUiConstants.PageHorizontalPadding +
+                    TaskFlowUiConstants.ListVerticalSpacing,
+                vertical = TaskFlowUiConstants.PageHorizontalPadding,
+            ),
+        verticalArrangement = Arrangement.spacedBy(
+            TaskFlowUiConstants.PageHorizontalPadding,
+            Alignment.CenterVertically,
+        ),
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
         entrances.forEach { entrance ->
@@ -115,18 +120,23 @@ private fun HomeEntryCard(
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(20.dp),
+                .padding(
+                    TaskFlowUiConstants.PageHorizontalPadding +
+                        TaskFlowUiConstants.ListVerticalSpacing / 2,
+                ),
             verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(16.dp),
+            horizontalArrangement = Arrangement.spacedBy(TaskFlowUiConstants.PageHorizontalPadding),
         ) {
             Icon(
                 imageVector = icon,
                 contentDescription = null,
-                modifier = Modifier.size(40.dp),
+                modifier = Modifier.size(
+                    TaskFlowUiConstants.DialogActionHeight - TaskFlowUiConstants.ListVerticalSpacing,
+                ),
                 tint = MaterialTheme.colorScheme.primary,
             )
             Column(
-                verticalArrangement = Arrangement.spacedBy(4.dp),
+                verticalArrangement = Arrangement.spacedBy(TaskFlowUiConstants.ListVerticalSpacing / 2),
             ) {
                 Text(
                     text = title,

@@ -20,6 +20,8 @@ internal class HomeViewModel(
     initialState = BaseUiState.Success(initialPageData),
 ) {
 
+    private val cachedPageData: HomePageData = initialPageData
+
     // region 初始化入口
 
     init {
@@ -33,6 +35,7 @@ internal class HomeViewModel(
     override fun handleEvent(event: HomeUiEvent) {
         when (event) {
             is HomeUiEvent.EntranceClicked -> onEntranceClicked(event.entranceId)
+            HomeUiEvent.Retry -> onRetryLoad()
         }
     }
 
@@ -41,6 +44,11 @@ internal class HomeViewModel(
     // region 数据加载
 
     // 当前首页数据由路由层注入 [HomePageData]；无异步加载逻辑。
+
+    private fun onRetryLoad() {
+        // 占位：接入 UseCase 后改为 launchTask { loadHomePageUseCase() }
+        setState { BaseUiState.Success(cachedPageData) }
+    }
 
     // endregion
 

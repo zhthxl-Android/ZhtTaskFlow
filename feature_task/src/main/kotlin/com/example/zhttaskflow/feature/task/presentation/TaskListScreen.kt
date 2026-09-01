@@ -1,6 +1,5 @@
 package com.example.zhttaskflow.feature.task.presentation
 
-import android.widget.Toast
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -24,11 +23,13 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import com.example.zhttaskflow.base.ext.rememberTaskFlowSnackbarDispatcher
+import com.example.zhttaskflow.base.ext.showSnackbar
 import com.example.zhttaskflow.base.extension.collectUiStateWithLifecycle
 import com.example.zhttaskflow.base.mvi.BaseUiState
+import com.example.zhttaskflow.base.ui.TaskFlowSnackbarType
 import com.example.zhttaskflow.base.ui.StateBox
 import com.example.zhttaskflow.base.ui.TaskFlowListScaffold
 import com.example.zhttaskflow.base.ui.TaskFlowPullToRefreshBox
@@ -54,7 +55,6 @@ fun TaskListScreen(
     modifier: Modifier = Modifier,
 ) {
     val uiState by viewModel.uiState.collectUiStateWithLifecycle()
-    val context = LocalContext.current
     var showAddDialog by remember { mutableStateOf(false) }
     val lifecycleArgs = when (val state = uiState) {
         is BaseUiState.Success -> "count=${state.data.tasks.size}"
@@ -67,19 +67,6 @@ fun TaskListScreen(
         pageName = "TaskList",
         pageArgs = lifecycleArgs,
     )
-
-    LaunchedEffect(viewModel) {
-        viewModel.uiEffect.collect { effect ->
-            when (effect) {
-                is TaskUiEffect.ShowToast -> {
-                    Toast.makeText(context, effect.message, Toast.LENGTH_SHORT).show()
-                }
-                is TaskUiEffect.NavigateToEdit -> {
-                    // 跨页面导航：由 TaskListRouteHost 消费，Screen 不处理
-                }
-            }
-        }
-    }
 
     TaskFlowListScaffold(
         modifier = modifier,
@@ -96,6 +83,23 @@ fun TaskListScreen(
             }
         },
     ) { scaffoldContentPadding ->
+        val snackbarDispatcher = rememberTaskFlowSnackbarDispatcher()
+        LaunchedEffect(viewModel, snackbarDispatcher) {
+            viewModel.uiEffect.collect { effect ->
+                when (effect) {
+                    is TaskUiEffect.ShowToast -> {
+                        showSnackbar(
+                            dispatcher = snackbarDispatcher,
+                            message = effect.message,
+                            type = snackbarTypeForUserFeedback(effect.message),
+                        )
+                    }
+                    is TaskUiEffect.NavigateToEdit -> {
+                        // 跨页面导航：由 TaskListRouteHost 消费，Screen 不处理
+                    }
+                }
+            }
+        }
         val listContentPadding = rememberTaskFlowListLazyContentPadding(
             scaffoldPadding = scaffoldContentPadding,
             extraBottom = TaskFlowUiConstants.FabContentExtraBottom,
@@ -288,4 +292,15 @@ private fun taskStatusLabel(status: TaskStatus): String {
 private fun formatCreatedAt(epochMillis: Long): String {
     val formatter = SimpleDateFormat("yyyy-MM-dd HH:mm", Locale.getDefault())
     return formatter.format(Date(epochMillis))
+}
+
+/** 按文案语义映射 Snackbar 样式（与 ViewModel [TaskUiEffect.ShowToast] 触发场景一致）。 */
+private fun snackbarTypeForUserFeedback(message: String): TaskFlowSnackbarType = when (message) {
+    "刷新成功", "任务已添加" -> TaskFlowSnackbarType.Success
+    "请输入任务标题", "任务标识无效" -> TaskFlowSnackbarType.Error
+    else -> if (message.contains("失败")) {
+        TaskFlowSnackbarType.Error
+    } else {
+        TaskFlowSnackbarType.Normal
+    }
 }
