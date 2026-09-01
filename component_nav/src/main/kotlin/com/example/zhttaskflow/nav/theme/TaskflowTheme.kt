@@ -5,6 +5,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.darkColorScheme
 import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
+import com.example.zhttaskflow.base.theme.TaskFlowRippleTheme
 
 /**
  * 应用全局 Material3 主题：跟随系统浅色/深色，保证底部导航与标题栏对比度。
@@ -21,6 +22,8 @@ fun TaskFlowTheme(
     }
     MaterialTheme(
         colorScheme = colorScheme,
-        content = content,
+        content = {
+            TaskFlowRippleTheme(content = content)
+        },
     )
 }
