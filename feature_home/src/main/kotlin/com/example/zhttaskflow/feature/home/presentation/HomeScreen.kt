@@ -30,8 +30,11 @@ import com.example.zhttaskflow.base.ui.StateBox
 import com.example.zhttaskflow.base.ui.TaskFlowListScaffold
 import com.example.zhttaskflow.base.ui.TaskFlowUiConstants
 import com.example.zhttaskflow.base.ui.extension.PageLifecycleLog
+import com.example.zhttaskflow.base.ui.extension.logUiInteraction
 import com.example.zhttaskflow.base.ui.rememberTaskFlowStateBoxContentPadding
 import com.example.zhttaskflow.feature.home.domain.HomeEntranceIds
+
+private const val HOME_PAGE_ID: String = "Home"
 
 /**
  * 首页纯 UI：订阅状态并分发事件；消费全部页面内 UI 类 [HomeUiEffect]（导航类由路由宿主处理）。
@@ -72,7 +75,14 @@ internal fun HomeScreen(
         val pagePadding = rememberTaskFlowStateBoxContentPadding()
         StateBox(
             uiState = uiState,
-            onRetry = { viewModel.onEvent(HomeUiEvent.Retry) },
+            onRetry = {
+                logUiInteraction(
+                    action = "click",
+                    identifier = "home_retry",
+                    pageId = HOME_PAGE_ID,
+                )
+                viewModel.onEvent(HomeUiEvent.Retry)
+            },
             contentPadding = pagePadding,
             modifier = Modifier.fillMaxSize(),
         ) { data ->
@@ -106,12 +116,23 @@ private fun HomeEntranceList(
         ),
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
-        entrances.forEach { entrance ->
+        entrances.forEachIndexed { index, entrance ->
             HomeEntryCard(
                 title = entrance.title,
                 description = entrance.description,
                 icon = entranceIcon(entrance.id),
-                onClick = { onEntranceClick(entrance.id) },
+                onClick = {
+                    logUiInteraction(
+                        action = "click",
+                        identifier = "home_entrance_card",
+                        pageId = HOME_PAGE_ID,
+                        params = mapOf(
+                            "entranceId" to entrance.id,
+                            "index" to index.toString(),
+                        ),
+                    )
+                    onEntranceClick(entrance.id)
+                },
             )
         }
     }
@@ -187,6 +208,17 @@ private fun consumeHomeUiEffect(
 ) {
     when (effect) {
         is HomeUiEffect.ShowSnackbar -> {
+            val outcomeAction = when (effect.type) {
+                SnackbarType.Success -> "success"
+                SnackbarType.Error -> "failure"
+                SnackbarType.Normal -> "info"
+            }
+            logUiInteraction(
+                action = outcomeAction,
+                identifier = "home_snackbar",
+                pageId = HOME_PAGE_ID,
+                params = mapOf("message" to effect.message),
+            )
             showSnackbar(
                 dispatcher = dispatcher,
                 message = effect.message,
