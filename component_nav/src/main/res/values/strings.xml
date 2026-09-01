@@ -9,4 +9,7 @@
     <string name="nav_str_login_cancel">暂不登录</string>
     <string name="nav_str_login_success">登录成功</string>
     <string name="nav_str_login_cancelled">已取消登录</string>
+    <string name="nav_str_deeplink_parse_failed">链接无效，无法打开页面</string>
+    <string name="nav_str_deeplink_unmapped">暂不支持该链接，请稍后再试</string>
+    <string name="nav_str_permission_denied">未获得所需权限，无法继续</string>
 </resources>

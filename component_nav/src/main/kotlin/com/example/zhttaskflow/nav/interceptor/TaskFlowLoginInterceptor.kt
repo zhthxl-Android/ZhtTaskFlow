@@ -96,19 +96,49 @@ fun interface TaskFlowLoginInterceptUi {
 }
 
 /**
- * 默认应用级拦截链：当前仅装配登录拦截器，后续可在 [TaskFlowRouterInterceptorChain.build] 中按 priority 追加权限、深链等。
+ * 默认应用级拦截链：深链 → 登录 → 权限（按 [TaskFlowRouterInterceptorPriorities] 降序执行）。
  */
 @Composable
 fun rememberTaskFlowAppRouterInterceptorChain(
     loginSession: TaskFlowLoginSession = rememberTaskFlowLoginSession(),
+    deepLinkRouteMapper: TaskFlowDeepLinkRouteMapper = rememberTaskFlowDeepLinkRouteMapper(),
+    permissionGrantChecker: TaskFlowPermissionGrantChecker = rememberTaskFlowPermissionGrantChecker(),
 ): TaskFlowRouterInterceptorChain {
     val loginUi = rememberTaskFlowLoginInterceptUi(loginSession = loginSession)
-    return remember(loginSession, loginUi) {
+    val permissionUi = rememberTaskFlowPermissionInterceptUi(grantChecker = permissionGrantChecker)
+    val deepLinkParseError = stringResource(id = R.string.nav_str_deeplink_parse_failed)
+    val deepLinkUnmappedError = stringResource(id = R.string.nav_str_deeplink_unmapped)
+    val permissionDeniedMessage = stringResource(id = R.string.nav_str_permission_denied)
+    return remember(
+        loginSession,
+        loginUi,
+        permissionUi,
+        deepLinkRouteMapper,
+        permissionGrantChecker,
+        deepLinkParseError,
+        deepLinkUnmappedError,
+        permissionDeniedMessage,
+    ) {
         TaskFlowRouterInterceptorChain.build {
+            add(
+                TaskFlowDeepLinkInterceptor(
+                    routeMapper = deepLinkRouteMapper,
+                    parseErrorMessage = deepLinkParseError,
+                    unmappedErrorMessage = deepLinkUnmappedError,
+                ),
+            )
             add(
                 TaskFlowLoginInterceptor(
                     loginSession = loginSession,
                     loginUi = loginUi,
+                    priority = TaskFlowRouterInterceptorPriorities.LOGIN,
+                ),
+            )
+            add(
+                TaskFlowPermissionInterceptor(
+                    grantChecker = permissionGrantChecker,
+                    permissionUi = permissionUi,
+                    permissionDeniedMessage = permissionDeniedMessage,
                 ),
             )
         }
