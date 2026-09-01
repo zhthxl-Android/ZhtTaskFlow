@@ -53,5 +53,11 @@ object TaskFlowUiConstants {
 
     /** 分隔线相对 [androidx.compose.material3.MaterialTheme.colorScheme.outlineVariant] 的不透明度。 */
     const val DividerColorAlpha: Float = 0.55f
+
+    /** 列表距底部触发「加载更多」的预取项数（距列表末尾）。 */
+    const val ListLoadMorePrefetchThreshold: Int = 2
+
+    /** 列表加载更多尾部区域最小高度。 */
+    val ListLoadMoreFooterMinHeight = 48.dp
 }
 

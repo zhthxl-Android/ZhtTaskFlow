@@ -9,4 +9,7 @@
     <string name="base_str_unsaved_exit_title">内容未保存</string>
     <string name="base_str_unsaved_exit_message">当前内容尚未保存，确定要退出吗？</string>
     <string name="base_str_exit">退出</string>
+    <string name="base_str_list_load_more_hint">上拉加载更多</string>
+    <string name="base_str_list_load_more_retry">加载失败，点击重试</string>
+    <string name="base_str_list_no_more">没有更多了</string>
 </resources>
