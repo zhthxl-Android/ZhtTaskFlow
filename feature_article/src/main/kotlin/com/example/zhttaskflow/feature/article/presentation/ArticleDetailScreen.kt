@@ -8,7 +8,6 @@ import android.webkit.WebResourceRequest
 import android.webkit.WebSettings
 import android.webkit.WebView
 import android.webkit.WebViewClient
-import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.layout.fillMaxSize
 import com.example.zhttaskflow.base.ui.icon.TaskFlowIcons
 import androidx.compose.material3.Icon
@@ -27,6 +26,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.core.view.ViewCompat
+import com.example.zhttaskflow.base.ext.handleTaskFlowPageBack
 import com.example.zhttaskflow.base.mvi.BaseUiState
 import com.example.zhttaskflow.base.ui.StateBox
 import com.example.zhttaskflow.base.ui.TaskFlowScaffold
@@ -37,7 +37,7 @@ import com.example.zhttaskflow.base.util.NetworkUtil
 import com.example.zhttaskflow.feature.article.R
 
 /**
- * 文章详情页：WebView 加载 H5 链接。
+ * 文章详情页：WebView 加载 H5 链接；系统/顶栏返回经 [TaskFlowScaffold] 的 [onBackIntercept] 优先 WebView 历史栈。
  *
  * @param articleId 文章标识（展示用）
  * @param detailUrl 详情链接
@@ -66,30 +66,34 @@ fun ArticleDetailScreen(
 
     val webViewHolder = remember { ArticleDetailWebViewHolder() }
     val currentDetailUrl = rememberUpdatedState(detailUrl)
-    val currentOnNavigateUp = rememberUpdatedState(onNavigateUp)
+    val webViewBackIntercept: () -> Boolean = {
+        val webView = webViewHolder.webView
+        if (webView != null && webView.canGoBack()) {
+            webView.goBack()
+            true
+        } else {
+            false
+        }
+    }
 
     PageLifecycleLog(
         pageName = "ArticleDetail",
         pageArgs = "articleId=$articleId url=$detailUrl",
     )
 
-    BackHandler {
-        val webView = webViewHolder.webView
-        if (webView != null && webView.canGoBack()) {
-            webView.goBack()
-        } else {
-            currentOnNavigateUp.value()
-        }
-    }
-
     TaskFlowScaffold(
         modifier = modifier,
         title = stringResource(id = R.string.article_str_detail_title, articleId),
+        onNavigateUp = onNavigateUp,
+        onBackIntercept = webViewBackIntercept,
         navigationIcon = {
             IconButton(
                 onClick = {
                     logUiInteraction(action = "click", identifier = "article_detail_back")
-                    onNavigateUp()
+                    handleTaskFlowPageBack(
+                        onNavigateUp = onNavigateUp,
+                        onBackIntercept = webViewBackIntercept,
+                    )
                 },
             ) {
                 Icon(
