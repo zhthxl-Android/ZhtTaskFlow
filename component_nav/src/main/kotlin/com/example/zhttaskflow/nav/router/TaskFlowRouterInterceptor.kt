@@ -1,10 +1,7 @@
 package com.example.zhttaskflow.nav.router
 
-import android.content.Context
-import android.widget.Toast
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import com.example.zhttaskflow.base.ext.LocalTaskFlowLoadingController
 import com.example.zhttaskflow.base.ext.LocalTaskFlowSnackbarDispatcher
@@ -104,7 +101,7 @@ sealed interface TaskFlowRouterChainOutcome {
 }
 
 /**
- * 拦截过程 UI：加载弹窗与失败提示。
+ * 拦截过程 UI：加载弹窗与失败提示（均经 [TaskFlowBaseScaffold] CompositionLocal；无宿主时安全 no-op，不使用系统 Toast）。
  */
 interface TaskFlowRouterInterceptUiBridge {
     fun showLoading(message: String? = null)
@@ -136,42 +133,25 @@ class TaskFlowRouterInterceptUiBridgeImpl(
 fun rememberTaskFlowRouterInterceptUiBridge(
     defaultErrorMessage: String = stringResource(id = R.string.nav_str_route_intercept_failed),
 ): TaskFlowRouterInterceptUiBridge {
-    val context = LocalContext.current.applicationContext
     val loadingController = runCatching { LocalTaskFlowLoadingController.current }.getOrNull()
     val snackbarDispatcher = runCatching { LocalTaskFlowSnackbarDispatcher.current }.getOrNull()
-    return remember(context, loadingController, snackbarDispatcher, defaultErrorMessage) {
-        if (loadingController != null && snackbarDispatcher != null) {
-            TaskFlowRouterInterceptUiBridgeImpl(
-                showLoadingAction = { message -> showLoading(loadingController, message) },
-                hideLoadingAction = { hideLoading(loadingController) },
-                showErrorAction = { message ->
-                    showSnackbar(
-                        dispatcher = snackbarDispatcher,
-                        message = message.ifBlank { defaultErrorMessage },
-                        type = TaskFlowSnackbarType.Error,
-                    )
-                },
-            )
-        } else {
-            TaskFlowRouterToastUiBridge(
-                context = context,
-                defaultErrorMessage = defaultErrorMessage,
-            )
-        }
-    }
-}
-
-private class TaskFlowRouterToastUiBridge(
-    private val context: Context,
-    private val defaultErrorMessage: String,
-) : TaskFlowRouterInterceptUiBridge {
-    override fun showLoading(message: String?) = Unit
-
-    override fun hideLoading() = Unit
-
-    override fun showRouteError(message: String) {
-        val text = message.ifBlank { defaultErrorMessage }
-        Toast.makeText(context, text, Toast.LENGTH_SHORT).show()
+    return remember(loadingController, snackbarDispatcher, defaultErrorMessage) {
+        TaskFlowRouterInterceptUiBridgeImpl(
+            showLoadingAction = { message ->
+                loadingController?.let { controller -> showLoading(controller, message) }
+            },
+            hideLoadingAction = {
+                loadingController?.let { controller -> hideLoading(controller) }
+            },
+            showErrorAction = { message ->
+                val dispatcher = snackbarDispatcher ?: return@TaskFlowRouterInterceptUiBridgeImpl
+                showSnackbar(
+                    dispatcher = dispatcher,
+                    message = message.ifBlank { defaultErrorMessage },
+                    type = TaskFlowSnackbarType.Error,
+                )
+            },
+        )
     }
 }
 
