@@ -1,5 +1,6 @@
 package com.example.zhttaskflow.base.ui
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -7,6 +8,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.statusBarsPadding
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.runtime.Composable
@@ -63,9 +65,15 @@ fun TaskFlowBaseScaffold(
         LocalTaskFlowLoadingController provides loadingController,
         LocalTaskFlowDialogController provides dialogController,
     ) {
-        Box(modifier = modifier.fillMaxSize()) {
+        val pageBackground = TaskFlowPageBackground.color()
+        Box(
+            modifier = modifier
+                .fillMaxSize()
+                .background(pageBackground),
+        ) {
             Scaffold(
                 modifier = Modifier.fillMaxSize(),
+                containerColor = pageBackground,
                 contentWindowInsets = TaskFlowInsetsPolicy.scaffoldContentWindowInsets,
                 bottomBar = bottomBar,
                 floatingActionButton = floatingActionButton,
@@ -78,6 +86,7 @@ fun TaskFlowBaseScaffold(
                         modifier = Modifier
                             .weight(1f)
                             .fillMaxWidth()
+                            .background(pageBackground)
                             .then(
                                 if (consumeStatusBarsInContent) {
                                     Modifier.statusBarsPadding()

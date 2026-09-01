@@ -1,5 +1,6 @@
 package com.example.zhttaskflow.base.ui
 
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 
 /**
@@ -40,5 +41,17 @@ object TaskFlowUiConstants {
 
     /** 底部弹窗顶部拖拽条宽度。 */
     val BottomSheetDragHandleWidth = 32.dp
+
+    /** 列表分隔线粗细。 */
+    val DividerListThickness: Dp = 1.dp
+
+    /** 区块分隔线粗细。 */
+    val DividerSectionThickness: Dp = 1.dp
+
+    /** 区块分隔线上下留白。 */
+    val DividerSectionVerticalPadding: Dp = 12.dp
+
+    /** 分隔线相对 [androidx.compose.material3.MaterialTheme.colorScheme.outlineVariant] 的不透明度。 */
+    const val DividerColorAlpha: Float = 0.55f
 }
-
+
