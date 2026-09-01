@@ -12,7 +12,7 @@ import com.example.zhttaskflow.base.mvi.BaseUiEffect
  *
  * | 层级 | 订阅位置 | 处理类型 | 典型操作 |
  * |------|----------|----------|----------|
- * | **RouteHost** | `*Route.kt` 内 `LaunchedEffect` | [TaskFlowNavigationUiEffect] | `TaskFlowNavigator.navigate` / `navigateMainTab`、深链分发（预留） |
+ * | **RouteHost** | `*Route.kt` 内 `LaunchedEffect` | [TaskFlowNavigationUiEffect] | `TaskFlowNavigator.navigate` / `navigateMainTab`、RouteHost 侧 path 标记（登录/权限） |
  * | **Screen** | `*Screen.kt` 内 Scaffold 子树 `LaunchedEffect` | [TaskFlowPresentationUiEffect] | Snackbar、全局 Loading、页面级 Dialog |
  *
  * ## 设计意图
@@ -34,7 +34,7 @@ import com.example.zhttaskflow.base.mvi.BaseUiEffect
  *
  * @see BaseUiEffect
  * @see TaskFlowNavigationUiEffect
- * @see TaskFlowPresentationUiEffect
+ * @see com.example.zhttaskflow.nav.doc.TaskFlowNavArchitecture
  */
 object TaskFlowUiEffectConsumption
 

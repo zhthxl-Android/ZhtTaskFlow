@@ -27,6 +27,12 @@ import com.example.zhttaskflow.nav.transition.taskFlowPopExitTransition
 /**
  * 统一 Navigation Compose 宿主：根据 [TaskFlowRouteRegistry] 装配导航图，并应用全局转场规范。
  *
+ * - 绑定 [TaskFlowNavigator] 与拦截链协程作用域；非空 [routerInterceptorChain] 时跳转走深链/登录/权限链。
+ * - 拦截失败提示经 [com.example.zhttaskflow.nav.router.rememberTaskFlowRouterInterceptUiBridge] 注入 Snackbar。
+ * - 业务 Composable 通过 [LocalTaskFlowNavigator] 获取 Navigator，禁止直接使用 [NavHostController]。
+ *
+ * 架构说明：[com.example.zhttaskflow.nav.doc.TaskFlowNavArchitecture]。
+ *
  * 默认区分一级 Tab 切换与二级页面推入/弹出；可通过 [transitionRegistry] 按路由覆盖。
  * 若需完全自定义，可传入非 null 的 [enterTransition] 等 lambda（将替代对应默认实现）。
  */

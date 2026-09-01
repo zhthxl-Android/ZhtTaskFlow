@@ -64,6 +64,8 @@ internal fun taskFlowParentGlobalHostsOrNull(): TaskFlowScaffoldGlobalHosts? {
  * 保证路由拦截与页面 MVI 提示共用同一队列与层级。
  *
  * 独立调试等无外层宿主场景下，本组件自动降级为本地宿主创建模式。
+ *
+ * @see com.example.zhttaskflow.base.doc.TaskFlowBaseArchitecture
  */
 @Composable
 fun TaskFlowBaseScaffold(

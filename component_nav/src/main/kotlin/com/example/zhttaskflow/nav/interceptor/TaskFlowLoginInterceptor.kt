@@ -97,6 +97,8 @@ fun interface TaskFlowLoginInterceptUi {
 
 /**
  * 默认应用级拦截链：深链 → 登录 → 权限（按 [TaskFlowRouterInterceptorPriorities] 降序执行）。
+ *
+ * @see com.example.zhttaskflow.nav.doc.TaskFlowNavArchitecture
  */
 @Composable
 fun rememberTaskFlowAppRouterInterceptorChain(

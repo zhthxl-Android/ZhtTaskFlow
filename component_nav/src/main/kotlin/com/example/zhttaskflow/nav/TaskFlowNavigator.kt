@@ -11,7 +11,11 @@ import kotlinx.coroutines.CoroutineScope
 /**
  * 导航执行器：业务通过封装方法跳转，不直接持有 [NavHostController]。
  *
- * 安装非空 [routerInterceptorChain] 时，[navigate] / [navigateMainTab] 走拦截链（支持 Loading 与失败提示）。
+ * - [navigate] / [navigateMainTab]：安装非空 [routerInterceptorChain] 时先走拦截链（Loading、Snackbar 错误提示）。
+ * - [navigateUp]：弹出返回栈，不经过拦截链。
+ * - ViewModel 不应持有本类；跨页跳转优先 `TaskFlowNavigationUiEffect` + RouteHost 消费。
+ *
+ * @see com.example.zhttaskflow.nav.doc.TaskFlowNavArchitecture
  */
 class TaskFlowNavigator {
 

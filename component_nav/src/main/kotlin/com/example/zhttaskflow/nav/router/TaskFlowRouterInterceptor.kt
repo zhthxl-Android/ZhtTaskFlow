@@ -1,14 +1,25 @@
 package com.example.zhttaskflow.nav.router
 
 /**
- * ## 路由拦截链（Navigation 层）
+ * ## 路由拦截链（Navigation 层，S2/S3）
  *
- * 本包处理 **[TaskFlowNavigator] 发起跳转之前** 的同步/挂起拦截（登录、权限、深链等），
+ * 本包处理 **[TaskFlowNavigator] 发起跳转之前** 的挂起拦截（深链解析、登录、权限等），
  * 与 ViewModel [com.example.zhttaskflow.base.mvi.BaseUiEffect] **无直接关系**。
  *
+ * ### 接入步骤
+ *
+ * 1. App / 调试壳：`rememberTaskFlowAppRouterInterceptorChain()` 传入 [TaskFlowNavHost] 的 `routerInterceptorChain`。
+ * 2. 业务 path 保持纯净；RouteHost 在 `navigate` 前按需调用 `TaskFlowRouteAuthMarker` / `TaskFlowRoutePermissionMarker`。
+ * 3. 深链：`TaskFlowRouteDeepLinkMarker.wrap(uri)` 后 `navigator.navigate(...)`。
+ * 4. 扩展自定义拦截器：实现 [TaskFlowRouterInterceptor]，`TaskFlowRouterInterceptorChain.build { add(...) }`，注意 [priority] 排序。
+ *
+ * 失败与取消：链返回 `Cancelled` 时经 [TaskFlowRouterInterceptUiBridge] 展示 Snackbar（Error），不走 Toast。
+ *
  * MVI 侧跨页跳转由 ViewModel 下发 [com.example.zhttaskflow.base.ext.TaskFlowNavigationUiEffect]，
- * 在 Feature `*RouteHost` 中消费；页面 Snackbar 等由 [com.example.zhttaskflow.base.ext.TaskFlowPresentationUiEffect]
+ * 在 Feature `*RouteHost` 中消费；Snackbar 等由 [com.example.zhttaskflow.base.ext.TaskFlowPresentationUiEffect]
  * 在 Screen 层消费。双 Collector 约定见 [com.example.zhttaskflow.base.ext.TaskFlowUiEffectConsumption]。
+ *
+ * 总览文档：[com.example.zhttaskflow.nav.doc.TaskFlowNavArchitecture]。
  */
 
 import androidx.compose.runtime.Composable
@@ -36,13 +47,13 @@ data class TaskFlowRouteRequest(
  * 拦截过程可读写扩展位：登录、权限、深链等场景由后续拦截器实现类使用。
  */
 class TaskFlowRouteInterceptExtras {
-    /** 预留：目标路由是否需要登录态。 */
+    /** 登录拦截器写入：当前目标是否需要登录态。 */
     var requiresLogin: Boolean = false
 
-    /** 预留：深链原始 URI 或 path，供解析拦截器写入/读取。 */
+    /** 深链拦截器写入：原始 URI 字符串。 */
     var deepLinkUri: String? = null
 
-    /** 预留：所需权限标识，供权限拦截器校验。 */
+    /** 权限拦截器写入：权限组 id（见 [com.example.zhttaskflow.nav.interceptor.TaskFlowPermissionGroups]）。 */
     var requiredPermission: String? = null
 
     /** 自定义透传数据（模块内约定 key）。 */
@@ -93,13 +104,13 @@ interface TaskFlowRouterInterceptor {
     suspend fun intercept(context: TaskFlowRouteInterceptContext): TaskFlowRouteInterceptResult
 }
 
-/** 预留：登录态校验拦截器标记。 */
+/** 登录态校验拦截器标记（实现类：[com.example.zhttaskflow.nav.interceptor.TaskFlowLoginInterceptor]）。 */
 interface TaskFlowLoginRouteInterceptor : TaskFlowRouterInterceptor
 
-/** 预留：权限校验拦截器标记。 */
+/** 权限申请拦截器标记（实现类：[com.example.zhttaskflow.nav.interceptor.TaskFlowPermissionInterceptor]）。 */
 interface TaskFlowPermissionRouteInterceptor : TaskFlowRouterInterceptor
 
-/** 预留：深链参数解析拦截器标记。 */
+/** 深链解析拦截器标记（实现类：[com.example.zhttaskflow.nav.interceptor.TaskFlowDeepLinkInterceptor]）。 */
 interface TaskFlowDeepLinkRouteInterceptor : TaskFlowRouterInterceptor
 
 /**

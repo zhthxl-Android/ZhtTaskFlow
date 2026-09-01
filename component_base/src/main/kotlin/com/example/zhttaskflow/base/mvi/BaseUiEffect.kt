@@ -7,5 +7,7 @@ import com.example.zhttaskflow.base.ext.TaskFlowUiEffectConsumption
  *
  * 具体 Effect 应额外实现 [TaskFlowNavigationUiEffect] 或 [TaskFlowPresentationUiEffect]，
  * 并分别在 RouteHost / Screen 层订阅消费，详见 [TaskFlowUiEffectConsumption]。
+ *
+ * @see com.example.zhttaskflow.base.doc.TaskFlowBaseArchitecture
  */
 interface BaseUiEffect

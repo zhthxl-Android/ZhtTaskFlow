@@ -38,6 +38,8 @@ import com.example.zhttaskflow.base.ui.state.BaseLoadingScreen
  * @param emptyMessage 空数据态展示文案
  * @param loading 首屏加载占位，默认居中 [androidx.compose.material3.CircularProgressIndicator]
  * @param content 成功态业务内容，参数为 [BaseUiState.Success.data]
+ *
+ * @see com.example.zhttaskflow.base.doc.TaskFlowBaseArchitecture
  */
 @Composable
 fun <T> StateBox(

@@ -30,7 +30,7 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.launch
 
-/** 全局 Edge-to-Edge inset 策略（唯一入口）。 */
+/** 全局 Edge-to-Edge inset 策略（唯一入口）：Scaffold 内容 WindowInsets 为零，由子组件按场景消费 statusBars / IME。 */
 object TaskFlowInsetsPolicy {
     val scaffoldContentWindowInsets: WindowInsets = WindowInsets(0, 0, 0, 0)
 }

@@ -62,6 +62,15 @@ import com.example.zhttaskflow.base.ui.skeleton.TaskFlowSkeletonTemplate
  * @param immersiveStatusBarUseDarkIcons 状态栏图标是否深色；`null` 时随系统主题自动适配
  * @param interceptTabRootBackToDesktop 一级 Tab 根页为 `true` 时，系统返回退到桌面而非退出应用
  * @param onTabRootBackPress 自定义 Tab 根返回；默认 [com.example.zhttaskflow.base.ext.moveTaskToDesktop]
+ *
+ * ## 列表内容接入（与 [StateBox] 配合）
+ *
+ * 1. `TaskFlowListScaffold { scaffoldPadding -> ... }` 内放置 [StateBox]，`contentPadding = rememberTaskFlowStateBoxContentPadding()`。
+ * 2. 仅刷新：成功态使用 [TaskFlowStateRefreshableListContent]（`TaskFlowRefreshableListPayload`）。
+ * 3. 分页： [TaskFlowStatePaginatedListContent] + [rememberTaskFlowPaginationController]。
+ * 4. LazyColumn 的 `contentPadding` 使用 [rememberTaskFlowListLazyContentPadding]（含 Tab 底栏避让）。
+ *
+ * @see com.example.zhttaskflow.base.doc.TaskFlowBaseArchitecture
  */
 @Composable
 fun TaskFlowListScaffold(
