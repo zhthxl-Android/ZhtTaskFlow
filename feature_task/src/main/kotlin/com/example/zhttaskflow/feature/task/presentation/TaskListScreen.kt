@@ -3,23 +3,20 @@ package com.example.zhttaskflow.feature.task.presentation
 import android.widget.Toast
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
-import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -31,10 +28,16 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import com.example.zhttaskflow.base.extension.collectUiStateWithLifecycle
+import com.example.zhttaskflow.base.mvi.BaseUiState
 import com.example.zhttaskflow.base.ui.StateBox
 import com.example.zhttaskflow.base.ui.TaskFlowListScaffold
+import com.example.zhttaskflow.base.ui.TaskFlowPullToRefreshBox
 import com.example.zhttaskflow.base.ui.TaskFlowUiConstants
+import com.example.zhttaskflow.base.ui.dialog.TaskFlowConfirmDialog
+import com.example.zhttaskflow.base.ui.extension.PageLifecycleLog
+import com.example.zhttaskflow.base.ui.extension.logUiInteraction
 import com.example.zhttaskflow.base.ui.rememberTaskFlowListLazyContentPadding
+import com.example.zhttaskflow.base.ui.rememberTaskFlowListSkeletonLoading
 import com.example.zhttaskflow.feature.task.R
 import com.example.zhttaskflow.feature.task.domain.Task
 import com.example.zhttaskflow.feature.task.domain.TaskStatus
@@ -53,6 +56,17 @@ fun TaskListScreen(
     val uiState by viewModel.uiState.collectUiStateWithLifecycle()
     val context = LocalContext.current
     var showAddDialog by remember { mutableStateOf(false) }
+    val lifecycleArgs = when (val state = uiState) {
+        is BaseUiState.Success -> "count=${state.data.tasks.size}"
+        is BaseUiState.Loading -> "loading"
+        is BaseUiState.Error -> "error"
+        is BaseUiState.Empty -> "empty"
+    }
+
+    PageLifecycleLog(
+        pageName = "TaskList",
+        pageArgs = lifecycleArgs,
+    )
 
     LaunchedEffect(viewModel) {
         viewModel.uiEffect.collect { effect ->
@@ -73,7 +87,10 @@ fun TaskListScreen(
         interceptTabRootBackToDesktop = true,
         floatingActionButton = {
             FloatingActionButton(
-                onClick = { showAddDialog = true },
+                onClick = {
+                    logUiInteraction(action = "click", identifier = "task_list_fab_add")
+                    showAddDialog = true
+                },
             ) {
                 Text(text = "+")
             }
@@ -86,8 +103,14 @@ fun TaskListScreen(
         TaskListContent(
             uiState = uiState,
             listContentPadding = listContentPadding,
-            onRefresh = { viewModel.onEvent(TaskUiEvent.Refresh) },
-            onRetry = { viewModel.onEvent(TaskUiEvent.Refresh) },
+            onRefresh = {
+                logUiInteraction(action = "pullRefresh", identifier = "task_list")
+                viewModel.onEvent(TaskUiEvent.Refresh)
+            },
+            onRetry = {
+                logUiInteraction(action = "click", identifier = "task_list_retry")
+                viewModel.onEvent(TaskUiEvent.Refresh)
+            },
             onTaskClick = { taskId ->
                 viewModel.onEvent(TaskUiEvent.TaskItemClicked(taskId))
             },
@@ -114,6 +137,7 @@ private fun TaskListContent(
     onTaskClick: (String) -> Unit,
     modifier: Modifier = Modifier,
 ) {
+    val listSkeletonLoading = rememberTaskFlowListSkeletonLoading(listContentPadding = listContentPadding)
     StateBox(
         uiState = uiState,
         onRetry = onRetry,
@@ -122,36 +146,60 @@ private fun TaskListContent(
         ),
         modifier = modifier.fillMaxSize(),
         emptyMessage = stringResource(id = R.string.task_str_empty_list),
+        loading = listSkeletonLoading,
     ) { data ->
-        if (data.tasks.isEmpty() && data.isRefreshing) {
-            PullToRefreshBox(
-                isRefreshing = true,
-                onRefresh = onRefresh,
-                modifier = Modifier.fillMaxSize(),
-            ) {
-                Box(modifier = Modifier.fillMaxSize())
-            }
-        } else {
-            PullToRefreshBox(
-                isRefreshing = data.isRefreshing,
-                onRefresh = onRefresh,
-                modifier = Modifier.fillMaxSize(),
-            ) {
-                LazyColumn(
-                    modifier = Modifier.fillMaxSize(),
-                    verticalArrangement = Arrangement.spacedBy(TaskFlowUiConstants.ListVerticalSpacing),
-                    contentPadding = listContentPadding,
-                ) {
-                    items(
-                        items = data.tasks,
-                        key = { it.id },
-                    ) { task ->
-                        TaskListItem(
-                            task = task,
-                            onClick = { onTaskClick(task.id) },
-                        )
-                    }
-                }
+        TaskRefreshableList(
+            tasks = data.tasks,
+            isRefreshing = data.isRefreshing,
+            listContentPadding = listContentPadding,
+            onRefresh = onRefresh,
+            onTaskClick = onTaskClick,
+        )
+    }
+}
+
+/**
+ * 非分页列表：统一下拉刷新 + [LazyColumn]（与 [com.example.zhttaskflow.base.ui.TaskFlowPaginatedList] 成功态刷新区一致）。
+ */
+@Composable
+private fun TaskRefreshableList(
+    tasks: List<Task>,
+    isRefreshing: Boolean,
+    listContentPadding: PaddingValues,
+    onRefresh: () -> Unit,
+    onTaskClick: (String) -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    val listModifier = Modifier.fillMaxSize()
+    if (tasks.isEmpty() && isRefreshing) {
+        TaskFlowPullToRefreshBox(
+            isRefreshing = true,
+            onRefresh = onRefresh,
+            modifier = modifier.fillMaxSize(),
+        ) {
+            Box(modifier = listModifier)
+        }
+        return
+    }
+
+    TaskFlowPullToRefreshBox(
+        isRefreshing = isRefreshing,
+        onRefresh = onRefresh,
+        modifier = modifier.fillMaxSize(),
+    ) {
+        LazyColumn(
+            modifier = listModifier,
+            verticalArrangement = Arrangement.spacedBy(TaskFlowUiConstants.ListVerticalSpacing),
+            contentPadding = listContentPadding,
+        ) {
+            items(
+                items = tasks,
+                key = { it.id },
+            ) { task ->
+                TaskListItem(
+                    task = task,
+                    onClick = { onTaskClick(task.id) },
+                )
             }
         }
     }
@@ -204,35 +252,27 @@ private fun AddTaskDialog(
     var title by remember { mutableStateOf("") }
     var content by remember { mutableStateOf("") }
 
-    AlertDialog(
-        onDismissRequest = onDismiss,
-        title = { Text(text = stringResource(id = R.string.task_str_dialog_title)) },
-        text = {
-            Column(verticalArrangement = Arrangement.spacedBy(TaskFlowUiConstants.ListVerticalSpacing)) {
-                OutlinedTextField(
-                    value = title,
-                    onValueChange = { title = it },
-                    label = { Text(text = stringResource(id = R.string.task_str_field_title)) },
-                    singleLine = true,
-                )
-                OutlinedTextField(
-                    value = content,
-                    onValueChange = { content = it },
-                    label = { Text(text = stringResource(id = R.string.task_str_field_content)) },
-                )
-            }
-        },
-        confirmButton = {
-            TextButton(onClick = { onConfirm(title, content) }) {
-                Text(text = stringResource(id = R.string.task_str_confirm))
-            }
-        },
-        dismissButton = {
-            TextButton(onClick = onDismiss) {
-                Text(text = stringResource(id = R.string.task_str_cancel))
-            }
-        },
-    )
+    TaskFlowConfirmDialog(
+        title = stringResource(id = R.string.task_str_dialog_title),
+        onDismiss = onDismiss,
+        onConfirm = { onConfirm(title, content) },
+        confirmText = stringResource(id = R.string.task_str_confirm),
+        dismissText = stringResource(id = R.string.task_str_cancel),
+    ) {
+        Column(verticalArrangement = Arrangement.spacedBy(TaskFlowUiConstants.ListVerticalSpacing)) {
+            OutlinedTextField(
+                value = title,
+                onValueChange = { title = it },
+                label = { Text(text = stringResource(id = R.string.task_str_field_title)) },
+                singleLine = true,
+            )
+            OutlinedTextField(
+                value = content,
+                onValueChange = { content = it },
+                label = { Text(text = stringResource(id = R.string.task_str_field_content)) },
+            )
+        }
+    }
 }
 
 @Composable

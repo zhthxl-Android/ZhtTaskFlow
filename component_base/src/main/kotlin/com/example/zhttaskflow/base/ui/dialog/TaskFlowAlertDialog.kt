@@ -71,3 +71,56 @@ fun TaskFlowConfirmDialog(
         },
     )
 }
+
+/**
+ * 带自定义正文区域的确认弹窗（圆角、配色与纯文案 [TaskFlowConfirmDialog] 一致），适用于简易表单等场景。
+ */
+@Composable
+fun TaskFlowConfirmDialog(
+    title: String,
+    onConfirm: () -> Unit,
+    onDismiss: () -> Unit,
+    confirmText: String? = null,
+    dismissText: String? = null,
+    content: @Composable () -> Unit,
+) {
+    val resolvedConfirm = confirmText ?: stringResource(id = R.string.base_str_confirm)
+    val resolvedDismiss = dismissText ?: stringResource(id = R.string.base_str_cancel)
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        shape = RoundedCornerShape(TaskFlowUiConstants.DialogCornerRadius),
+        containerColor = MaterialTheme.colorScheme.surface,
+        titleContentColor = MaterialTheme.colorScheme.onSurface,
+        textContentColor = MaterialTheme.colorScheme.onSurfaceVariant,
+        title = {
+            Text(
+                text = title,
+                style = MaterialTheme.typography.titleLarge,
+            )
+        },
+        text = content,
+        confirmButton = {
+            TextButton(
+                onClick = onConfirm,
+                modifier = Modifier.heightIn(min = TaskFlowUiConstants.DialogActionHeight),
+            ) {
+                Text(
+                    text = resolvedConfirm,
+                    style = MaterialTheme.typography.labelLarge,
+                )
+            }
+        },
+        dismissButton = {
+            TextButton(
+                onClick = onDismiss,
+                modifier = Modifier.heightIn(min = TaskFlowUiConstants.DialogActionHeight),
+            ) {
+                Text(
+                    text = resolvedDismiss,
+                    style = MaterialTheme.typography.labelLarge,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+            }
+        },
+    )
+}
