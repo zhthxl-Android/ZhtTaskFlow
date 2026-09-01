@@ -2,4 +2,5 @@
 <resources>
     <string name="nav_str_module_name">component_nav</string>
     <string name="nav_standalone_debug_tab_placeholder">调试</string>
+    <string name="nav_str_route_intercept_failed">页面跳转失败，请稍后重试</string>
 </resources>
