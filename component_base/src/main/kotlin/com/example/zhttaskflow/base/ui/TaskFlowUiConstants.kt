@@ -22,5 +22,11 @@ object TaskFlowUiConstants {
 
     /** 全局 Snackbar 圆角。 */
     val SnackbarCornerRadius = 12.dp
+
+    /** 全局阻塞加载弹窗圆角。 */
+    val LoadingDialogCornerRadius = 16.dp
+
+    /** 阻塞加载全屏遮罩不透明度（0~1）。 */
+    const val LoadingScrimAlpha: Float = 0.45f
 }
 
