@@ -22,4 +22,11 @@
     <string name="task_str_detail_empty">任务不存在或参数无效</string>
     <string name="task_str_network_unavailable">网络不可用，请检查网络连接后重试</string>
     <string name="task_str_back">返回</string>
+    <string name="task_str_more">更多</string>
+    <string name="task_str_more_batch">批量管理</string>
+    <string name="task_str_more_sort">排序</string>
+    <string name="task_str_more_filter">筛选</string>
+    <string name="task_str_more_demo_batch">批量管理（示范）</string>
+    <string name="task_str_more_demo_sort">排序（示范）</string>
+    <string name="task_str_more_demo_filter">筛选（示范）</string>
 </resources>

@@ -3,9 +3,11 @@ package com.example.zhttaskflow.feature.task.presentation
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -13,6 +15,7 @@ import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -24,7 +27,9 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import com.example.zhttaskflow.base.ext.SnackbarType
 import com.example.zhttaskflow.base.ext.TaskFlowSnackbarDispatcher
+import com.example.zhttaskflow.base.ext.rememberTaskFlowDialogController
 import com.example.zhttaskflow.base.ext.rememberTaskFlowSnackbarDispatcher
+import com.example.zhttaskflow.base.ext.showBottomSheet
 import com.example.zhttaskflow.base.ext.showSnackbar
 import com.example.zhttaskflow.base.extension.collectUiStateWithLifecycle
 import com.example.zhttaskflow.base.mvi.BaseUiState
@@ -69,10 +74,44 @@ fun TaskListScreen(
         pageArgs = lifecycleArgs,
     )
 
+    val dialogController = rememberTaskFlowDialogController()
+    val snackbarDispatcher = rememberTaskFlowSnackbarDispatcher()
+
     TaskFlowListScaffold(
         modifier = modifier,
+        title = stringResource(id = R.string.task_str_list_title),
         collapsibleTopBarOnScroll = true,
         interceptTabRootBackToDesktop = true,
+        actions = {
+            TextButton(
+                onClick = {
+                    logUiInteraction(
+                        action = "click",
+                        identifier = "task_list_more",
+                        pageId = "TaskList",
+                    )
+                    showBottomSheet(controller = dialogController) {
+                        TaskListMoreBottomSheetContent(
+                            onItemClick = { action, feedbackMessage ->
+                                dialogController.dismissAll()
+                                logUiInteraction(
+                                    action = "click",
+                                    identifier = "task_list_more_${action.opIdSuffix}",
+                                    pageId = "TaskList",
+                                )
+                                showSnackbar(
+                                    dispatcher = snackbarDispatcher,
+                                    message = feedbackMessage,
+                                    type = SnackbarType.Normal,
+                                )
+                            },
+                        )
+                    }
+                },
+            ) {
+                Text(text = stringResource(id = R.string.task_str_more))
+            }
+        },
         floatingActionButton = {
             FloatingActionButton(
                 onClick = {
@@ -84,7 +123,6 @@ fun TaskListScreen(
             }
         },
     ) { scaffoldContentPadding ->
-        val snackbarDispatcher = rememberTaskFlowSnackbarDispatcher()
         LaunchedEffect(viewModel, snackbarDispatcher) {
             viewModel.uiEffect.collect { effect ->
                 consumeTaskListUiEffect(
@@ -122,6 +160,54 @@ fun TaskListScreen(
                 viewModel.onEvent(TaskUiEvent.AddTask(title = title, content = content))
             },
         )
+    }
+}
+
+/**
+ * **BottomSheet 业务接入示范**：通过 [showBottomSheet] + 全局 [com.example.zhttaskflow.base.ext.TaskFlowDialogController]
+ * 渲染 [com.example.zhttaskflow.base.ui.dialog.TaskFlowBottomSheet]；选项点击后关闭并 Snackbar 反馈。
+ */
+private enum class TaskListMoreSheetAction(val opIdSuffix: String) {
+    Batch(opIdSuffix = "batch"),
+    Sort(opIdSuffix = "sort"),
+    Filter(opIdSuffix = "filter"),
+}
+
+@Composable
+private fun ColumnScope.TaskListMoreBottomSheetContent(
+    onItemClick: (TaskListMoreSheetAction, String) -> Unit,
+) {
+    val menuItems = listOf(
+        TaskListMoreSheetAction.Batch to
+            (R.string.task_str_more_batch to R.string.task_str_more_demo_batch),
+        TaskListMoreSheetAction.Sort to
+            (R.string.task_str_more_sort to R.string.task_str_more_demo_sort),
+        TaskListMoreSheetAction.Filter to
+            (R.string.task_str_more_filter to R.string.task_str_more_demo_filter),
+    )
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(
+                horizontal = TaskFlowUiConstants.PageHorizontalPadding,
+                vertical = TaskFlowUiConstants.ListVerticalSpacing,
+            ),
+        verticalArrangement = Arrangement.spacedBy(TaskFlowUiConstants.ListVerticalSpacing),
+    ) {
+        menuItems.forEach { (action, labels) ->
+            val label = stringResource(id = labels.first)
+            val feedbackMessage = stringResource(id = labels.second)
+            Text(
+                text = label,
+                style = MaterialTheme.typography.bodyLarge,
+                color = MaterialTheme.colorScheme.onSurface,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .heightIn(min = TaskFlowUiConstants.DialogActionHeight)
+                    .clickable { onItemClick(action, feedbackMessage) }
+                    .padding(vertical = TaskFlowUiConstants.ListVerticalSpacing),
+            )
+        }
     }
 }
 
