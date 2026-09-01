@@ -4,15 +4,19 @@ import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.ui.Modifier
-import com.example.zhttaskflow.core.log.TaskFlowLogger
+import com.example.zhttaskflow.base.analytics.TASK_FLOW_ANALYTICS_CLICK_LOG_TAG
+import com.example.zhttaskflow.base.analytics.TASK_FLOW_ANALYTICS_LIST_ITEM_LOG_TAG
+import com.example.zhttaskflow.base.analytics.TaskFlowAnalyticsMessageFormatter
+import com.example.zhttaskflow.base.analytics.TaskFlowAnalyticsRegistry
 
-private const val UI_CLICK_LOG_TAG = "UiClick"
 private const val UI_LONG_CLICK_LOG_TAG = "UiLongClick"
-private const val LIST_ITEM_CLICK_LOG_TAG = "ListItem"
 private const val UI_OUTCOME_LOG_TAG = "UiOutcome"
 
 /**
  * Compose 层关键交互 Debug 埋点工具（与 [PageLifecycleLog] 互补）。
+ *
+ * 底层经 [com.example.zhttaskflow.base.analytics.TaskFlowAnalytics] 上报，默认 [com.example.zhttaskflow.base.analytics.TaskFlowDebugAnalytics]，
+ * 业务调用方式不变；壳层替换 [com.example.zhttaskflow.base.analytics.LocalTaskFlowAnalytics] 即可切换产品 SDK。
  *
  * ## 关键交互必埋点规范（团队标准）
  *
@@ -45,36 +49,13 @@ internal fun buildInteractionLogMessage(
     params: Map<String, String?>? = null,
     detail: String? = null,
 ): String {
-    val parts = buildList {
-        add("action=$action")
-        if (!pageId.isNullOrBlank()) {
-            add("pageId=$pageId")
-        }
-        add("opId=$identifier")
-        val snapshot = formatInteractionParamsSnapshot(params = params, detail = detail)
-        if (snapshot.isNotBlank()) {
-            add("params=$snapshot")
-        }
-    }
-    return parts.joinToString(separator = " ")
-}
-
-private fun formatInteractionParamsSnapshot(
-    params: Map<String, String?>?,
-    detail: String?,
-): String {
-    val fromMap = params
-        ?.entries
-        ?.mapNotNull { (key, value) ->
-            value?.let { safeValue -> "$key=$safeValue" }
-        }
-        ?.joinToString(separator = ",")
-    return when {
-        !fromMap.isNullOrBlank() && !detail.isNullOrBlank() -> "$fromMap,$detail"
-        !fromMap.isNullOrBlank() -> fromMap
-        !detail.isNullOrBlank() -> detail
-        else -> ""
-    }
+    return TaskFlowAnalyticsMessageFormatter.formatInteraction(
+        action = action,
+        operationId = identifier,
+        pageId = pageId,
+        params = params,
+        detail = detail,
+    )
 }
 
 /**
@@ -88,22 +69,21 @@ fun logUiInteraction(
     detail: String? = null,
     tag: String = defaultTagForAction(action),
 ) {
-    TaskFlowLogger.d(tag) {
-        buildInteractionLogMessage(
-            action = action,
-            identifier = identifier,
-            pageId = pageId,
-            params = params,
-            detail = detail,
-        )
-    }
+    TaskFlowAnalyticsRegistry.current().trackInteraction(
+        action = action,
+        operationId = identifier,
+        pageId = pageId,
+        params = params,
+        detail = detail,
+        logTag = tag,
+    )
 }
 
 private fun defaultTagForAction(action: String): String {
     return when (action) {
         "success", "failure", "info" -> UI_OUTCOME_LOG_TAG
         "longClick" -> UI_LONG_CLICK_LOG_TAG
-        else -> UI_CLICK_LOG_TAG
+        else -> TASK_FLOW_ANALYTICS_CLICK_LOG_TAG
     }
 }
 
@@ -114,22 +94,21 @@ fun Modifier.clickWithLog(
     identifier: String,
     pageId: String? = null,
     params: Map<String, String?>? = null,
-    tag: String = UI_CLICK_LOG_TAG,
+    tag: String = TASK_FLOW_ANALYTICS_CLICK_LOG_TAG,
     detail: String? = null,
     enabled: Boolean = true,
     onClick: () -> Unit,
 ): Modifier = clickable(
     enabled = enabled,
     onClick = {
-        TaskFlowLogger.d(tag) {
-            buildInteractionLogMessage(
-                action = "click",
-                identifier = identifier,
-                pageId = pageId,
-                params = params,
-                detail = detail,
-            )
-        }
+        TaskFlowAnalyticsRegistry.current().trackInteraction(
+            action = "click",
+            operationId = identifier,
+            pageId = pageId,
+            params = params,
+            detail = detail,
+            logTag = tag,
+        )
         onClick()
     },
 )
@@ -150,15 +129,14 @@ fun Modifier.longClickWithLog(
     enabled = enabled,
     onClick = {},
     onLongClick = {
-        TaskFlowLogger.d(tag) {
-            buildInteractionLogMessage(
-                action = "longClick",
-                identifier = identifier,
-                pageId = pageId,
-                params = params,
-                detail = detail,
-            )
-        }
+        TaskFlowAnalyticsRegistry.current().trackInteraction(
+            action = "longClick",
+            operationId = identifier,
+            pageId = pageId,
+            params = params,
+            detail = detail,
+            logTag = tag,
+        )
         onLongClick()
     },
 )
@@ -170,7 +148,7 @@ fun Modifier.listItemClickWithLog(
     identifier: String,
     index: Int,
     pageId: String? = null,
-    tag: String = LIST_ITEM_CLICK_LOG_TAG,
+    tag: String = TASK_FLOW_ANALYTICS_LIST_ITEM_LOG_TAG,
     params: Map<String, String?>? = null,
     detail: String? = null,
     enabled: Boolean = true,

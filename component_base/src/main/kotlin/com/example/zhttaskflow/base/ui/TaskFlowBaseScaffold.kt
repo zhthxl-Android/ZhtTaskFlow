@@ -16,6 +16,7 @@ import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
+import com.example.zhttaskflow.base.analytics.TaskFlowAnalyticsCompositionRoot
 import com.example.zhttaskflow.base.ext.LocalTaskFlowDialogController
 import com.example.zhttaskflow.base.ext.LocalTaskFlowLoadingController
 import com.example.zhttaskflow.base.ext.LocalTaskFlowSnackbarDispatcher
@@ -130,17 +131,19 @@ fun TaskFlowBaseScaffold(
         LocalTaskFlowLoadingController provides loadingController,
         LocalTaskFlowDialogController provides dialogController,
     ) {
-        TaskFlowBaseScaffoldContent(
-            modifier = modifier,
-            consumeStatusBarsInContent = consumeStatusBarsInContent,
-            bottomBar = bottomBar,
-            floatingActionButton = floatingActionButton,
-            header = header,
-            contentModifier = contentModifier,
-            hosts = localHosts,
-            ownsGlobalHosts = true,
-            content = content,
-        )
+        TaskFlowAnalyticsCompositionRoot {
+            TaskFlowBaseScaffoldContent(
+                modifier = modifier,
+                consumeStatusBarsInContent = consumeStatusBarsInContent,
+                bottomBar = bottomBar,
+                floatingActionButton = floatingActionButton,
+                header = header,
+                contentModifier = contentModifier,
+                hosts = localHosts,
+                ownsGlobalHosts = true,
+                content = content,
+            )
+        }
     }
 }
 

@@ -8,22 +8,26 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
-import com.example.zhttaskflow.core.log.TaskFlowLogger
-import com.example.zhttaskflow.core.util.orEmpty
+import com.example.zhttaskflow.base.analytics.TaskFlowPageViewEvent
+import com.example.zhttaskflow.base.analytics.rememberTaskFlowAnalytics
 
 private const val PAGE_LIFECYCLE_LOG_TAG = "PageLifecycle"
 
 /**
  * 页面生命周期 Debug 日志：仅在进入、退出、参数变化时输出，与重组解耦。
  *
+ * 底层经 [com.example.zhttaskflow.base.analytics.TaskFlowAnalytics.trackPageView] /
+ * [com.example.zhttaskflow.base.analytics.TaskFlowAnalytics.trackPageLeave] 上报，默认调试实现与改造前 Logcat 一致。
+ *
  * @param pageName 页面标识（路由名、Screen 名等）
  * @param pageArgs 可选参数字符串（用于跳转追溯）
- * @param tag 日志 Tag 后缀（完整为 `TaskFlow/{tag}`）
+ * @param tag 保留参数，兼容历史签名；调试 Tag 由 [com.example.zhttaskflow.base.analytics.TaskFlowDebugAnalytics] 固定为 `PageLifecycle`
  * @param onEnter 进入 composition 时回调（日志之后）
  * @param onLeave 离开 composition 时回调（日志之后）
  * @param onArgsChange 参数变化时回调（不含首次进入，避免与 onEnter 重复）
  */
 @Composable
+@Suppress("UNUSED_PARAMETER")
 fun PageLifecycleLog(
     pageName: String,
     pageArgs: String? = null,
@@ -32,16 +36,19 @@ fun PageLifecycleLog(
     onLeave: () -> Unit = {},
     onArgsChange: (String?) -> Unit = {},
 ) {
+    val analytics = rememberTaskFlowAnalytics()
     val argsState = rememberUpdatedState(pageArgs)
     var argsEffectInitialized by remember(pageName) { mutableStateOf(false) }
 
     DisposableEffect(pageName) {
-        TaskFlowLogger.d(tag) {
-            "onEnter page=$pageName args=${argsState.value.orEmpty()}"
-        }
+        analytics.trackPageView(
+            pageId = pageName,
+            pageArgs = argsState.value,
+            event = TaskFlowPageViewEvent.Enter,
+        )
         onEnter()
         onDispose {
-            TaskFlowLogger.d(tag) { "onLeave page=$pageName" }
+            analytics.trackPageLeave(pageId = pageName)
             onLeave()
         }
     }
@@ -51,9 +58,11 @@ fun PageLifecycleLog(
             argsEffectInitialized = true
             return@LaunchedEffect
         }
-        TaskFlowLogger.d(tag) {
-            "onArgsChange page=$pageName args=${pageArgs.orEmpty()}"
-        }
+        analytics.trackPageView(
+            pageId = pageName,
+            pageArgs = pageArgs,
+            event = TaskFlowPageViewEvent.ArgsChange,
+        )
         onArgsChange(pageArgs)
     }
 }
