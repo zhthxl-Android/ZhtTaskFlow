@@ -6,7 +6,11 @@ import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.List
 import androidx.compose.material.icons.automirrored.outlined.Article
 import androidx.compose.material.icons.automirrored.outlined.List
+import androidx.compose.material.icons.filled.CheckCircle
+import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.Error
 import androidx.compose.material.icons.filled.Home
+import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.outlined.Home
 import androidx.compose.ui.graphics.vector.ImageVector
 
@@ -49,5 +53,13 @@ object TaskFlowIcons {
     object HomeEntrance {
         val Task: ImageVector = Icons.AutoMirrored.Filled.List
         val Article: ImageVector = Icons.AutoMirrored.Filled.Article
+    }
+
+    /** Snackbar 预设类型图标。 */
+    object Snackbar {
+        val Success: ImageVector = Icons.Filled.CheckCircle
+        val Error: ImageVector = Icons.Filled.Error
+        val Info: ImageVector = Icons.Filled.Info
+        val Dismiss: ImageVector = Icons.Filled.Close
     }
 }
