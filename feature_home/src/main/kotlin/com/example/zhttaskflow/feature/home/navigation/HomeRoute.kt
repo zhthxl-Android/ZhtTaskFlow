@@ -1,7 +1,6 @@
 package com.example.zhttaskflow.feature.home.navigation
 
 import android.content.Context
-import androidx.activity.compose.BackHandler
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.remember
@@ -96,9 +95,10 @@ private fun HomeRouteHost(
         }
     }
 
-    BackHandler(onBack = onHomeBackPress)
-
-    HomeScreen(viewModel = viewModel)
+    HomeScreen(
+        viewModel = viewModel,
+        onTabRootBackPress = onHomeBackPress,
+    )
 }
 
 /**

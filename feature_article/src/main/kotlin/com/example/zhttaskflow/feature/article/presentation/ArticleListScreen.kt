@@ -81,6 +81,7 @@ fun ArticleListScreen(
     TaskFlowListScaffold(
         modifier = modifier,
         collapsibleTopBarOnScroll = true,
+        interceptTabRootBackToDesktop = true,
     ) { scaffoldContentPadding ->
         val listContentPadding = rememberTaskFlowListLazyContentPadding(
             scaffoldPadding = scaffoldContentPadding,

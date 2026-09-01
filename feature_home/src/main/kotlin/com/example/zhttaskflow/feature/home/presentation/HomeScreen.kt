@@ -36,6 +36,7 @@ import com.example.zhttaskflow.feature.home.domain.HomeEntranceIds
 internal fun HomeScreen(
     viewModel: HomeViewModel,
     modifier: Modifier = Modifier,
+    onTabRootBackPress: (() -> Unit)? = null,
 ) {
     val uiState by viewModel.uiState.collectUiStateWithLifecycle()
 
@@ -51,6 +52,8 @@ internal fun HomeScreen(
 
     TaskFlowListScaffold(
         modifier = modifier,
+        interceptTabRootBackToDesktop = true,
+        onTabRootBackPress = onTabRootBackPress,
     ) { _ ->
         val pagePadding = rememberTaskFlowStateBoxContentPadding()
         StateBox(

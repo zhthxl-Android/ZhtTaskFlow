@@ -8,4 +8,5 @@ taskFlow {
 
 dependencies {
     implementation(project(":component_core"))
+    implementation(libs.androidx.activity.compose)
 }

@@ -26,7 +26,7 @@ class MainActivity : ComponentActivity() {
                     TaskFlowRouteRegistryImpl().also { registry ->
                         registry.registerAppRoutes(
                             navigator = navigator,
-                            onHomeBackPress = { finish() },
+                            onHomeBackPress = { moveTaskToBack(true) },
                         )
                     }
                 }

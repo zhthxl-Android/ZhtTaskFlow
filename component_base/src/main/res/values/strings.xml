@@ -6,4 +6,7 @@
     <string name="base_str_loading_default">加载中...</string>
     <string name="base_str_confirm">确定</string>
     <string name="base_str_cancel">取消</string>
+    <string name="base_str_unsaved_exit_title">内容未保存</string>
+    <string name="base_str_unsaved_exit_message">当前内容尚未保存，确定要退出吗？</string>
+    <string name="base_str_exit">退出</string>
 </resources>

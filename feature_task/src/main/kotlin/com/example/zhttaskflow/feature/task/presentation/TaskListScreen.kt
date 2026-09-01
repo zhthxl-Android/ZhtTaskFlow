@@ -70,6 +70,7 @@ fun TaskListScreen(
     TaskFlowListScaffold(
         modifier = modifier,
         collapsibleTopBarOnScroll = true,
+        interceptTabRootBackToDesktop = true,
         floatingActionButton = {
             FloatingActionButton(
                 onClick = { showAddDialog = true },
