@@ -244,6 +244,10 @@ private fun formatCreatedAt(epochMillis: Long): String {
     return formatter.format(Date(epochMillis))
 }
 
+/**
+ * Screen 层 Collector：仅处理 [com.example.zhttaskflow.base.ext.TaskFlowPresentationUiEffect]。
+ * 导航类 Effect 由 [com.example.zhttaskflow.feature.task.navigation.TaskListRouteHost] 消费，见 [com.example.zhttaskflow.base.ext.TaskFlowUiEffectConsumption]。
+ */
 @Suppress("DEPRECATION")
 private fun consumeTaskListUiEffect(
     dispatcher: TaskFlowSnackbarDispatcher,
@@ -265,7 +269,7 @@ private fun consumeTaskListUiEffect(
             )
         }
         is TaskUiEffect.NavigateToEdit -> {
-            // 跨页面导航：由 TaskListRouteHost 消费，Screen 不处理
+            // TaskFlowNavigationUiEffect：由 TaskListRouteHost 消费
         }
     }
 }

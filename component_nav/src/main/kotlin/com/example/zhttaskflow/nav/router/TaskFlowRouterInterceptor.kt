@@ -1,5 +1,16 @@
 package com.example.zhttaskflow.nav.router
 
+/**
+ * ## 路由拦截链（Navigation 层）
+ *
+ * 本包处理 **[TaskFlowNavigator] 发起跳转之前** 的同步/挂起拦截（登录、权限、深链等），
+ * 与 ViewModel [com.example.zhttaskflow.base.mvi.BaseUiEffect] **无直接关系**。
+ *
+ * MVI 侧跨页跳转由 ViewModel 下发 [com.example.zhttaskflow.base.ext.TaskFlowNavigationUiEffect]，
+ * 在 Feature `*RouteHost` 中消费；页面 Snackbar 等由 [com.example.zhttaskflow.base.ext.TaskFlowPresentationUiEffect]
+ * 在 Screen 层消费。双 Collector 约定见 [com.example.zhttaskflow.base.ext.TaskFlowUiEffectConsumption]。
+ */
+
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.res.stringResource

@@ -52,6 +52,9 @@ import com.example.zhttaskflow.base.ui.skeleton.TaskFlowSkeletonTemplate
 /**
  * 一级 Tab 根页面脚手架：可选顶栏、FAB、滑动折叠顶栏与沉浸式头部。
  *
+ * 内部委托 [TaskFlowBaseScaffold]：若 App 壳层已提供全局宿主，则自动继承父级 Snackbar/Loading/Dialog，
+ * 不再创建第二套宿主；独立调试无外层壳时由 [TaskFlowBaseScaffold] 自动降级为本地宿主。
+ *
  * ## 沉浸式顶栏 [immersiveTop]
  * 开启后内容区不再预留状态栏 padding，Banner/轮播可延伸至状态栏下；与 [title]/[actions] 互斥（有顶栏时自动关闭沉浸）。
  * 头部文案/按钮请使用 [rememberTaskFlowStatusBarTopInset] 避开状态栏。

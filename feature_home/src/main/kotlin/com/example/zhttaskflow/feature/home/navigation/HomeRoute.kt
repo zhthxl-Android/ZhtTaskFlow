@@ -11,6 +11,7 @@ import androidx.navigation.compose.composable
 import com.example.zhttaskflow.feature.home.presentation.HomePresentationDefaults
 import com.example.zhttaskflow.feature.home.presentation.HomeScreen
 import com.example.zhttaskflow.feature.home.presentation.HomeUiEffect
+import com.example.zhttaskflow.base.ext.TaskFlowUiEffectConsumption
 import com.example.zhttaskflow.feature.home.presentation.HomeViewModel
 import com.example.zhttaskflow.feature.home.presentation.HomeViewModelFactory
 import com.example.zhttaskflow.nav.LocalTaskFlowNavigator
@@ -68,7 +69,10 @@ internal fun NavGraphBuilder.registerHomeRoutes(
 }
 
 /**
- * 首页路由宿主：组装 ViewModel、导航器与 [HomeScreen]；仅消费跨页面导航类 [HomeUiEffect]。
+ * 首页路由宿主：组装 ViewModel、导航器与 [HomeScreen]。
+ *
+ * **导航类 Effect 订阅方（Route 层）**：仅处理 [TaskFlowNavigationUiEffect]（如 [HomeUiEffect.NavigateToRoute]）。
+ * 展示类 Effect 由 [HomeScreen] 在 Scaffold 子树内消费，见 [TaskFlowUiEffectConsumption]。
  */
 @Composable
 private fun HomeRouteHost(
@@ -85,6 +89,7 @@ private fun HomeRouteHost(
     )
     val viewModel: HomeViewModel = viewModel(factory = factory)
 
+    // Route 层 Collector：仅处理导航类 Effect（[TaskFlowNavigationUiEffect]）；展示类由 HomeScreen 消费，见 [TaskFlowUiEffectConsumption]。
     LaunchedEffect(viewModel) {
         viewModel.uiEffect.collect { effect ->
             when (effect) {
@@ -92,7 +97,7 @@ private fun HomeRouteHost(
                     navigator.navigate(effect.url)
                 }
                 else -> {
-                    // ShowSnackbar / 已废弃 ShowToast：由 HomeScreen 消费
+                    // TaskFlowPresentationUiEffect：由 HomeScreen 消费
                 }
             }
         }

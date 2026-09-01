@@ -1,14 +1,15 @@
 package com.example.zhttaskflow.feature.task.presentation
 
 import com.example.zhttaskflow.base.ext.SnackbarType
+import com.example.zhttaskflow.base.ext.TaskFlowNavigationUiEffect
+import com.example.zhttaskflow.base.ext.TaskFlowPresentationUiEffect
+import com.example.zhttaskflow.base.ext.TaskFlowUiEffectConsumption
 import com.example.zhttaskflow.base.mvi.BaseUiEffect
 
 /**
  * 任务列表页一次性副作用，不写入 [TaskUiState]。
  *
- * **消费分层**：
- * - 页面内 UI 反馈（如 [ShowSnackbar]）：由 [TaskListScreen] 消费
- * - 跨页面导航（[NavigateToEdit]）：由 [com.example.zhttaskflow.feature.task.navigation.TaskListRouteHost] 消费
+ * 双 Collector 规范见 [TaskFlowUiEffectConsumption]。
  */
 sealed interface TaskUiEffect : BaseUiEffect {
 
@@ -21,7 +22,7 @@ sealed interface TaskUiEffect : BaseUiEffect {
     data class ShowSnackbar(
         val message: String,
         val type: SnackbarType = SnackbarType.Normal,
-    ) : TaskUiEffect
+    ) : TaskUiEffect, TaskFlowPresentationUiEffect
 
     /**
      * @deprecated 请改用 [ShowSnackbar]，并显式传入 [SnackbarType]。
@@ -36,12 +37,12 @@ sealed interface TaskUiEffect : BaseUiEffect {
             ],
         ),
     )
-    data class ShowToast(val message: String) : TaskUiEffect
+    data class ShowToast(val message: String) : TaskUiEffect, TaskFlowPresentationUiEffect
 
     /**
      * 跳转任务编辑/详情页（跨页面导航）。
      *
      * @param url 完整 Navigation 路由 path（由 [com.example.zhttaskflow.nav.route.TaskFlowTaskNavRoutes.detailPath] 生成）
      */
-    data class NavigateToEdit(val url: String) : TaskUiEffect
+    data class NavigateToEdit(val url: String) : TaskUiEffect, TaskFlowNavigationUiEffect
 }

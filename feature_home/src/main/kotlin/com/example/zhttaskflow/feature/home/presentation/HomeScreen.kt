@@ -164,6 +164,10 @@ private fun entranceIcon(entranceId: String): ImageVector {
     }
 }
 
+/**
+ * Screen 层 Collector：仅处理 [com.example.zhttaskflow.base.ext.TaskFlowPresentationUiEffect]。
+ * 导航类 Effect 由 [com.example.zhttaskflow.feature.home.navigation.HomeRouteHost] 消费，见 [com.example.zhttaskflow.base.ext.TaskFlowUiEffectConsumption]。
+ */
 @Suppress("DEPRECATION")
 private fun consumeHomeUiEffect(
     dispatcher: TaskFlowSnackbarDispatcher,
@@ -185,7 +189,7 @@ private fun consumeHomeUiEffect(
             )
         }
         is HomeUiEffect.NavigateToRoute -> {
-            // 跨页面导航：由 HomeRouteHost 消费，Screen 不处理
+            // TaskFlowNavigationUiEffect：由 HomeRouteHost 消费
         }
     }
 }

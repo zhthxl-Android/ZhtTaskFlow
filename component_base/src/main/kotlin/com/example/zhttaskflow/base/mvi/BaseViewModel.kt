@@ -25,7 +25,8 @@ import kotlinx.coroutines.launch
  *
  * @param State 页面状态，通常为 `BaseUiState<FeatureListData>`
  * @param Event 用户事件
- * @param Effect 一次性副作用
+ * @param Effect 一次性副作用；子类型应实现 [com.example.zhttaskflow.base.ext.TaskFlowNavigationUiEffect] 或
+ * [com.example.zhttaskflow.base.ext.TaskFlowPresentationUiEffect]，见 [com.example.zhttaskflow.base.ext.TaskFlowUiEffectConsumption]
  */
 abstract class BaseViewModel<State : BaseUiState<*>, Event : BaseUiEvent, Effect : BaseUiEffect>(
     initialState: State,

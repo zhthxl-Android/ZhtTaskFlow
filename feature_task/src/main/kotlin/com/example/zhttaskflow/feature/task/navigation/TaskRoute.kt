@@ -13,6 +13,7 @@ import com.example.zhttaskflow.feature.task.domain.usecase.UpdateTaskUseCase
 import com.example.zhttaskflow.feature.task.presentation.TaskDetailPlaceholderScreen
 import com.example.zhttaskflow.feature.task.presentation.TaskListScreen
 import com.example.zhttaskflow.feature.task.presentation.TaskUiEffect
+import com.example.zhttaskflow.base.ext.TaskFlowUiEffectConsumption
 import com.example.zhttaskflow.feature.task.presentation.TaskViewModel
 import com.example.zhttaskflow.feature.task.presentation.TaskViewModelFactory
 import com.example.zhttaskflow.nav.LocalTaskFlowNavigator
@@ -64,12 +65,20 @@ fun registerTaskRoutes(
     )
 }
 
+/**
+ * 任务列表路由宿主：组装 ViewModel 与 [TaskListScreen]。
+ *
+ * **导航类 Effect 订阅方（Route 层）**：仅处理 [TaskFlowNavigationUiEffect]（[TaskUiEffect.NavigateToEdit]）。
+ * 展示类 Effect 由 [TaskListScreen] 消费，见 [TaskFlowUiEffectConsumption]。
+ */
 @Composable
 private fun TaskListRouteHost() {
     val navigator = LocalTaskFlowNavigator.current
     val factory = rememberTaskViewModelFactory()
     val viewModel: TaskViewModel = viewModel(factory = factory)
 
+    // Route 层 Collector：仅处理 [TaskFlowNavigationUiEffect]（[TaskUiEffect.NavigateToEdit]）。
+    // 展示类 Effect 由 [TaskListScreen] 消费，见 [TaskFlowUiEffectConsumption]。
     LaunchedEffect(viewModel) {
         viewModel.uiEffect.collect { effect ->
             when (effect) {
@@ -77,7 +86,7 @@ private fun TaskListRouteHost() {
                     navigator.navigate(effect.url)
                 }
                 else -> {
-                    // ShowSnackbar / 已废弃 ShowToast：由 TaskListScreen 消费
+                    // TaskFlowPresentationUiEffect：由 TaskListScreen 消费
                 }
             }
         }

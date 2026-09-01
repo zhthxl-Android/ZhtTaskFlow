@@ -195,6 +195,10 @@ private fun formatPublishedAt(epochMillis: Long): String {
     return formatter.format(Date(epochMillis))
 }
 
+/**
+ * Screen 层 Collector：仅处理 [com.example.zhttaskflow.base.ext.TaskFlowPresentationUiEffect]。
+ * 导航类 Effect 由 [com.example.zhttaskflow.feature.article.navigation.ArticleListRouteHost] 消费，见 [com.example.zhttaskflow.base.ext.TaskFlowUiEffectConsumption]。
+ */
 @Suppress("DEPRECATION")
 private fun consumeArticleListUiEffect(
     dispatcher: TaskFlowSnackbarDispatcher,
@@ -216,7 +220,7 @@ private fun consumeArticleListUiEffect(
             )
         }
         is ArticleUiEffect.NavigateToDetail -> {
-            // 跨页面导航：由 ArticleListRouteHost 消费，Screen 不处理
+            // TaskFlowNavigationUiEffect：由 ArticleListRouteHost 消费
         }
     }
 }

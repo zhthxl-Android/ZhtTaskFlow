@@ -8,7 +8,6 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.statusBarsPadding
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.runtime.Composable
@@ -17,8 +16,8 @@ import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
-import com.example.zhttaskflow.base.ext.LocalTaskFlowLoadingController
 import com.example.zhttaskflow.base.ext.LocalTaskFlowDialogController
+import com.example.zhttaskflow.base.ext.LocalTaskFlowLoadingController
 import com.example.zhttaskflow.base.ext.LocalTaskFlowSnackbarDispatcher
 import com.example.zhttaskflow.base.ext.LocalTaskFlowSnackbarHostState
 import com.example.zhttaskflow.base.ext.TaskFlowDialogController
@@ -27,9 +26,44 @@ import com.example.zhttaskflow.base.ext.TaskFlowSnackbarDispatcher
 import com.example.zhttaskflow.base.ui.dialog.TaskFlowDialogHost
 
 /**
+ * 壳层/页面层共用的全局交互宿主（Snackbar / Loading / Dialog）。
+ */
+internal data class TaskFlowScaffoldGlobalHosts(
+    val snackbarHostState: SnackbarHostState,
+    val snackbarDispatcher: TaskFlowSnackbarDispatcher,
+    val loadingController: TaskFlowLoadingController,
+    val dialogController: TaskFlowDialogController,
+)
+
+/**
+ * 若组合树上游已由 [TaskFlowBaseScaffold] 注入全局宿主，则返回该宿主以供内层脚手架复用。
+ */
+@Composable
+internal fun taskFlowParentGlobalHostsOrNull(): TaskFlowScaffoldGlobalHosts? {
+    val snackbarDispatcher = runCatching { LocalTaskFlowSnackbarDispatcher.current }.getOrNull()
+        ?: return null
+    val snackbarHostState = runCatching { LocalTaskFlowSnackbarHostState.current }.getOrNull()
+        ?: return null
+    val loadingController = runCatching { LocalTaskFlowLoadingController.current }.getOrNull()
+        ?: return null
+    val dialogController = runCatching { LocalTaskFlowDialogController.current }.getOrNull()
+        ?: return null
+    return TaskFlowScaffoldGlobalHosts(
+        snackbarHostState = snackbarHostState,
+        snackbarDispatcher = snackbarDispatcher,
+        loadingController = loadingController,
+        dialogController = dialogController,
+    )
+}
+
+/**
  * 核心页面脚手架：统一 [TaskFlowInsetsPolicy]、系统栏与内容区边距，不含顶栏/导航等业务层级 UI。
  *
- * 内置全局 Snackbar、阻塞加载与确认/底部弹窗宿主及对应 CompositionLocal。
+ * 全局 Snackbar / Loading / Dialog 采用**单宿主**策略：外层（通常为 App 壳）创建并展示宿主 UI；
+ * 内层再次调用本组件时自动检测并**继承**父级 CompositionLocal，不再重复创建宿主或 SnackbarHost，
+ * 保证路由拦截与页面 MVI 提示共用同一队列与层级。
+ *
+ * 独立调试等无外层宿主场景下，本组件自动降级为本地宿主创建模式。
  */
 @Composable
 fun TaskFlowBaseScaffold(
@@ -41,6 +75,22 @@ fun TaskFlowBaseScaffold(
     contentModifier: Modifier = Modifier,
     content: @Composable (scaffoldContentPadding: PaddingValues) -> Unit,
 ) {
+    val parentHosts = taskFlowParentGlobalHostsOrNull()
+    if (parentHosts != null) {
+        TaskFlowBaseScaffoldContent(
+            modifier = modifier,
+            consumeStatusBarsInContent = consumeStatusBarsInContent,
+            bottomBar = bottomBar,
+            floatingActionButton = floatingActionButton,
+            header = header,
+            contentModifier = contentModifier,
+            hosts = parentHosts,
+            ownsGlobalHosts = false,
+            content = content,
+        )
+        return
+    }
+
     val snackbarHostState = remember { SnackbarHostState() }
     val snackbarScope = rememberCoroutineScope()
     val snackbarDispatcher = remember(snackbarHostState, snackbarScope) {
@@ -51,6 +101,19 @@ fun TaskFlowBaseScaffold(
     }
     val loadingController = remember { TaskFlowLoadingController() }
     val dialogController = remember { TaskFlowDialogController() }
+    val localHosts = remember(
+        snackbarHostState,
+        snackbarDispatcher,
+        loadingController,
+        dialogController,
+    ) {
+        TaskFlowScaffoldGlobalHosts(
+            snackbarHostState = snackbarHostState,
+            snackbarDispatcher = snackbarDispatcher,
+            loadingController = loadingController,
+            dialogController = dialogController,
+        )
+    }
 
     DisposableEffect(loadingController) {
         onDispose { loadingController.hideLoading() }
@@ -65,48 +128,79 @@ fun TaskFlowBaseScaffold(
         LocalTaskFlowLoadingController provides loadingController,
         LocalTaskFlowDialogController provides dialogController,
     ) {
-        val pageBackground = TaskFlowPageBackground.color()
-        Box(
-            modifier = modifier
-                .fillMaxSize()
-                .background(pageBackground),
-        ) {
-            Scaffold(
-                modifier = Modifier.fillMaxSize(),
-                containerColor = pageBackground,
-                contentWindowInsets = TaskFlowInsetsPolicy.scaffoldContentWindowInsets,
-                bottomBar = bottomBar,
-                floatingActionButton = floatingActionButton,
-                snackbarHost = { TaskFlowSnackbarHost(hostState = snackbarHostState) },
-            ) { innerPadding ->
-                val contentInsets = rememberTaskFlowScaffoldContentPadding(scaffoldPadding = innerPadding)
-                Column(modifier = Modifier.fillMaxSize()) {
-                    header()
-                    Box(
-                        modifier = Modifier
-                            .weight(1f)
-                            .fillMaxWidth()
-                            .background(pageBackground)
-                            .then(
-                                if (consumeStatusBarsInContent) {
-                                    Modifier.statusBarsPadding()
-                                } else {
-                                    Modifier
-                                },
-                            )
-                            .then(contentModifier)
-                            .padding(contentInsets),
-                    ) {
-                        content(contentInsets)
-                    }
+        TaskFlowBaseScaffoldContent(
+            modifier = modifier,
+            consumeStatusBarsInContent = consumeStatusBarsInContent,
+            bottomBar = bottomBar,
+            floatingActionButton = floatingActionButton,
+            header = header,
+            contentModifier = contentModifier,
+            hosts = localHosts,
+            ownsGlobalHosts = true,
+            content = content,
+        )
+    }
+}
+
+@Composable
+private fun TaskFlowBaseScaffoldContent(
+    modifier: Modifier,
+    consumeStatusBarsInContent: Boolean,
+    bottomBar: @Composable () -> Unit,
+    floatingActionButton: @Composable () -> Unit,
+    header: @Composable () -> Unit,
+    contentModifier: Modifier,
+    hosts: TaskFlowScaffoldGlobalHosts,
+    ownsGlobalHosts: Boolean,
+    content: @Composable (PaddingValues) -> Unit,
+) {
+    val pageBackground = TaskFlowPageBackground.color()
+    Box(
+        modifier = modifier
+            .fillMaxSize()
+            .background(pageBackground),
+    ) {
+        Scaffold(
+            modifier = Modifier.fillMaxSize(),
+            containerColor = pageBackground,
+            contentWindowInsets = TaskFlowInsetsPolicy.scaffoldContentWindowInsets,
+            bottomBar = bottomBar,
+            floatingActionButton = floatingActionButton,
+            snackbarHost = {
+                if (ownsGlobalHosts) {
+                    TaskFlowSnackbarHost(hostState = hosts.snackbarHostState)
+                }
+            },
+        ) { innerPadding ->
+            val contentInsets = rememberTaskFlowScaffoldContentPadding(scaffoldPadding = innerPadding)
+            Column(modifier = Modifier.fillMaxSize()) {
+                header()
+                Box(
+                    modifier = Modifier
+                        .weight(1f)
+                        .fillMaxWidth()
+                        .background(pageBackground)
+                        .then(
+                            if (consumeStatusBarsInContent) {
+                                Modifier.statusBarsPadding()
+                            } else {
+                                Modifier
+                            },
+                        )
+                        .then(contentModifier)
+                        .padding(contentInsets),
+                ) {
+                    content(contentInsets)
                 }
             }
-            val loadingState = loadingController.uiState
+        }
+        if (ownsGlobalHosts) {
+            val loadingState = hosts.loadingController.uiState
             TaskFlowBlockingLoadingOverlay(
                 visible = loadingState.visible,
                 message = loadingState.message,
             )
-            TaskFlowDialogHost(controller = dialogController)
+            TaskFlowDialogHost(controller = hosts.dialogController)
         }
     }
 }

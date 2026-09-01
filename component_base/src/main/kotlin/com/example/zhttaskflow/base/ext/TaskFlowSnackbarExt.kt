@@ -6,8 +6,6 @@ import androidx.compose.material3.SnackbarResult
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.Stable
 import androidx.compose.runtime.compositionLocalOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
 import com.example.zhttaskflow.base.ui.TaskFlowSnackbarType
 import com.example.zhttaskflow.base.ui.TaskFlowSnackbarVisuals
 import com.example.zhttaskflow.base.ui.defaultDuration
@@ -75,11 +73,7 @@ class TaskFlowSnackbarDispatcher internal constructor(
 
 @Composable
 fun rememberTaskFlowSnackbarDispatcher(): TaskFlowSnackbarDispatcher {
-    val hostState = LocalTaskFlowSnackbarHostState.current
-    val scope = rememberCoroutineScope()
-    return remember(hostState, scope) {
-        TaskFlowSnackbarDispatcher(hostState = hostState, scope = scope)
-    }
+    return LocalTaskFlowSnackbarDispatcher.current
 }
 
 /**

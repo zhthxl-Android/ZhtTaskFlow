@@ -15,6 +15,7 @@ import com.example.zhttaskflow.feature.article.domain.usecase.RefreshArticlePage
 import com.example.zhttaskflow.feature.article.presentation.ArticleDetailScreen
 import com.example.zhttaskflow.feature.article.presentation.ArticleListScreen
 import com.example.zhttaskflow.feature.article.presentation.ArticleUiEffect
+import com.example.zhttaskflow.base.ext.TaskFlowUiEffectConsumption
 import com.example.zhttaskflow.feature.article.presentation.ArticleViewModel
 import com.example.zhttaskflow.feature.article.presentation.ArticleViewModelFactory
 import com.example.zhttaskflow.nav.LocalTaskFlowNavigator
@@ -75,6 +76,12 @@ fun registerArticleRoutes(
     )
 }
 
+/**
+ * 资讯列表路由宿主：组装 ViewModel 与 [ArticleListScreen]。
+ *
+ * **导航类 Effect 订阅方（Route 层）**：仅处理 [com.example.zhttaskflow.base.ext.TaskFlowNavigationUiEffect]
+ *（[ArticleUiEffect.NavigateToDetail]）。展示类由 [ArticleListScreen] 消费，见 [TaskFlowUiEffectConsumption]。
+ */
 @Composable
 private fun ArticleListRouteHost(
     repository: ArticleRepository?,
@@ -89,6 +96,8 @@ private fun ArticleListRouteHost(
     )
     val viewModel: ArticleViewModel = viewModel(factory = factory)
 
+    // Route 层 Collector：仅处理 [TaskFlowNavigationUiEffect]（[ArticleUiEffect.NavigateToDetail]）。
+    // 展示类 Effect 由 [ArticleListScreen] 消费，见 [TaskFlowUiEffectConsumption]。
     LaunchedEffect(viewModel) {
         viewModel.uiEffect.collect { effect ->
             when (effect) {
@@ -96,7 +105,7 @@ private fun ArticleListRouteHost(
                     navigator.navigate(effect.url)
                 }
                 else -> {
-                    // ShowSnackbar / 已废弃 ShowToast：由 ArticleListScreen 消费
+                    // TaskFlowPresentationUiEffect：由 ArticleListScreen 消费
                 }
             }
         }
