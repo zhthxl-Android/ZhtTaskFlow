@@ -45,7 +45,9 @@ import androidx.compose.ui.unit.dp
 import com.example.zhttaskflow.base.R
 import com.example.zhttaskflow.base.mvi.BaseUiState
 import com.example.zhttaskflow.base.theme.TaskFlowColors
-import com.example.zhttaskflow.base.ui.state.BaseLoadingScreen
+import com.example.zhttaskflow.base.ui.skeleton.TaskFlowSkeletonDefaults
+import com.example.zhttaskflow.base.ui.skeleton.TaskFlowSkeletonListTemplate
+import com.example.zhttaskflow.base.ui.skeleton.TaskFlowSkeletonTemplate
 
 /**
  * 一级 Tab 根页面脚手架：可选顶栏、FAB、滑动折叠顶栏与沉浸式头部。
@@ -360,6 +362,45 @@ fun <T> TaskFlowPaginatedList(
 }
 
 /**
+ * 列表脚手架默认首屏加载骨架（与 [TaskFlowStatePaginatedListContent] 默认 loading 一致）。
+ */
+@Composable
+fun TaskFlowListSkeletonLoading(
+    listContentPadding: PaddingValues,
+    modifier: Modifier = Modifier,
+    itemCount: Int = TaskFlowSkeletonDefaults.DefaultListItemCount,
+    template: TaskFlowSkeletonTemplate = TaskFlowSkeletonTemplate.List,
+) {
+    TaskFlowSkeletonListTemplate(
+        contentPadding = listContentPadding,
+        modifier = modifier.fillMaxSize(),
+        itemCount = itemCount,
+        template = template,
+    )
+}
+
+/**
+ * 供 [StateBox] 使用的列表骨架 loading 工厂（可交给 [StateBox] 的 `loading` 参数）。
+ */
+@Composable
+fun rememberTaskFlowListSkeletonLoading(
+    listContentPadding: PaddingValues,
+    itemCount: Int = TaskFlowSkeletonDefaults.DefaultListItemCount,
+    template: TaskFlowSkeletonTemplate = TaskFlowSkeletonTemplate.List,
+): @Composable (Modifier) -> Unit {
+    return remember(listContentPadding, itemCount, template) {
+        { loadingModifier ->
+            TaskFlowListSkeletonLoading(
+                listContentPadding = listContentPadding,
+                modifier = loadingModifier,
+                itemCount = itemCount,
+                template = template,
+            )
+        }
+    }
+}
+
+/**
  * [StateBox] + 下拉刷新 + 分页列表一站式封装：首屏 Loading/Empty/Error 与成功态列表统一处理。
  *
  * 业务只需提供 [uiState]、刷新/重试/加载更多回调与 [itemContent]。
@@ -377,8 +418,15 @@ fun <T> TaskFlowStatePaginatedListContent(
         horizontal = TaskFlowUiConstants.PageHorizontalPadding,
     ),
     emptyMessage: String = stringResource(id = R.string.base_str_empty),
+    skeletonTemplate: TaskFlowSkeletonTemplate = TaskFlowSkeletonTemplate.List,
+    skeletonItemCount: Int = TaskFlowSkeletonDefaults.DefaultListItemCount,
     loading: @Composable (Modifier) -> Unit = { loadingModifier ->
-        BaseLoadingScreen(modifier = loadingModifier)
+        TaskFlowListSkeletonLoading(
+            listContentPadding = listContentPadding,
+            modifier = loadingModifier,
+            itemCount = skeletonItemCount,
+            template = skeletonTemplate,
+        )
     },
     key: ((index: Int, item: T) -> Any)? = null,
     itemContent: @Composable (index: Int, item: T) -> Unit,
