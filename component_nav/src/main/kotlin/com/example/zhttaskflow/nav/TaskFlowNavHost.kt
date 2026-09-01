@@ -12,14 +12,17 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
 import com.example.zhttaskflow.nav.route.TaskFlowRouteRegistry
+import com.example.zhttaskflow.nav.transition.TaskFlowNavTransitionRegistry
+import com.example.zhttaskflow.nav.transition.taskFlowEnterTransition
+import com.example.zhttaskflow.nav.transition.taskFlowExitTransition
+import com.example.zhttaskflow.nav.transition.taskFlowPopEnterTransition
+import com.example.zhttaskflow.nav.transition.taskFlowPopExitTransition
 
 /**
- * 统一 Navigation Compose 宿主：根据 [TaskFlowRouteRegistry] 装配导航图。
+ * 统一 Navigation Compose 宿主：根据 [TaskFlowRouteRegistry] 装配导航图，并应用全局转场规范。
  *
- * @param enterTransition 进入动画（默认无），壳工程可注入 Tab 切换过渡
- * @param exitTransition 退出动画
- * @param popEnterTransition 返回栈 pop 时进入动画
- * @param popExitTransition 返回栈 pop 时退出动画
+ * 默认区分一级 Tab 切换与二级页面推入/弹出；可通过 [transitionRegistry] 按路由覆盖。
+ * 若需完全自定义，可传入非 null 的 [enterTransition] 等 lambda（将替代对应默认实现）。
  */
 @Composable
 fun TaskFlowNavHost(
@@ -28,14 +31,11 @@ fun TaskFlowNavHost(
     navigator: TaskFlowNavigator,
     modifier: Modifier = Modifier,
     navController: NavHostController = rememberNavController(),
-    enterTransition: AnimatedContentTransitionScope<NavBackStackEntry>.() -> EnterTransition =
-        { EnterTransition.None },
-    exitTransition: AnimatedContentTransitionScope<NavBackStackEntry>.() -> ExitTransition =
-        { ExitTransition.None },
-    popEnterTransition: AnimatedContentTransitionScope<NavBackStackEntry>.() -> EnterTransition =
-        enterTransition,
-    popExitTransition: AnimatedContentTransitionScope<NavBackStackEntry>.() -> ExitTransition =
-        exitTransition,
+    transitionRegistry: TaskFlowNavTransitionRegistry = TaskFlowNavTransitionRegistry.Default,
+    enterTransition: (AnimatedContentTransitionScope<NavBackStackEntry>.() -> EnterTransition)? = null,
+    exitTransition: (AnimatedContentTransitionScope<NavBackStackEntry>.() -> ExitTransition)? = null,
+    popEnterTransition: (AnimatedContentTransitionScope<NavBackStackEntry>.() -> EnterTransition)? = null,
+    popExitTransition: (AnimatedContentTransitionScope<NavBackStackEntry>.() -> ExitTransition)? = null,
 ) {
     navigator.bind(navController)
     CompositionLocalProvider(LocalTaskFlowNavigator provides navigator) {
@@ -43,10 +43,18 @@ fun TaskFlowNavHost(
             navController = navController,
             startDestination = startDestination,
             modifier = modifier,
-            enterTransition = enterTransition,
-            exitTransition = exitTransition,
-            popEnterTransition = popEnterTransition,
-            popExitTransition = popExitTransition,
+            enterTransition = enterTransition ?: {
+                taskFlowEnterTransition(registry = transitionRegistry)
+            },
+            exitTransition = exitTransition ?: {
+                taskFlowExitTransition(registry = transitionRegistry)
+            },
+            popEnterTransition = popEnterTransition ?: {
+                taskFlowPopEnterTransition(registry = transitionRegistry)
+            },
+            popExitTransition = popExitTransition ?: {
+                taskFlowPopExitTransition(registry = transitionRegistry)
+            },
         ) {
             registry.entries().forEach { entry ->
                 entry.register(this, navController)
