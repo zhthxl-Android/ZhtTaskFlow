@@ -7,6 +7,7 @@ import org.gradle.kotlin.dsl.dependencies
 
 /**
  * 路由与 Compose UI 基座：复用 library（已含 common），再应用 Compose 插件并 api 暴露 UI 栈与 lifecycle。
+ * 图标库由 [component_base] api 透出，本插件不重复声明 material-icons-extended。
  * 不重复 apply taskFlow.android.common。
  */
 class TaskFlowAndroidNavPlugin : Plugin<Project> {

@@ -10,8 +10,7 @@ import android.webkit.WebView
 import android.webkit.WebViewClient
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import com.example.zhttaskflow.base.ui.icon.TaskFlowIcons
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.runtime.Composable
@@ -31,6 +30,7 @@ import androidx.core.view.ViewCompat
 import com.example.zhttaskflow.base.mvi.BaseUiState
 import com.example.zhttaskflow.base.ui.StateBox
 import com.example.zhttaskflow.base.ui.TaskFlowScaffold
+import com.example.zhttaskflow.base.ui.rememberTaskFlowStateBoxContentPadding
 import com.example.zhttaskflow.base.ui.extension.PageLifecycleLog
 import com.example.zhttaskflow.base.ui.extension.logUiInteraction
 import com.example.zhttaskflow.base.util.NetworkUtil
@@ -93,12 +93,12 @@ fun ArticleDetailScreen(
                 },
             ) {
                 Icon(
-                    imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                    imageVector = TaskFlowIcons.Nav.Back,
                     contentDescription = stringResource(id = R.string.article_str_back),
                 )
             }
         },
-    ) { innerPadding ->
+    ) { _ ->
         StateBox(
             uiState = networkUiState,
             onRetry = {
@@ -108,7 +108,7 @@ fun ArticleDetailScreen(
                     networkErrorMessage = networkErrorMessage,
                 )
             },
-            contentPadding = innerPadding,
+            contentPadding = rememberTaskFlowStateBoxContentPadding(),
             modifier = Modifier.fillMaxSize(),
         ) {
             ArticleDetailWebView(

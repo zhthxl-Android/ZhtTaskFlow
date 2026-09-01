@@ -4,14 +4,15 @@ import androidx.activity.compose.LocalOnBackPressedDispatcherOwner
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
-import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.unit.dp
+import com.example.zhttaskflow.base.ui.TaskFlowScaffold
+import com.example.zhttaskflow.base.ui.TaskFlowUiConstants
+import com.example.zhttaskflow.base.ui.icon.TaskFlowIcons
 import com.example.zhttaskflow.feature.task.R
 
 /**
@@ -25,31 +26,24 @@ fun TaskDetailPlaceholderScreen(
     modifier: Modifier = Modifier,
 ) {
     val backDispatcher = LocalOnBackPressedDispatcherOwner.current?.onBackPressedDispatcher
-    Scaffold(
+    TaskFlowScaffold(
         modifier = modifier,
-        topBar = {
-            TopAppBar(
-                title = {
-                    Text(text = stringResource(id = R.string.task_str_detail_title))
-                },
-                navigationIcon = {
-                    TextButton(
-                        onClick = { backDispatcher?.onBackPressed() },
-                    ) {
-                        Text(text = stringResource(id = R.string.task_str_back))
-                    }
-                },
-            )
+        title = stringResource(id = R.string.task_str_detail_title),
+        navigationIcon = {
+            IconButton(
+                onClick = { backDispatcher?.onBackPressed() },
+            ) {
+                Icon(
+                    imageVector = TaskFlowIcons.Nav.Back,
+                    contentDescription = stringResource(id = R.string.task_str_back),
+                )
+            }
         },
-    ) { innerPadding ->
-        Box(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(innerPadding),
-        ) {
+    ) { _ ->
+        Box(modifier = Modifier.fillMaxSize()) {
             Text(
                 text = stringResource(id = R.string.task_str_detail_placeholder, taskId),
-                modifier = Modifier.padding(16.dp),
+                modifier = Modifier.padding(TaskFlowUiConstants.PageHorizontalPadding),
             )
         }
     }

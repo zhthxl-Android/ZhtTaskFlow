@@ -1,4 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="nav_str_module_name">component_nav</string>
+    <string name="nav_standalone_debug_tab_placeholder">调试</string>
 </resources>

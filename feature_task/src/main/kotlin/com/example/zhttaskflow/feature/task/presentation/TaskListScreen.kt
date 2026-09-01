@@ -32,7 +32,9 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import com.example.zhttaskflow.base.extension.collectUiStateWithLifecycle
 import com.example.zhttaskflow.base.ui.StateBox
-import com.example.zhttaskflow.base.ui.TaskFlowScaffold
+import com.example.zhttaskflow.base.ui.TaskFlowListScaffold
+import com.example.zhttaskflow.base.ui.TaskFlowUiConstants
+import com.example.zhttaskflow.base.ui.rememberTaskFlowListLazyContentPadding
 import com.example.zhttaskflow.feature.task.R
 import com.example.zhttaskflow.feature.task.domain.Task
 import com.example.zhttaskflow.feature.task.domain.TaskStatus
@@ -65,9 +67,9 @@ fun TaskListScreen(
         }
     }
 
-    TaskFlowScaffold(
+    TaskFlowListScaffold(
         modifier = modifier,
-        title = stringResource(id = R.string.task_str_list_title),
+        collapsibleTopBarOnScroll = true,
         floatingActionButton = {
             FloatingActionButton(
                 onClick = { showAddDialog = true },
@@ -75,10 +77,14 @@ fun TaskListScreen(
                 Text(text = "+")
             }
         },
-    ) { innerPadding ->
+    ) { scaffoldContentPadding ->
+        val listContentPadding = rememberTaskFlowListLazyContentPadding(
+            scaffoldPadding = scaffoldContentPadding,
+            extraBottom = TaskFlowUiConstants.FabContentExtraBottom,
+        )
         TaskListContent(
             uiState = uiState,
-            contentPadding = innerPadding,
+            listContentPadding = listContentPadding,
             onRefresh = { viewModel.onEvent(TaskUiEvent.Refresh) },
             onRetry = { viewModel.onEvent(TaskUiEvent.Refresh) },
             onTaskClick = { taskId ->
@@ -101,7 +107,7 @@ fun TaskListScreen(
 @Composable
 private fun TaskListContent(
     uiState: TaskUiState,
-    contentPadding: PaddingValues,
+    listContentPadding: PaddingValues,
     onRefresh: () -> Unit,
     onRetry: () -> Unit,
     onTaskClick: (String) -> Unit,
@@ -110,7 +116,9 @@ private fun TaskListContent(
     StateBox(
         uiState = uiState,
         onRetry = onRetry,
-        contentPadding = contentPadding,
+        contentPadding = PaddingValues(
+            horizontal = TaskFlowUiConstants.PageHorizontalPadding,
+        ),
         modifier = modifier.fillMaxSize(),
         emptyMessage = stringResource(id = R.string.task_str_empty_list),
     ) { data ->
@@ -130,7 +138,8 @@ private fun TaskListContent(
             ) {
                 LazyColumn(
                     modifier = Modifier.fillMaxSize(),
-                    verticalArrangement = Arrangement.spacedBy(8.dp),
+                    verticalArrangement = Arrangement.spacedBy(TaskFlowUiConstants.ListVerticalSpacing),
+                    contentPadding = listContentPadding,
                 ) {
                     items(
                         items = data.tasks,
@@ -165,7 +174,7 @@ private fun TaskListItem(
         ),
     ) {
         Column(
-            modifier = Modifier.padding(16.dp),
+            modifier = Modifier.padding(TaskFlowUiConstants.PageHorizontalPadding),
             verticalArrangement = Arrangement.spacedBy(4.dp),
         ) {
             Text(
@@ -198,7 +207,7 @@ private fun AddTaskDialog(
         onDismissRequest = onDismiss,
         title = { Text(text = stringResource(id = R.string.task_str_dialog_title)) },
         text = {
-            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+            Column(verticalArrangement = Arrangement.spacedBy(TaskFlowUiConstants.ListVerticalSpacing)) {
                 OutlinedTextField(
                     value = title,
                     onValueChange = { title = it },

@@ -8,9 +8,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.Article
-import androidx.compose.material.icons.automirrored.filled.List
+import com.example.zhttaskflow.base.ui.icon.TaskFlowIcons
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
@@ -26,7 +24,8 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import com.example.zhttaskflow.base.extension.collectUiStateWithLifecycle
 import com.example.zhttaskflow.base.ui.StateBox
-import com.example.zhttaskflow.base.ui.TaskFlowScaffold
+import com.example.zhttaskflow.base.ui.TaskFlowListScaffold
+import com.example.zhttaskflow.base.ui.rememberTaskFlowStateBoxContentPadding
 import com.example.zhttaskflow.feature.home.R
 import com.example.zhttaskflow.feature.home.domain.HomeEntranceIds
 
@@ -50,14 +49,14 @@ internal fun HomeScreen(
         }
     }
 
-    TaskFlowScaffold(
+    TaskFlowListScaffold(
         modifier = modifier,
-        title = stringResource(id = R.string.home_str_home_title),
-    ) { innerPadding ->
+    ) { _ ->
+        val pagePadding = rememberTaskFlowStateBoxContentPadding()
         StateBox(
             uiState = uiState,
             onRetry = { },
-            contentPadding = innerPadding,
+            contentPadding = pagePadding,
             modifier = Modifier.fillMaxSize(),
         ) { data ->
             HomeEntranceList(
@@ -143,8 +142,8 @@ private fun HomeEntryCard(
 
 private fun entranceIcon(entranceId: String): ImageVector {
     return when (entranceId) {
-        HomeEntranceIds.TASK -> Icons.AutoMirrored.Filled.List
-        HomeEntranceIds.ARTICLE -> Icons.AutoMirrored.Filled.Article
-        else -> Icons.AutoMirrored.Filled.List
+        HomeEntranceIds.TASK -> TaskFlowIcons.HomeEntrance.Task
+        HomeEntranceIds.ARTICLE -> TaskFlowIcons.HomeEntrance.Article
+        else -> TaskFlowIcons.HomeEntrance.Task
     }
 }

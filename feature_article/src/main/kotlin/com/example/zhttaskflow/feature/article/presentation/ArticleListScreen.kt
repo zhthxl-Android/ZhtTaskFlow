@@ -31,7 +31,9 @@ import androidx.compose.ui.unit.dp
 import com.example.zhttaskflow.base.extension.collectUiStateWithLifecycle
 import com.example.zhttaskflow.base.mvi.BaseUiState
 import com.example.zhttaskflow.base.ui.StateBox
-import com.example.zhttaskflow.base.ui.TaskFlowScaffold
+import com.example.zhttaskflow.base.ui.TaskFlowListScaffold
+import com.example.zhttaskflow.base.ui.TaskFlowUiConstants
+import com.example.zhttaskflow.base.ui.rememberTaskFlowListLazyContentPadding
 import com.example.zhttaskflow.base.ui.extension.PageLifecycleLog
 import com.example.zhttaskflow.base.ui.extension.listItemClickWithLog
 import com.example.zhttaskflow.base.ui.extension.logUiInteraction
@@ -76,13 +78,16 @@ fun ArticleListScreen(
         }
     }
 
-    TaskFlowScaffold(
+    TaskFlowListScaffold(
         modifier = modifier,
-        title = stringResource(id = R.string.article_str_list_title),
-    ) { innerPadding ->
+        collapsibleTopBarOnScroll = true,
+    ) { scaffoldContentPadding ->
+        val listContentPadding = rememberTaskFlowListLazyContentPadding(
+            scaffoldPadding = scaffoldContentPadding,
+        )
         ArticleListContent(
             uiState = uiState,
-            contentPadding = innerPadding,
+            listContentPadding = listContentPadding,
             onEvent = viewModel::onEvent,
         )
     }
@@ -91,7 +96,7 @@ fun ArticleListScreen(
 @Composable
 private fun ArticleListContent(
     uiState: ArticleUiState,
-    contentPadding: PaddingValues,
+    listContentPadding: PaddingValues,
     onEvent: (ArticleUiEvent) -> Unit,
     modifier: Modifier = Modifier,
 ) {
@@ -101,15 +106,21 @@ private fun ArticleListContent(
             logUiInteraction(action = "click", identifier = "article_list_retry")
             onEvent(ArticleUiEvent.Refresh)
         },
-        contentPadding = contentPadding,
+        contentPadding = PaddingValues(
+            horizontal = TaskFlowUiConstants.PageHorizontalPadding,
+        ),
         modifier = modifier.fillMaxSize(),
         emptyMessage = stringResource(id = R.string.article_str_empty_list),
         loading = { loadingModifier ->
-            ArticleListSkeleton(modifier = loadingModifier)
+            ArticleListSkeleton(
+                modifier = loadingModifier,
+                contentPadding = listContentPadding,
+            )
         },
     ) { data ->
         ArticleSuccessList(
             state = data,
+            listContentPadding = listContentPadding,
             onEvent = onEvent,
             modifier = Modifier.fillMaxSize(),
         )
@@ -119,6 +130,7 @@ private fun ArticleListContent(
 @Composable
 private fun ArticleSuccessList(
     state: ArticleListData,
+    listContentPadding: PaddingValues,
     onEvent: (ArticleUiEvent) -> Unit,
     modifier: Modifier = Modifier,
 ) {
@@ -153,8 +165,8 @@ private fun ArticleSuccessList(
         LazyColumn(
             state = listState,
             modifier = Modifier.fillMaxSize(),
-            verticalArrangement = Arrangement.spacedBy(8.dp),
-            contentPadding = PaddingValues(vertical = 8.dp),
+            verticalArrangement = Arrangement.spacedBy(TaskFlowUiConstants.ListVerticalSpacing),
+            contentPadding = listContentPadding,
         ) {
             itemsIndexed(
                 items = state.articles,
@@ -206,7 +218,7 @@ private fun ArticleListItem(
         ),
     ) {
         Column(
-            modifier = Modifier.padding(16.dp),
+            modifier = Modifier.padding(TaskFlowUiConstants.PageHorizontalPadding),
             verticalArrangement = Arrangement.spacedBy(6.dp),
         ) {
             Text(
@@ -243,7 +255,7 @@ private fun ArticleLoadMoreFooter(
     Box(
         modifier = modifier
             .fillMaxWidth()
-            .padding(16.dp),
+            .padding(TaskFlowUiConstants.PageHorizontalPadding),
         contentAlignment = Alignment.Center,
     ) {
         when {
@@ -279,11 +291,14 @@ private fun ArticleLoadMoreFooter(
 }
 
 @Composable
-private fun ArticleListSkeleton(modifier: Modifier = Modifier) {
+private fun ArticleListSkeleton(
+    modifier: Modifier = Modifier,
+    contentPadding: PaddingValues = PaddingValues(8.dp),
+) {
     LazyColumn(
         modifier = modifier,
-        verticalArrangement = Arrangement.spacedBy(8.dp),
-        contentPadding = PaddingValues(8.dp),
+        verticalArrangement = Arrangement.spacedBy(TaskFlowUiConstants.ListVerticalSpacing),
+        contentPadding = contentPadding,
     ) {
         items(6) {
             Card(
