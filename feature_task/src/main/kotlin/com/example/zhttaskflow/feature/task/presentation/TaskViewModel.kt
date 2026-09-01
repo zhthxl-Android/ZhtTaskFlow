@@ -2,6 +2,7 @@ package com.example.zhttaskflow.feature.task.presentation
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
+import com.example.zhttaskflow.base.ext.SnackbarType
 import com.example.zhttaskflow.base.mvi.BaseUiState
 import com.example.zhttaskflow.base.mvi.BaseViewModel
 import com.example.zhttaskflow.base.mvi.getDataOrNull
@@ -16,7 +17,7 @@ import com.example.zhttaskflow.nav.route.TaskFlowTaskNavRoutes
 /**
  * 任务列表 ViewModel：MVI 单向数据流，通过领域用例调度任务数据与 UI 状态/副作用。
  *
- * **调用方式**：UI 通过 [onEvent] 投递 [TaskUiEvent]；订阅 [uiState] 渲染，订阅 [uiEffect] 处理 Toast/导航。
+ * **调用方式**：UI 通过 [onEvent] 投递 [TaskUiEvent]；订阅 [uiState] 渲染，订阅 [uiEffect] 处理 Snackbar/导航。
  *
  * **线程约束**：数据操作在 [launchTask] 内执行（用例 → 仓库 IO）；本类不直接访问 Repository 与导航 API。
  */
@@ -73,14 +74,21 @@ class TaskViewModel(
 
     private fun addTask(title: String, content: String) {
         if (title.isBlank()) {
-            sendEffect(TaskUiEffect.ShowToast("请输入任务标题"))
+            sendEffect(
+                TaskUiEffect.ShowSnackbar(
+                    message = "请输入任务标题",
+                    type = SnackbarType.Error,
+                ),
+            )
             return
         }
         launchTask(
             tag = logTag,
             userMessageFallback = "新增任务失败，请稍后重试",
             onError = { _, message ->
-                sendEffect(TaskUiEffect.ShowToast(message))
+                sendEffect(
+                    TaskUiEffect.ShowSnackbar(message = message, type = SnackbarType.Error),
+                )
             },
         ) {
             val task = Task(
@@ -91,7 +99,12 @@ class TaskViewModel(
                 status = TaskStatus.PENDING,
             )
             addTaskUseCase(task)
-            sendEffect(TaskUiEffect.ShowToast("任务已添加"))
+            sendEffect(
+                TaskUiEffect.ShowSnackbar(
+                    message = "任务已添加",
+                    type = SnackbarType.Success,
+                ),
+            )
             applyLoadingState(isRefresh = false)
             val tasks = getTaskListUseCase()
             applyLoadSuccess(tasks)
@@ -145,7 +158,12 @@ class TaskViewModel(
             }
         }
         if (wasRefreshing && tasks.isNotEmpty()) {
-            sendEffect(TaskUiEffect.ShowToast("刷新成功"))
+            sendEffect(
+                TaskUiEffect.ShowSnackbar(
+                    message = "刷新成功",
+                    type = SnackbarType.Success,
+                ),
+            )
         }
     }
 
@@ -159,7 +177,9 @@ class TaskViewModel(
         } else {
             setState { BaseUiState.Error(userMessage) }
         }
-        sendEffect(TaskUiEffect.ShowToast(userMessage))
+        sendEffect(
+            TaskUiEffect.ShowSnackbar(message = userMessage, type = SnackbarType.Error),
+        )
     }
 
     // endregion
@@ -168,7 +188,12 @@ class TaskViewModel(
 
     private fun navigateToTaskDetail(taskId: String) {
         if (taskId.isBlank()) {
-            sendEffect(TaskUiEffect.ShowToast("任务标识无效"))
+            sendEffect(
+                TaskUiEffect.ShowSnackbar(
+                    message = "任务标识无效",
+                    type = SnackbarType.Error,
+                ),
+            )
             return
         }
         sendEffect(

@@ -22,11 +22,12 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import com.example.zhttaskflow.base.ext.SnackbarType
+import com.example.zhttaskflow.base.ext.TaskFlowSnackbarDispatcher
 import com.example.zhttaskflow.base.ext.rememberTaskFlowSnackbarDispatcher
 import com.example.zhttaskflow.base.ext.showSnackbar
 import com.example.zhttaskflow.base.extension.collectUiStateWithLifecycle
 import com.example.zhttaskflow.base.mvi.BaseUiState
-import com.example.zhttaskflow.base.ui.TaskFlowSnackbarType
 import com.example.zhttaskflow.base.ui.TaskFlowListScaffold
 import com.example.zhttaskflow.base.ui.TaskFlowRefreshableListPayload
 import com.example.zhttaskflow.base.ui.TaskFlowStateRefreshableListContent
@@ -82,18 +83,10 @@ fun TaskListScreen(
         val snackbarDispatcher = rememberTaskFlowSnackbarDispatcher()
         LaunchedEffect(viewModel, snackbarDispatcher) {
             viewModel.uiEffect.collect { effect ->
-                when (effect) {
-                    is TaskUiEffect.ShowToast -> {
-                        showSnackbar(
-                            dispatcher = snackbarDispatcher,
-                            message = effect.message,
-                            type = snackbarTypeForUserFeedback(effect.message),
-                        )
-                    }
-                    is TaskUiEffect.NavigateToEdit -> {
-                        // 跨页面导航：由 TaskListRouteHost 消费，Screen 不处理
-                    }
-                }
+                consumeTaskListUiEffect(
+                    dispatcher = snackbarDispatcher,
+                    effect = effect,
+                )
             }
         }
         val listContentPadding = rememberTaskFlowListLazyContentPadding(
@@ -251,13 +244,28 @@ private fun formatCreatedAt(epochMillis: Long): String {
     return formatter.format(Date(epochMillis))
 }
 
-/** 按文案语义映射 Snackbar 样式（与 ViewModel [TaskUiEffect.ShowToast] 触发场景一致）。 */
-private fun snackbarTypeForUserFeedback(message: String): TaskFlowSnackbarType = when (message) {
-    "刷新成功", "任务已添加" -> TaskFlowSnackbarType.Success
-    "请输入任务标题", "任务标识无效" -> TaskFlowSnackbarType.Error
-    else -> if (message.contains("失败")) {
-        TaskFlowSnackbarType.Error
-    } else {
-        TaskFlowSnackbarType.Normal
+@Suppress("DEPRECATION")
+private fun consumeTaskListUiEffect(
+    dispatcher: TaskFlowSnackbarDispatcher,
+    effect: TaskUiEffect,
+) {
+    when (effect) {
+        is TaskUiEffect.ShowSnackbar -> {
+            showSnackbar(
+                dispatcher = dispatcher,
+                message = effect.message,
+                type = effect.type,
+            )
+        }
+        is TaskUiEffect.ShowToast -> {
+            showSnackbar(
+                dispatcher = dispatcher,
+                message = effect.message,
+                type = SnackbarType.Normal,
+            )
+        }
+        is TaskUiEffect.NavigateToEdit -> {
+            // 跨页面导航：由 TaskListRouteHost 消费，Screen 不处理
+        }
     }
 }

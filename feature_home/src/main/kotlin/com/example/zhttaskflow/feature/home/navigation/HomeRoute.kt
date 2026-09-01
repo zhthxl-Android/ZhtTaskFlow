@@ -91,6 +91,9 @@ private fun HomeRouteHost(
                 is HomeUiEffect.NavigateToRoute -> {
                     navigator.navigate(effect.url)
                 }
+                else -> {
+                    // ShowSnackbar / 已废弃 ShowToast：由 HomeScreen 消费
+                }
             }
         }
     }

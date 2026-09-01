@@ -95,8 +95,8 @@ private fun ArticleListRouteHost(
                 is ArticleUiEffect.NavigateToDetail -> {
                     navigator.navigate(effect.url)
                 }
-                is ArticleUiEffect.ShowToast -> {
-                    // 页面内 UI 反馈：由 ArticleListScreen 消费，RouteHost 不处理
+                else -> {
+                    // ShowSnackbar / 已废弃 ShowToast：由 ArticleListScreen 消费
                 }
             }
         }

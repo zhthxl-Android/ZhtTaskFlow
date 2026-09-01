@@ -16,11 +16,12 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import com.example.zhttaskflow.base.ext.SnackbarType
+import com.example.zhttaskflow.base.ext.TaskFlowSnackbarDispatcher
 import com.example.zhttaskflow.base.ext.rememberTaskFlowSnackbarDispatcher
 import com.example.zhttaskflow.base.ext.showSnackbar
 import com.example.zhttaskflow.base.extension.collectUiStateWithLifecycle
 import com.example.zhttaskflow.base.mvi.BaseUiState
-import com.example.zhttaskflow.base.ui.TaskFlowSnackbarType
 import com.example.zhttaskflow.base.ui.TaskFlowListPaginationState
 import com.example.zhttaskflow.base.ui.TaskFlowListScaffold
 import com.example.zhttaskflow.base.ui.TaskFlowPaginatedListPayload
@@ -65,18 +66,10 @@ fun ArticleListScreen(
         val snackbarDispatcher = rememberTaskFlowSnackbarDispatcher()
         LaunchedEffect(viewModel, snackbarDispatcher) {
             viewModel.uiEffect.collect { effect ->
-                when (effect) {
-                    is ArticleUiEffect.ShowToast -> {
-                        showSnackbar(
-                            dispatcher = snackbarDispatcher,
-                            message = effect.message,
-                            type = snackbarTypeForUserFeedback(effect.message),
-                        )
-                    }
-                    is ArticleUiEffect.NavigateToDetail -> {
-                        // 跨页面导航：由 ArticleListRouteHost 消费，Screen 不处理
-                    }
-                }
+                consumeArticleListUiEffect(
+                    dispatcher = snackbarDispatcher,
+                    effect = effect,
+                )
             }
         }
         val listContentPadding = rememberTaskFlowListLazyContentPadding(
@@ -202,13 +195,28 @@ private fun formatPublishedAt(epochMillis: Long): String {
     return formatter.format(Date(epochMillis))
 }
 
-/** 按文案语义映射 Snackbar 样式（与 ViewModel [ArticleUiEffect.ShowToast] 触发场景一致）。 */
-private fun snackbarTypeForUserFeedback(message: String): TaskFlowSnackbarType = when (message) {
-    "刷新成功" -> TaskFlowSnackbarType.Success
-    "无法打开详情" -> TaskFlowSnackbarType.Error
-    else -> if (message.contains("失败")) {
-        TaskFlowSnackbarType.Error
-    } else {
-        TaskFlowSnackbarType.Normal
+@Suppress("DEPRECATION")
+private fun consumeArticleListUiEffect(
+    dispatcher: TaskFlowSnackbarDispatcher,
+    effect: ArticleUiEffect,
+) {
+    when (effect) {
+        is ArticleUiEffect.ShowSnackbar -> {
+            showSnackbar(
+                dispatcher = dispatcher,
+                message = effect.message,
+                type = effect.type,
+            )
+        }
+        is ArticleUiEffect.ShowToast -> {
+            showSnackbar(
+                dispatcher = dispatcher,
+                message = effect.message,
+                type = SnackbarType.Normal,
+            )
+        }
+        is ArticleUiEffect.NavigateToDetail -> {
+            // 跨页面导航：由 ArticleListRouteHost 消费，Screen 不处理
+        }
     }
 }

@@ -21,6 +21,10 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import com.example.zhttaskflow.base.extension.collectUiStateWithLifecycle
+import com.example.zhttaskflow.base.ext.SnackbarType
+import com.example.zhttaskflow.base.ext.TaskFlowSnackbarDispatcher
+import com.example.zhttaskflow.base.ext.rememberTaskFlowSnackbarDispatcher
+import com.example.zhttaskflow.base.ext.showSnackbar
 import com.example.zhttaskflow.base.ui.StateBox
 import com.example.zhttaskflow.base.ui.TaskFlowListScaffold
 import com.example.zhttaskflow.base.ui.TaskFlowUiConstants
@@ -38,21 +42,20 @@ internal fun HomeScreen(
 ) {
     val uiState by viewModel.uiState.collectUiStateWithLifecycle()
 
-    LaunchedEffect(viewModel) {
-        viewModel.uiEffect.collect { effect ->
-            when (effect) {
-                is HomeUiEffect.NavigateToRoute -> {
-                    // 跨页面导航：由 HomeRouteHost 消费，Screen 不处理
-                }
-            }
-        }
-    }
-
     TaskFlowListScaffold(
         modifier = modifier,
         interceptTabRootBackToDesktop = true,
         onTabRootBackPress = onTabRootBackPress,
     ) { _ ->
+        val snackbarDispatcher = rememberTaskFlowSnackbarDispatcher()
+        LaunchedEffect(viewModel, snackbarDispatcher) {
+            viewModel.uiEffect.collect { effect ->
+                consumeHomeUiEffect(
+                    dispatcher = snackbarDispatcher,
+                    effect = effect,
+                )
+            }
+        }
         val pagePadding = rememberTaskFlowStateBoxContentPadding()
         StateBox(
             uiState = uiState,
@@ -158,5 +161,31 @@ private fun entranceIcon(entranceId: String): ImageVector {
         HomeEntranceIds.TASK -> TaskFlowIcons.HomeEntrance.Task
         HomeEntranceIds.ARTICLE -> TaskFlowIcons.HomeEntrance.Article
         else -> TaskFlowIcons.HomeEntrance.Task
+    }
+}
+
+@Suppress("DEPRECATION")
+private fun consumeHomeUiEffect(
+    dispatcher: TaskFlowSnackbarDispatcher,
+    effect: HomeUiEffect,
+) {
+    when (effect) {
+        is HomeUiEffect.ShowSnackbar -> {
+            showSnackbar(
+                dispatcher = dispatcher,
+                message = effect.message,
+                type = effect.type,
+            )
+        }
+        is HomeUiEffect.ShowToast -> {
+            showSnackbar(
+                dispatcher = dispatcher,
+                message = effect.message,
+                type = SnackbarType.Normal,
+            )
+        }
+        is HomeUiEffect.NavigateToRoute -> {
+            // 跨页面导航：由 HomeRouteHost 消费，Screen 不处理
+        }
     }
 }

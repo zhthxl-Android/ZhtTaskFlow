@@ -17,6 +17,13 @@ import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 
 /**
+ * MVI 层 Snackbar Effect 使用的语义类型（Success / Error / Normal）。
+ *
+ * 与展示层 [TaskFlowSnackbarType] 一一对应，业务模块依赖本类型即可，无需直接引用 UI 枚举包路径。
+ */
+typealias SnackbarType = TaskFlowSnackbarType
+
+/**
  * 由 [com.example.zhttaskflow.base.ui.TaskFlowBaseScaffold] 注入的 Snackbar 宿主状态。
  */
 val LocalTaskFlowSnackbarHostState = compositionLocalOf<SnackbarHostState> {
@@ -45,7 +52,7 @@ class TaskFlowSnackbarDispatcher internal constructor(
      */
     fun showSnackbar(
         message: String,
-        type: TaskFlowSnackbarType = TaskFlowSnackbarType.Normal,
+        type: SnackbarType = SnackbarType.Normal,
         duration: SnackbarDuration? = null,
         actionLabel: String? = null,
         withDismissAction: Boolean = false,
@@ -80,7 +87,7 @@ fun rememberTaskFlowSnackbarDispatcher(): TaskFlowSnackbarDispatcher {
  */
 suspend fun SnackbarHostState.showSnackbar(
     message: String,
-    type: TaskFlowSnackbarType = TaskFlowSnackbarType.Normal,
+    type: SnackbarType = SnackbarType.Normal,
     duration: SnackbarDuration? = null,
     actionLabel: String? = null,
     withDismissAction: Boolean = false,
@@ -106,7 +113,7 @@ suspend fun SnackbarHostState.showSnackbar(
 fun showSnackbar(
     dispatcher: TaskFlowSnackbarDispatcher,
     message: String,
-    type: TaskFlowSnackbarType = TaskFlowSnackbarType.Normal,
+    type: SnackbarType = SnackbarType.Normal,
     duration: SnackbarDuration? = null,
     actionLabel: String? = null,
     withDismissAction: Boolean = false,

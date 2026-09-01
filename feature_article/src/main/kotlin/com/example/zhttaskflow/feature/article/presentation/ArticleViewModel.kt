@@ -2,6 +2,7 @@ package com.example.zhttaskflow.feature.article.presentation
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
+import com.example.zhttaskflow.base.ext.SnackbarType
 import com.example.zhttaskflow.base.mvi.BaseUiState
 import com.example.zhttaskflow.base.mvi.BaseViewModel
 import com.example.zhttaskflow.base.mvi.getDataOrNull
@@ -15,7 +16,7 @@ import com.example.zhttaskflow.nav.route.TaskFlowArticleNavRoutes
 /**
  * 资讯列表 ViewModel：MVI 单向数据流，通过领域用例调度分页与 UI 状态。
  *
- * **调用方式**：UI 通过 [onEvent] 投递 [ArticleUiEvent]；订阅 [uiState] 渲染，订阅 [uiEffect] 处理 Toast/导航。
+ * **调用方式**：UI 通过 [onEvent] 投递 [ArticleUiEvent]；订阅 [uiState] 渲染，订阅 [uiEffect] 处理 Snackbar/导航。
  *
  * **线程约束**：数据加载在 [launchTask] 内执行（用例 → 仓库 IO）；本类不直接访问 Repository 与网络/数据库 SDK。
  */
@@ -60,7 +61,7 @@ class ArticleViewModel(
                     BaseUiState.Error(message)
                 }
                 sendEffect(
-                    ArticleUiEffect.ShowToast(message),
+                    ArticleUiEffect.ShowSnackbar(message = message, type = SnackbarType.Error),
                 )
             },
         ) {
@@ -103,7 +104,7 @@ class ArticleViewModel(
                     }
                 }
                 sendEffect(
-                    ArticleUiEffect.ShowToast(message),
+                    ArticleUiEffect.ShowSnackbar(message = message, type = SnackbarType.Error),
                 )
             },
         ) {
@@ -138,7 +139,7 @@ class ArticleViewModel(
                     BaseUiState.Success(data.withLoadMoreError())
                 }
                 sendEffect(
-                    ArticleUiEffect.ShowToast(message),
+                    ArticleUiEffect.ShowSnackbar(message = message, type = SnackbarType.Error),
                 )
             },
         ) {
@@ -191,7 +192,12 @@ class ArticleViewModel(
             )
         }
         if (isRefresh && articles.isNotEmpty()) {
-            sendEffect(ArticleUiEffect.ShowToast("刷新成功"))
+            sendEffect(
+                ArticleUiEffect.ShowSnackbar(
+                    message = "刷新成功",
+                    type = SnackbarType.Success,
+                ),
+            )
         }
     }
 
@@ -201,7 +207,12 @@ class ArticleViewModel(
 
     private fun navigateToDetail(articleId: String, detailUrl: String) {
         if (!articleId.isNotNullOrBlank() || !detailUrl.isNotNullOrBlank()) {
-            sendEffect(ArticleUiEffect.ShowToast("无法打开详情"))
+            sendEffect(
+                ArticleUiEffect.ShowSnackbar(
+                    message = "无法打开详情",
+                    type = SnackbarType.Error,
+                ),
+            )
             return
         }
         sendEffect(
