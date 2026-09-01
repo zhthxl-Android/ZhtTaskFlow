@@ -78,7 +78,7 @@ abstract class BaseViewModel<State : BaseUiState<*>, Event : BaseUiEvent, Effect
      *
      * @param precheckNetwork 是否在执行 [block] 前做同步强无网预检；默认 `true`，无网时直接 [onError] 且不启动协程
      * @param userMessageFallback [onError] 第二参数在无 [userMessage] 时的兜底文案
-     * @param onError 失败回调：`userMessage` 为友好文案，可直接用于 Error 态 / Toast；日志仍使用原始 [Throwable.message]
+     * @param onError 失败回调：`userMessage` 为友好文案，可直接用于 Error 态 / Snackbar；日志仍使用原始 [Throwable.message]
      */
     protected fun launchTask(
         tag: String = "BaseViewModel",

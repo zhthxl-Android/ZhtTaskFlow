@@ -25,21 +25,6 @@ sealed interface HomeUiEffect : BaseUiEffect {
     ) : HomeUiEffect, TaskFlowPresentationUiEffect
 
     /**
-     * @deprecated 请改用 [ShowSnackbar]，并显式传入 [SnackbarType]。
-     */
-    @Deprecated(
-        message = "已更名为 ShowSnackbar，请指定 type 参数",
-        replaceWith = ReplaceWith(
-            expression = "ShowSnackbar(message, SnackbarType.Normal)",
-            imports = [
-                "com.example.zhttaskflow.feature.home.presentation.HomeUiEffect.ShowSnackbar",
-                "com.example.zhttaskflow.base.ext.SnackbarType",
-            ],
-        ),
-    )
-    data class ShowToast(val message: String) : HomeUiEffect, TaskFlowPresentationUiEffect
-
-    /**
      * 跳转目标页面（跨页面导航）。
      *
      * @param url 完整 Navigation 路由 path（由宿主或各 Feature 路由常量生成）

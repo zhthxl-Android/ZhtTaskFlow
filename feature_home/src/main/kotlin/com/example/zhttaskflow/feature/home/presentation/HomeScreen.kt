@@ -168,7 +168,6 @@ private fun entranceIcon(entranceId: String): ImageVector {
  * Screen 层 Collector：仅处理 [com.example.zhttaskflow.base.ext.TaskFlowPresentationUiEffect]。
  * 导航类 Effect 由 [com.example.zhttaskflow.feature.home.navigation.HomeRouteHost] 消费，见 [com.example.zhttaskflow.base.ext.TaskFlowUiEffectConsumption]。
  */
-@Suppress("DEPRECATION")
 private fun consumeHomeUiEffect(
     dispatcher: TaskFlowSnackbarDispatcher,
     effect: HomeUiEffect,
@@ -179,13 +178,6 @@ private fun consumeHomeUiEffect(
                 dispatcher = dispatcher,
                 message = effect.message,
                 type = effect.type,
-            )
-        }
-        is HomeUiEffect.ShowToast -> {
-            showSnackbar(
-                dispatcher = dispatcher,
-                message = effect.message,
-                type = SnackbarType.Normal,
             )
         }
         is HomeUiEffect.NavigateToRoute -> {

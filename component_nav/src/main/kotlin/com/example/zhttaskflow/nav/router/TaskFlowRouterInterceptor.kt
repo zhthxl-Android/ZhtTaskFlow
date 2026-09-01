@@ -112,7 +112,7 @@ sealed interface TaskFlowRouterChainOutcome {
 }
 
 /**
- * 拦截过程 UI：加载弹窗与失败提示（均经 [TaskFlowBaseScaffold] CompositionLocal；无宿主时安全 no-op，不使用系统 Toast）。
+ * 拦截过程 UI：加载弹窗与失败提示（均经 [TaskFlowBaseScaffold] CompositionLocal；无宿主时安全 no-op，统一走 Snackbar）。
  */
 interface TaskFlowRouterInterceptUiBridge {
     fun showLoading(message: String? = null)

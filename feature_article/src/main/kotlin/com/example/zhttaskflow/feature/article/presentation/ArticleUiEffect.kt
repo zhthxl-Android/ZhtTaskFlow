@@ -25,21 +25,6 @@ sealed interface ArticleUiEffect : BaseUiEffect {
     ) : ArticleUiEffect, TaskFlowPresentationUiEffect
 
     /**
-     * @deprecated 请改用 [ShowSnackbar]，并显式传入 [SnackbarType]。
-     */
-    @Deprecated(
-        message = "已更名为 ShowSnackbar，请指定 type 参数",
-        replaceWith = ReplaceWith(
-            expression = "ShowSnackbar(message, SnackbarType.Normal)",
-            imports = [
-                "com.example.zhttaskflow.feature.article.presentation.ArticleUiEffect.ShowSnackbar",
-                "com.example.zhttaskflow.base.ext.SnackbarType",
-            ],
-        ),
-    )
-    data class ShowToast(val message: String) : ArticleUiEffect, TaskFlowPresentationUiEffect
-
-    /**
      * 跳转文章详情页（跨页面导航）。
      *
      * @param url 完整 Navigation 路由 path（由 [com.example.zhttaskflow.nav.route.TaskFlowArticleNavRoutes.detailPath] 生成）

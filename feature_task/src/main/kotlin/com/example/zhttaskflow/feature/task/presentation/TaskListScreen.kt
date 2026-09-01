@@ -248,7 +248,6 @@ private fun formatCreatedAt(epochMillis: Long): String {
  * Screen 层 Collector：仅处理 [com.example.zhttaskflow.base.ext.TaskFlowPresentationUiEffect]。
  * 导航类 Effect 由 [com.example.zhttaskflow.feature.task.navigation.TaskListRouteHost] 消费，见 [com.example.zhttaskflow.base.ext.TaskFlowUiEffectConsumption]。
  */
-@Suppress("DEPRECATION")
 private fun consumeTaskListUiEffect(
     dispatcher: TaskFlowSnackbarDispatcher,
     effect: TaskUiEffect,
@@ -259,13 +258,6 @@ private fun consumeTaskListUiEffect(
                 dispatcher = dispatcher,
                 message = effect.message,
                 type = effect.type,
-            )
-        }
-        is TaskUiEffect.ShowToast -> {
-            showSnackbar(
-                dispatcher = dispatcher,
-                message = effect.message,
-                type = SnackbarType.Normal,
             )
         }
         is TaskUiEffect.NavigateToEdit -> {
