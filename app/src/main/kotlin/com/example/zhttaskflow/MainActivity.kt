@@ -14,7 +14,7 @@ import com.example.zhttaskflow.navigation.registerAppRoutes
 import com.example.zhttaskflow.nav.deeplink.TaskFlowDeepLinkNavigation
 import com.example.zhttaskflow.nav.rememberTaskFlowNavigator
 import com.example.zhttaskflow.nav.TaskFlowNavigator
-import com.example.zhttaskflow.nav.route.TaskFlowHomeNavRoutes
+import com.example.zhttaskflow.nav.route.TaskFlowLogNavRoutes
 import com.example.zhttaskflow.nav.route.TaskFlowRouteRegistryImpl
 import com.example.zhttaskflow.nav.theme.TaskFlowTheme
 
@@ -67,15 +67,12 @@ class MainActivity : ComponentActivity() {
                 val navigator = rememberTaskFlowNavigator()
                 val routeRegistry = remember(navigator) {
                     TaskFlowRouteRegistryImpl().also { registry ->
-                        registry.registerAppRoutes(
-                            navigator = navigator,
-                            onHomeBackPress = { moveTaskToBack(true) },
-                        )
+                        registry.registerAppRoutes(navigator = navigator)
                     }
                 }
                 AppMainShell(
                     registry = routeRegistry,
-                    startDestination = TaskFlowHomeNavRoutes.HOME_ROUTE,
+                    startDestination = TaskFlowLogNavRoutes.LOG_ROUTE,
                     navigator = navigator,
                 )
                 MainActivityDeepLinkEffect(

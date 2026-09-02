@@ -2,7 +2,7 @@ package com.example.zhttaskflow.nav.interceptor
 
 import android.net.Uri
 import com.example.zhttaskflow.nav.route.TaskFlowArticleNavRoutes
-import com.example.zhttaskflow.nav.route.TaskFlowHomeNavRoutes
+import com.example.zhttaskflow.nav.route.TaskFlowLogNavRoutes
 import com.example.zhttaskflow.nav.route.TaskFlowTaskNavRoutes
 import com.example.zhttaskflow.nav.router.TaskFlowRouteInterceptContext
 import com.example.zhttaskflow.nav.router.TaskFlowRouteInterceptResult
@@ -55,14 +55,14 @@ class TaskFlowRouteGatePolicyTest {
     @Test
     fun enrichNavigationPath_unmarkedRoutes_passThroughUnchanged() {
         val routes = listOf(
-            TaskFlowHomeNavRoutes.HOME_ROUTE,
+            TaskFlowLogNavRoutes.LOG_ROUTE,
             TaskFlowTaskNavRoutes.TASK_LIST,
             TaskFlowArticleNavRoutes.ARTICLE_LIST,
         )
         routes.forEach { path ->
             assertEquals(path, TaskFlowRouteGatePolicy.enrichNavigationPath(path))
         }
-        assertTrue(TaskFlowRouteGatePolicy.isHomeNavigationPath(TaskFlowHomeNavRoutes.HOME_ROUTE))
+        assertTrue(TaskFlowRouteGatePolicy.isLogNavigationPath(TaskFlowLogNavRoutes.LOG_ROUTE))
         assertTrue(TaskFlowRouteGatePolicy.isTaskListNavigationPath(TaskFlowTaskNavRoutes.TASK_LIST))
         assertTrue(TaskFlowRouteGatePolicy.isArticleListNavigationPath(TaskFlowArticleNavRoutes.ARTICLE_LIST))
     }

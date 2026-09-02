@@ -13,10 +13,10 @@
 
 | 路由 path（纯净） | 模块 | 登录 `needLogin` | 权限 `permissionGroup` | RouteHost / 入口 |
 |-------------------|------|------------------|-------------------------|------------------|
-| `app/home` | feature_home | — | — | 首页 Tab；入口跳转任务/资讯 **列表**（无门禁） |
-| `feature_task/list` | feature_task | — | — | 任务 Tab / 首页入口 |
+| `app/log` | feature_log | — | — | 日志 Tab（无门禁） |
+| `feature_task/list` | feature_task | — | — | 任务 Tab |
 | `feature_task/detail/{taskId}` | feature_task | ✅ | `storage` | 列表 → 详情；深链 `target` 同 path |
-| `feature_article/list` | feature_article | — | — | 资讯 Tab / 首页入口 |
+| `feature_article/list` | feature_article | — | — | 资讯 Tab |
 | `feature_article/detail/{articleId}/{detailUrl}` | feature_article | ✅ | — | 列表 → WebView 详情 |
 
 ## 拦截链顺序（标记剥离后导航）

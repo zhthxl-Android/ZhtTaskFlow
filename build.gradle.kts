@@ -29,6 +29,7 @@ tasks.register("checkDependencyRules") {
             ":app",
             ":component_core",
             ":component_nav",
+            ":feature_log",
             ":feature_task",
             ":feature_article",
         )

@@ -14,7 +14,7 @@ val articleStandalone = providers.gradleProperty("feature.article.standalone")
     .map { value -> value.equals("true", ignoreCase = true) }
     .orElse(false)
 
-val homeStandalone = providers.gradleProperty("feature.home.standalone")
+val logStandalone = providers.gradleProperty("feature.log.standalone")
     .map { value -> value.equals("true", ignoreCase = true) }
     .orElse(false)
 
@@ -23,8 +23,8 @@ dependencies {
     implementation(project(":component_core"))
     // component_nav 已通过 api 传递 component_base（coroutines、core-ktx 等），无需重复声明 base
     implementation(project(":component_nav"))
-    if (!homeStandalone.get()) {
-        implementation(project(":feature_home"))
+    if (!logStandalone.get()) {
+        implementation(project(":feature_log"))
     }
     if (!taskStandalone.get()) {
         implementation(project(":feature_task"))

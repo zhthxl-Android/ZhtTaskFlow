@@ -4,7 +4,7 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import com.example.zhttaskflow.R
 import com.example.zhttaskflow.base.ui.icon.TaskFlowIcons
 import com.example.zhttaskflow.nav.route.TaskFlowArticleNavRoutes
-import com.example.zhttaskflow.nav.route.TaskFlowHomeNavRoutes
+import com.example.zhttaskflow.nav.route.TaskFlowLogNavRoutes
 import com.example.zhttaskflow.nav.route.TaskFlowTaskNavRoutes
 
 /**
@@ -16,9 +16,9 @@ enum class MainTab(
     val selectedIcon: ImageVector,
     val unselectedIcon: ImageVector,
 ) {
-    Home(
-        route = TaskFlowHomeNavRoutes.HOME_ROUTE,
-        labelResId = R.string.app_tab_home,
+    Log(
+        route = TaskFlowLogNavRoutes.LOG_ROUTE,
+        labelResId = R.string.app_tab_log,
         selectedIcon = TaskFlowIcons.Tab.HomeSelected,
         unselectedIcon = TaskFlowIcons.Tab.HomeUnselected,
     ),

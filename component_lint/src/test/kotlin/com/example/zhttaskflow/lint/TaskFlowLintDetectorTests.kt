@@ -15,13 +15,13 @@ class TaskFlowNoToastInFeatureDetectorTest {
             .files(
                 kotlinSource(
                     """
-                    package com.example.zhttaskflow.feature.home.presentation
+                    package com.example.zhttaskflow.feature.log.presentation
                     import android.widget.Toast
                     fun demo() {
                         Toast.makeText(null, "x", Toast.LENGTH_SHORT).show()
                     }
                     """.trimIndent(),
-                    "src/com/example/zhttaskflow/feature/home/presentation/ToastDemo.kt",
+                    "src/com/example/zhttaskflow/feature/log/presentation/ToastDemo.kt",
                 ),
                 androidToastStub(),
             )
@@ -64,13 +64,13 @@ class TaskFlowLogUiInteractionMissingPageIdDetectorTest {
             .files(
                 kotlinSource(
                     """
-                    package com.example.zhttaskflow.feature.home.presentation
+                    package com.example.zhttaskflow.feature.log.presentation
                     import com.example.zhttaskflow.base.ui.extension.logUiInteraction
                     fun demo() {
                         logUiInteraction(action = "click", identifier = "home_btn")
                     }
                     """.trimIndent(),
-                    "src/com/example/zhttaskflow/feature/home/presentation/LogDemo.kt",
+                    "src/com/example/zhttaskflow/feature/log/presentation/LogDemo.kt",
                 ),
                 logUiInteractionStub(),
             )
@@ -85,18 +85,18 @@ class TaskFlowLogUiInteractionMissingPageIdDetectorTest {
             .files(
                 kotlinSource(
                     """
-                    package com.example.zhttaskflow.feature.home.presentation
+                    package com.example.zhttaskflow.feature.log.presentation
                     import com.example.zhttaskflow.base.ui.extension.logUiInteraction
-                    private const val HOME_PAGE_ID = "Home"
+                    private const val LOG_PAGE_ID = "LogViewer"
                     fun demo() {
                         logUiInteraction(
                             action = "click",
                             identifier = "home_btn",
-                            pageId = HOME_PAGE_ID,
+                            pageId = LOG_PAGE_ID,
                         )
                     }
                     """.trimIndent(),
-                    "src/com/example/zhttaskflow/feature/home/presentation/LogDemoOk.kt",
+                    "src/com/example/zhttaskflow/feature/log/presentation/LogDemoOk.kt",
                 ),
                 logUiInteractionStub(),
             )

@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_str_app_name">ZhtTaskFlow</string>
-    <string name="app_tab_home">首页</string>
+    <string name="app_tab_log">日志</string>
     <string name="app_tab_article">资讯</string>
     <string name="app_tab_task">任务</string>
     <string name="app_str_observability_debug_title">本地可观测日志</string>

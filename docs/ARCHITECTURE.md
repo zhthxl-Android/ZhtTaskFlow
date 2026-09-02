@@ -16,7 +16,7 @@
 | component_base | com.example.zhttaskflow.base | MVI 基类、Compose 脚手架、Snackbar/Loading/Dialog/BottomSheet、Inset/IME、埋点抽象、页面性能 |
 | component_core | com.example.zhttaskflow.core | 网络、Room、日志、NetworkChecker |
 | component_nav | com.example.zhttaskflow.nav | Navigation 封装、路由常量、拦截器链 |
-| feature_home / feature_task / feature_article | com.example.zhttaskflow.feature.* | 业务自治（Clean 三层 + MVI + 路由注册） |
+| feature_log / feature_task / feature_article | com.example.zhttaskflow.feature.* | 业务自治（Clean 三层 + MVI + 路由注册） |
 
 禁止顶层 `lib-domain`、`lib-data`；禁止 `feature_*` 互相依赖。
 
@@ -99,7 +99,7 @@
 ```kotlin
 AppMainShell(
     registry = routeRegistry,
-    startDestination = TaskFlowHomeNavRoutes.HOME_ROUTE,
+    startDestination = TaskFlowLogNavRoutes.LOG_ROUTE,
     navigator = navigator,
     analyticsImpl = MyProductAnalytics(),           // 可选；默认 ReleaseTaskFlowAnalytics
     performanceImpl = MyApmPerformanceReporter(),   // 可选；默认 ReleaseTaskFlowPerformanceReporter
@@ -114,7 +114,7 @@ AppMainShell(
 ```kotlin
 AppMainShell(
     registry = routeRegistry,
-    startDestination = TaskFlowHomeNavRoutes.HOME_ROUTE,
+    startDestination = TaskFlowLogNavRoutes.LOG_ROUTE,
     navigator = navigator,
     analyticsImpl = MyProductAnalytics(), // 实现 TaskFlowAnalytics
 )
@@ -125,7 +125,7 @@ AppMainShell(
 ```kotlin
 AppMainShell(
     registry = routeRegistry,
-    startDestination = TaskFlowHomeNavRoutes.HOME_ROUTE,
+    startDestination = TaskFlowLogNavRoutes.LOG_ROUTE,
     navigator = navigator,
     performanceImpl = MyApmPerformanceReporter(), // 实现 TaskFlowPerformanceReporter
 )
@@ -136,7 +136,7 @@ AppMainShell(
 ```kotlin
 AppMainShell(
     registry = routeRegistry,
-    startDestination = TaskFlowHomeNavRoutes.HOME_ROUTE,
+    startDestination = TaskFlowLogNavRoutes.LOG_ROUTE,
     navigator = navigator,
     crashReporterImpl = object : TaskFlowCrashReporter {
         override fun reportCrash(throwable: Throwable, fatal: Boolean) {
@@ -235,7 +235,7 @@ SDK 接入：修改 `app` 模块 `ReleaseTaskFlowObservabilityContract.dispatchT
 
 | 类型 | API | 要求 |
 |------|-----|------|
-| 页面曝光 | `PageLifecycleLog(pageName, pageArgs)` | `pageName` 与 Screen 一致（如 `Home`、`TaskList`）；与性能 `pageId` 对齐 |
+| 页面曝光 | `PageLifecycleLog(pageName, pageArgs)` | `pageName` 与 Screen 一致（如 `LogViewer`、`TaskList`）；与性能 `pageId` 对齐 |
 | 核心 CTA | `logUiInteraction` / `clickWithLog` / `listItemClickWithLog` | 必传 `pageId`（与 `pageName` 对齐）；`actionId` 为入参 `identifier`，命名 `{page}_{控件}` |
 | 操作结果 | `logUiOutcome` 或 `logUiInteraction(action = success\|failure\|info, …)` | 在 Snackbar 等反馈处；必传 `pageId`；`params` 可带 `message`，勿记敏感信息 |
 
@@ -257,8 +257,8 @@ onLeave page=TaskList
 ```kotlin
 val analytics = rememberTaskFlowAnalytics()
 analytics.trackUiClick(
-    operationId = "home_entrance_card", // 日志与 Release 契约中的 actionId
-    pageId = "Home",
+    operationId = "log_viewer_action", // 日志与 Release 契约中的 actionId
+    pageId = "LogViewer",
     params = mapOf("entranceId" to id),
 )
 ```
@@ -286,7 +286,7 @@ analytics.trackUiClick(
 ## 12. 路由与拦截链（component_nav）
 
 - 注册：`registerXxxRoutes(TaskFlowRouteRegistry, navigator)`
-- 常量：`TaskFlowHomeNavRoutes`、`TaskFlowTaskNavRoutes`、`TaskFlowArticleNavRoutes`
+- 常量：`TaskFlowLogNavRoutes`、`TaskFlowTaskNavRoutes`、`TaskFlowArticleNavRoutes`
 - 默认链：`rememberTaskFlowAppRouterInterceptorChain()`（装配于 `AppMainShell`）
 - 调试壳：`TaskFlowFeatureDebugShell` 与 App 壳行为对齐
 
@@ -398,7 +398,7 @@ navigator.navigate(
 
 ## 15. 资源前缀
 
-app_、base_、core_、nav_、task_、article_、home_ 等；Lint `MissingPrefix` 为 error。
+app_、base_、core_、nav_、task_、article_、log_ 等；Lint `MissingPrefix` 为 error。
 
 ## 16. 构建验证
 

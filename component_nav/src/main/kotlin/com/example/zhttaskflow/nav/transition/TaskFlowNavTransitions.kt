@@ -15,7 +15,7 @@ import androidx.compose.animation.slideOutVertically
 import androidx.navigation.NavBackStackEntry
 import androidx.compose.ui.unit.IntOffset
 import com.example.zhttaskflow.nav.route.TaskFlowArticleNavRoutes
-import com.example.zhttaskflow.nav.route.TaskFlowHomeNavRoutes
+import com.example.zhttaskflow.nav.route.TaskFlowLogNavRoutes
 import com.example.zhttaskflow.nav.route.TaskFlowTaskNavRoutes
 
 /**
@@ -28,7 +28,7 @@ object TaskFlowNavTransitionDefaults {
 }
 
 private val MAIN_TAB_ROUTES: Set<String> = setOf(
-    TaskFlowHomeNavRoutes.HOME_ROUTE,
+    TaskFlowLogNavRoutes.LOG_ROUTE,
     TaskFlowArticleNavRoutes.ARTICLE_LIST,
     TaskFlowTaskNavRoutes.TASK_LIST,
 )

@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="log_str_module_name">feature_log</string>
+    <string name="log_str_viewer_title">日志</string>
+    <string name="log_str_viewer_placeholder">日志查看功能开发中</string>
+</resources>

@@ -1,7 +1,7 @@
 package com.example.zhttaskflow.nav.interceptor
 
 import com.example.zhttaskflow.nav.route.TaskFlowArticleNavRoutes
-import com.example.zhttaskflow.nav.route.TaskFlowHomeNavRoutes
+import com.example.zhttaskflow.nav.route.TaskFlowLogNavRoutes
 import com.example.zhttaskflow.nav.route.TaskFlowTaskNavRoutes
 
 /**
@@ -62,8 +62,8 @@ object TaskFlowRouteGatePolicy {
     }
 
     /** 首页 hub：无门禁（文档对照用）。 */
-    fun isHomeNavigationPath(pathWithoutQuery: String): Boolean {
-        return pathWithoutQuery == TaskFlowHomeNavRoutes.HOME_ROUTE
+    fun isLogNavigationPath(pathWithoutQuery: String): Boolean {
+        return pathWithoutQuery == TaskFlowLogNavRoutes.LOG_ROUTE
     }
 
     /** 任务列表：无门禁。 */

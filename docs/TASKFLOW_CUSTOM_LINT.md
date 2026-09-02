@@ -18,7 +18,7 @@
 
 ```bash
 ./gradlew.bat :component_lint:test
-./gradlew.bat :feature_home:lintDebug
+./gradlew.bat :feature_log:lintDebug
 ./gradlew.bat :app:lintVitalRelease
 ```
 
