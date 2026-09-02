@@ -14,7 +14,7 @@ internal fun Project.configureTaskFlowCustomLint() {
     }
 }
 
-/** Release（lintVital）阻断项；规则默认 Severity.WARNING，Debug 仅警告。 */
+/** TaskFlow 自定义 Lint（Severity.ERROR）；Debug / Release Lint 与 lintVital 均须零违规。 */
 internal val TaskFlowCustomLintFatalIssueIds: List<String> = listOf(
     "TaskFlowNoToastInFeature",
     "TaskFlowNoBareScaffoldInFeature",

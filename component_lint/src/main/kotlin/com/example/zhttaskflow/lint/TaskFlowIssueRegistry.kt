@@ -7,8 +7,8 @@ import com.android.tools.lint.detector.api.CURRENT_API
 /**
  * TaskFlow 工程自定义 Lint 规则注册表。
  *
- * 默认严重级别为 [com.android.tools.lint.detector.api.Severity.WARNING]；
- * Release 阻断由根工程 `fatal` 配置 + `lintVitalRelease` 生效，Debug 构建仅提示警告。
+ * 三条规则均为 [com.android.tools.lint.detector.api.Severity.ERROR]；
+ * 根工程 [com.example.zhttaskflow.buildlogic.ConfigureAndroidCommon] 同步 `fatal` / `error`，Debug 与 Release Lint 均阻断。
  */
 class TaskFlowIssueRegistry : IssueRegistry() {
 

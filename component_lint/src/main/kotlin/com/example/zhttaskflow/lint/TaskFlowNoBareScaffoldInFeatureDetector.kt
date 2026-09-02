@@ -88,7 +88,7 @@ class TaskFlowNoBareScaffoldInFeatureDetector : Detector(), SourceCodeScanner {
             explanation = EXPLANATION,
             category = Category.CORRECTNESS,
             priority = 8,
-            severity = Severity.WARNING,
+            severity = Severity.ERROR,
             implementation = Implementation(
                 TaskFlowNoBareScaffoldInFeatureDetector::class.java,
                 Scope.JAVA_FILE_SCOPE,

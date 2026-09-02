@@ -102,7 +102,7 @@ fun TaskListScreen(
                                 dialogController.dismissAll()
                                 logUiInteraction(
                                     action = "click",
-                                    identifier = "task_list_more_${action.opIdSuffix}",
+                                    identifier = "task_list_more_${action.actionSuffix}",
                                     pageId = TASK_LIST_PAGE_ID,
                                 )
                                 logUiOutcome(
@@ -111,7 +111,7 @@ fun TaskListScreen(
                                     outcome = "info",
                                     params = mapOf(
                                         "message" to feedbackMessage,
-                                        "option" to action.opIdSuffix,
+                                        "option" to action.actionSuffix,
                                     ),
                                 )
                                 showSnackbar(
@@ -211,10 +211,10 @@ private class AddTaskFormState {
  * **BottomSheet 业务接入示范**：通过 [showBottomSheet] + 全局 [com.example.zhttaskflow.base.ext.TaskFlowDialogController]
  * 渲染 [com.example.zhttaskflow.base.ui.dialog.TaskFlowBottomSheet]；选项点击后关闭并 Snackbar 反馈。
  */
-private enum class TaskListMoreSheetAction(val opIdSuffix: String) {
-    Batch(opIdSuffix = "batch"),
-    Sort(opIdSuffix = "sort"),
-    Filter(opIdSuffix = "filter"),
+private enum class TaskListMoreSheetAction(val actionSuffix: String) {
+    Batch(actionSuffix = "batch"),
+    Sort(actionSuffix = "sort"),
+    Filter(actionSuffix = "filter"),
 }
 
 @Composable

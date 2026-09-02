@@ -86,7 +86,7 @@ class TaskFlowLogUiInteractionMissingPageIdDetector : Detector(), SourceCodeScan
             explanation = EXPLANATION,
             category = Category.CORRECTNESS,
             priority = 9,
-            severity = Severity.WARNING,
+            severity = Severity.ERROR,
             implementation = Implementation(
                 TaskFlowLogUiInteractionMissingPageIdDetector::class.java,
                 Scope.JAVA_FILE_SCOPE,

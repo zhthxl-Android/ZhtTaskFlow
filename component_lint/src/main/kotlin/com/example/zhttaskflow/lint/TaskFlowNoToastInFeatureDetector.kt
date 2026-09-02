@@ -76,7 +76,7 @@ Feature 业务模块不得直接依赖 Android Toast，以保证提示样式、�
             explanation = EXPLANATION,
             category = Category.CORRECTNESS,
             priority = 8,
-            severity = Severity.WARNING,
+            severity = Severity.ERROR,
             implementation = Implementation(
                 TaskFlowNoToastInFeatureDetector::class.java,
                 Scope.JAVA_FILE_SCOPE,
