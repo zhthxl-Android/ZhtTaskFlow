@@ -79,12 +79,22 @@ internal fun LogScreen(
     val exportDialogMessage = stringResource(id = R.string.log_str_export_dialog_message)
     val exportScopeFiltered = stringResource(id = R.string.log_str_export_scope_filtered)
     val exportScopeAll = stringResource(id = R.string.log_str_export_scope_all)
+    val exportShareTitle = stringResource(id = R.string.log_str_export_share_title)
+    val clearSuccessMessage = stringResource(id = R.string.log_str_clear_success)
 
-    LaunchedEffect(viewModel, snackbarDispatcher, context) {
+    LaunchedEffect(
+        viewModel,
+        snackbarDispatcher,
+        context,
+        exportShareTitle,
+        clearSuccessMessage,
+    ) {
         viewModel.uiEffect.collect { effect ->
             consumeLogUiEffect(
                 context = context,
                 dispatcher = snackbarDispatcher,
+                exportShareTitle = exportShareTitle,
+                clearSuccessMessage = clearSuccessMessage,
                 effect = effect,
             )
         }
@@ -343,6 +353,8 @@ private fun LogTypeFilterRow(
 private fun consumeLogUiEffect(
     context: android.content.Context,
     dispatcher: com.example.zhttaskflow.base.ext.TaskFlowSnackbarDispatcher,
+    exportShareTitle: String,
+    clearSuccessMessage: String,
     effect: LogUiEffect,
 ) {
     when (effect) {
@@ -364,7 +376,28 @@ private fun consumeLogUiEffect(
                 type = effect.type,
             )
         }
-        is LogUiEffect.ShareLogExport -> {
+        is LogUiEffect.ShowMessage -> {
+            val message = when (effect.message) {
+                LogUserMessage.ClearLogsSuccess -> clearSuccessMessage
+            }
+            val outcome = when (effect.type) {
+                SnackbarType.Success -> "success"
+                SnackbarType.Error -> "failure"
+                SnackbarType.Normal -> "info"
+            }
+            logUiOutcome(
+                pageId = LOG_PAGE_ID,
+                actionId = "log_snackbar",
+                outcome = outcome,
+                params = mapOf("messageKey" to effect.message.name),
+            )
+            showSnackbar(
+                dispatcher = dispatcher,
+                message = message,
+                type = effect.type,
+            )
+        }
+        is LogUiEffect.ShowShareSheet -> {
             logUiOutcome(
                 pageId = LOG_PAGE_ID,
                 actionId = "log_export_share",
@@ -379,7 +412,7 @@ private fun consumeLogUiEffect(
                 addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
             }
             context.startActivity(
-                Intent.createChooser(shareIntent, effect.chooserTitle),
+                Intent.createChooser(shareIntent, exportShareTitle),
             )
         }
     }

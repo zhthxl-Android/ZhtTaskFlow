@@ -53,11 +53,9 @@ private fun rememberLogRepository(): LogRepository {
 
 @Composable
 private fun rememberLogViewModelFactory(): LogViewModelFactory {
-    val appContext = LocalContext.current.applicationContext
     val repository = rememberLogRepository()
-    return remember(appContext, repository) {
+    return remember(repository) {
         LogViewModelFactory(
-            appContext = appContext,
             queryLogsUseCase = QueryLogsUseCase(repository),
             exportLogsUseCase = ExportLogsUseCase(repository),
             clearLogsUseCase = ClearLogsUseCase(repository),

@@ -1,11 +1,10 @@
 package com.example.zhttaskflow.feature.log.presentation
 
-import android.content.Context
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
+import com.example.zhttaskflow.base.ext.SnackbarType
 import com.example.zhttaskflow.base.mvi.BaseUiState
 import com.example.zhttaskflow.base.mvi.BaseViewModel
-import com.example.zhttaskflow.feature.log.R
 import com.example.zhttaskflow.feature.log.domain.LogCategory
 import com.example.zhttaskflow.feature.log.domain.LogExportScope
 import com.example.zhttaskflow.feature.log.domain.LogEntry
@@ -25,7 +24,6 @@ private const val LOG_EXPORT_MAX_ENTRIES: Int = 2_000
  * 日志查看 ViewModel：索引分页查询、展开懒加载详情、导出与清空。
  */
 internal class LogViewModel(
-    private val appContext: Context,
     private val queryLogsUseCase: QueryLogsUseCase,
     private val exportLogsUseCase: ExportLogsUseCase,
     private val clearLogsUseCase: ClearLogsUseCase,
@@ -239,7 +237,7 @@ internal class LogViewModel(
                 sendEffect(
                     LogUiEffect.ShowSnackbar(
                         message = userMessage,
-                        type = com.example.zhttaskflow.base.ext.SnackbarType.Error,
+                        type = SnackbarType.Error,
                     ),
                 )
             },
@@ -249,10 +247,7 @@ internal class LogViewModel(
                 scope = scope,
                 maxEntries = LOG_EXPORT_MAX_ENTRIES,
             )
-            val chooserTitle = appContext.getString(R.string.log_str_export_share_title)
-            sendEffect(
-                LogUiEffect.ShareLogExport(exportFile = exportFile, chooserTitle = chooserTitle),
-            )
+            sendEffect(LogUiEffect.ShowShareSheet(exportFile = exportFile))
         }
     }
 
@@ -265,7 +260,7 @@ internal class LogViewModel(
                 sendEffect(
                     LogUiEffect.ShowSnackbar(
                         message = userMessage,
-                        type = com.example.zhttaskflow.base.ext.SnackbarType.Error,
+                        type = SnackbarType.Error,
                     ),
                 )
             },
@@ -274,8 +269,9 @@ internal class LogViewModel(
             releaseMemoryCaches()
             loadedPageCount = 0
             hasMorePages = false
-            val message = appContext.getString(R.string.log_str_clear_success)
-            sendEffect(LogUiEffect.ShowSnackbar(message = message))
+            sendEffect(
+                LogUiEffect.ShowMessage(message = LogUserMessage.ClearLogsSuccess),
+            )
             loadFirstPage(showLoading = false)
         }
     }
@@ -361,7 +357,6 @@ internal typealias LogUiState = BaseUiState<LogData>
  * [LogViewModel] 工厂。
  */
 internal class LogViewModelFactory(
-    private val appContext: Context,
     private val queryLogsUseCase: QueryLogsUseCase,
     private val exportLogsUseCase: ExportLogsUseCase,
     private val clearLogsUseCase: ClearLogsUseCase,
@@ -372,7 +367,6 @@ internal class LogViewModelFactory(
     override fun <T : ViewModel> create(modelClass: Class<T>): T {
         if (modelClass.isAssignableFrom(LogViewModel::class.java)) {
             return LogViewModel(
-                appContext = appContext.applicationContext,
                 queryLogsUseCase = queryLogsUseCase,
                 exportLogsUseCase = exportLogsUseCase,
                 clearLogsUseCase = clearLogsUseCase,

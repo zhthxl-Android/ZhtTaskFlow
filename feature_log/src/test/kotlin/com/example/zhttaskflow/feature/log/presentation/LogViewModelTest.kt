@@ -125,9 +125,7 @@ class LogViewModelTest {
     }
 
     private fun createViewModel(): LogViewModel {
-        val appContext = mockk<android.content.Context>(relaxed = true)
         return LogViewModel(
-            appContext = appContext,
             queryLogsUseCase = queryLogsUseCase,
             exportLogsUseCase = exportLogsUseCase,
             clearLogsUseCase = clearLogsUseCase,
