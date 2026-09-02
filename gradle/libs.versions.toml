@@ -24,6 +24,8 @@ coil = "2.7.0"
 gson = "2.11.0"
 ksp = "2.0.21-1.0.28"
 lint = "31.7.3"
+androidxTest = "1.6.1"
+androidxTestExtJunit = "1.2.1"
 
 [libraries]
 android-gradle-plugin = { group = "com.android.tools.build", name = "gradle", version.ref = "agp" }
@@ -67,6 +69,10 @@ robolectric = { group = "org.robolectric", name = "robolectric", version.ref = "
 mockk = { group = "io.mockk", name = "mockk", version.ref = "mockk" }
 kotlinx-coroutines-test = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-test", version.ref = "coroutines" }
 androidx-compose-ui-test-junit4 = { group = "androidx.compose.ui", name = "ui-test-junit4" }
+androidx-compose-ui-test-manifest = { group = "androidx.compose.ui", name = "ui-test-manifest" }
+androidx-test-runner = { group = "androidx.test", name = "runner", version.ref = "androidxTest" }
+androidx-test-rules = { group = "androidx.test", name = "rules", version.ref = "androidxTest" }
+androidx-test-ext-junit = { group = "androidx.test.ext", name = "junit", version.ref = "androidxTestExtJunit" }
 
 lint-api = { group = "com.android.tools.lint", name = "lint-api", version.ref = "lint" }
 lint-tests = { group = "com.android.tools.lint", name = "lint-tests", version.ref = "lint" }

@@ -18,6 +18,12 @@ val logStandalone = providers.gradleProperty("feature.log.standalone")
     .map { value -> value.equals("true", ignoreCase = true) }
     .orElse(false)
 
+android {
+    defaultConfig {
+        testInstrumentationRunner = "androidx.test.runner.AndroidJUnit4Runner"
+    }
+}
+
 dependencies {
     // 壳工程统一初始化 component_core 能力（如网络诊断开关），不承载业务逻辑
     implementation(project(":component_core"))
@@ -32,4 +38,13 @@ dependencies {
     if (!articleStandalone.get()) {
         implementation(project(":feature_article"))
     }
+
+    val composeBom = platform(libs.androidx.compose.bom)
+    debugImplementation(composeBom)
+    debugImplementation(libs.androidx.compose.ui.test.manifest)
+    androidTestImplementation(composeBom)
+    androidTestImplementation(libs.androidx.compose.ui.test.junit4)
+    androidTestImplementation(libs.androidx.test.runner)
+    androidTestImplementation(libs.androidx.test.rules)
+    androidTestImplementation(libs.androidx.test.ext.junit)
 }
