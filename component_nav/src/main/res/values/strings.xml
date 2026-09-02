@@ -13,7 +13,7 @@
     <string name="nav_str_deeplink_unmapped">暂不支持该链接，请稍后再试</string>
     <string name="nav_str_permission_denied">未获得所需权限，无法继续</string>
     <string name="nav_str_permission_guide_title">权限申请</string>
-    <string name="nav_str_permission_guide_message">访问该功能需要存储权限，是否授权？（当前为模拟授权，正式环境可替换为系统权限申请）</string>
+    <string name="nav_str_permission_guide_message">访问该功能需要相应系统权限，是否前往授权？</string>
     <string name="nav_str_permission_confirm">去授权</string>
     <string name="nav_str_permission_cancel">暂不授权</string>
     <string name="nav_str_permission_success">授权成功</string>

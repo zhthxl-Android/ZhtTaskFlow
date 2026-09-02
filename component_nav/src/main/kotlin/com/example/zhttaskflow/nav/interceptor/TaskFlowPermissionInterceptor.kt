@@ -1,12 +1,22 @@
 package com.example.zhttaskflow.nav.interceptor
 
 import android.Manifest
+import android.app.Activity
+import android.content.Context
+import android.content.ContextWrapper
+import android.content.pm.PackageManager
 import android.net.Uri
+import android.os.Build
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.ActivityResultLauncher
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.Stable
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
+import androidx.core.content.ContextCompat
 import com.example.zhttaskflow.base.ext.LocalTaskFlowDialogController
 import com.example.zhttaskflow.base.ext.LocalTaskFlowSnackbarDispatcher
 import com.example.zhttaskflow.base.ext.TaskFlowDialogController
@@ -86,7 +96,7 @@ object TaskFlowRoutePermissionMarker {
 }
 
 /**
- * 权限组 → Manifest 权限列表（样板表；正式环境可替换 [TaskFlowPermissionGrantChecker] 为系统权限查询）。
+ * 权限组 → 系统 [Manifest.permission] 列表（随 API 级别区分存储权限）。
  */
 object TaskFlowPermissionGroups {
     const val CAMERA: String = "camera"
@@ -95,16 +105,22 @@ object TaskFlowPermissionGroups {
     fun permissionsForGroup(group: String): List<String> {
         return when (group) {
             CAMERA -> listOf(Manifest.permission.CAMERA)
-            STORAGE -> listOf(
-                Manifest.permission.READ_EXTERNAL_STORAGE,
-            )
+            STORAGE -> storagePermissionsForSdk()
             else -> emptyList()
+        }
+    }
+
+    private fun storagePermissionsForSdk(): List<String> {
+        return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            listOf(Manifest.permission.READ_MEDIA_IMAGES)
+        } else {
+            listOf(Manifest.permission.READ_EXTERNAL_STORAGE)
         }
     }
 }
 
 /**
- * 权限授予状态查询（示范实现为内存模拟；业务可替换为真实 Permission SDK / 仓库）。
+ * 权限授予状态查询抽象；默认使用 [TaskFlowSystemPermissionGrantChecker]。
  */
 interface TaskFlowPermissionGrantChecker {
     fun permissionsForGroup(group: String): List<String>
@@ -113,7 +129,49 @@ interface TaskFlowPermissionGrantChecker {
 }
 
 /**
- * 示范用内存会话：模拟「已授权」的权限组，不调用系统 [android.content.pm.PackageManager]。
+ * 基于 [ContextCompat.checkSelfPermission] 的系统权限查询。
+ */
+class TaskFlowSystemPermissionGrantChecker(
+    private val appContext: Context,
+) : TaskFlowPermissionGrantChecker {
+
+    override fun permissionsForGroup(group: String): List<String> {
+        return TaskFlowPermissionGroups.permissionsForGroup(group)
+    }
+
+    override fun isGranted(permission: String): Boolean {
+        return ContextCompat.checkSelfPermission(
+            appContext,
+            permission,
+        ) == PackageManager.PERMISSION_GRANTED
+    }
+}
+
+/**
+ * 权限校验实现选择：默认走系统；调试 / 无 Activity 时可切换 [Demo]。
+ */
+enum class TaskFlowPermissionGrantCheckerMode {
+    System,
+    Demo,
+}
+
+@Composable
+fun rememberTaskFlowPermissionGrantChecker(
+    mode: TaskFlowPermissionGrantCheckerMode = TaskFlowPermissionGrantCheckerMode.System,
+): TaskFlowPermissionGrantChecker {
+    val context = LocalContext.current.applicationContext
+    return remember(context, mode) {
+        when (mode) {
+            TaskFlowPermissionGrantCheckerMode.System -> TaskFlowSystemPermissionGrantChecker(context)
+            TaskFlowPermissionGrantCheckerMode.Demo -> {
+                TaskFlowDemoPermissionGrantChecker(demoSession = TaskFlowPermissionDemoSession())
+            }
+        }
+    }
+}
+
+/**
+ * 示范用内存会话：模拟「已授权」的权限组，不调用系统 API（[TaskFlowPermissionGrantCheckerMode.Demo] / 降级时使用）。
  */
 @Stable
 class TaskFlowPermissionDemoSession {
@@ -147,23 +205,21 @@ class TaskFlowDemoPermissionGrantChecker(
     }
 }
 
-@Composable
-fun rememberTaskFlowPermissionGrantChecker(): TaskFlowPermissionGrantChecker {
-    return remember {
-        TaskFlowDemoPermissionGrantChecker(demoSession = TaskFlowPermissionDemoSession())
-    }
-}
-
 /**
- * 权限申请 UI：挂起直到用户在全局确认弹窗中授权或拒绝（示范为模拟授权，不调用 Activity Result API）。
+ * 权限申请 UI：引导弹窗（全局 [com.example.zhttaskflow.base.ext.TaskFlowDialogController]）+ 系统运行时申请或模拟降级。
  */
 fun interface TaskFlowPermissionInterceptUi {
     suspend fun requestPermissions(permissions: List<String>, permissionGroup: String): Boolean
 }
 
+/**
+ * @param grantChecker 默认 [rememberTaskFlowPermissionGrantChecker]（系统查询）。
+ * @param forceDemoRequest 为 `true` 时强制模拟授权，不弹出系统权限框。
+ */
 @Composable
 fun rememberTaskFlowPermissionInterceptUi(
     grantChecker: TaskFlowPermissionGrantChecker = rememberTaskFlowPermissionGrantChecker(),
+    forceDemoRequest: Boolean = false,
 ): TaskFlowPermissionInterceptUi {
     val scope = rememberCoroutineScope()
     val dialogController = runCatching { LocalTaskFlowDialogController.current }.getOrNull()
@@ -175,12 +231,42 @@ fun rememberTaskFlowPermissionInterceptUi(
     val successMessage = stringResource(id = R.string.nav_str_permission_success)
     val deniedMessage = stringResource(id = R.string.nav_str_permission_denied)
     val demoSession = (grantChecker as? TaskFlowDemoPermissionGrantChecker)?.demoSession
+    val activity = LocalContext.current.findHostActivity()
+    val useSystemRuntime = !forceDemoRequest &&
+        grantChecker is TaskFlowSystemPermissionGrantChecker &&
+        activity != null
+    val fallbackDemoChecker = remember {
+        TaskFlowDemoPermissionGrantChecker(demoSession = TaskFlowPermissionDemoSession())
+    }
+    val effectiveGrantChecker = if (useSystemRuntime) {
+        grantChecker
+    } else if (grantChecker is TaskFlowDemoPermissionGrantChecker) {
+        grantChecker
+    } else {
+        fallbackDemoChecker
+    }
+    val effectiveDemoSession = (effectiveGrantChecker as? TaskFlowDemoPermissionGrantChecker)?.demoSession
+    val resultCallbackHolder = remember { TaskFlowPermissionResultCallbackHolder() }
+    val permissionLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.RequestMultiplePermissions(),
+    ) { results ->
+        resultCallbackHolder.deliver(results)
+    }
+    val runtimeRequester = remember(permissionLauncher, resultCallbackHolder) {
+        TaskFlowComposeRuntimePermissionRequester(
+            launcher = permissionLauncher,
+            callbackHolder = resultCallbackHolder,
+        )
+    }
     return remember(
         scope,
         grantChecker,
         dialogController,
         snackbarDispatcher,
         demoSession,
+        effectiveGrantChecker,
+        runtimeRequester,
+        useSystemRuntime,
         title,
         message,
         confirmText,
@@ -190,8 +276,9 @@ fun rememberTaskFlowPermissionInterceptUi(
     ) {
         TaskFlowPermissionInterceptUiImpl(
             scope = scope,
-            grantChecker = grantChecker,
-            demoSession = demoSession,
+            grantChecker = effectiveGrantChecker,
+            demoSession = effectiveDemoSession,
+            runtimeRequester = if (useSystemRuntime) runtimeRequester else null,
             dialogController = dialogController,
             snackbarDispatcher = snackbarDispatcher,
             title = title,
@@ -255,10 +342,51 @@ class TaskFlowPermissionInterceptor(
     }
 }
 
+@Stable
+private class TaskFlowPermissionResultCallbackHolder {
+    private var onResult: ((Map<String, Boolean>) -> Unit)? = null
+
+    fun await(onReady: (Map<String, Boolean>) -> Unit) {
+        onResult = onReady
+    }
+
+    fun deliver(results: Map<String, Boolean>) {
+        onResult?.invoke(results)
+        onResult = null
+    }
+
+    fun clear() {
+        onResult = null
+    }
+}
+
+private class TaskFlowComposeRuntimePermissionRequester(
+    private val launcher: ActivityResultLauncher<Array<String>>,
+    private val callbackHolder: TaskFlowPermissionResultCallbackHolder,
+) {
+    suspend fun request(permissions: List<String>): Boolean {
+        if (permissions.isEmpty()) {
+            return true
+        }
+        return suspendCancellableCoroutine { continuation ->
+            callbackHolder.await { results ->
+                if (continuation.isActive) {
+                    continuation.resume(results.values.all { granted -> granted })
+                }
+            }
+            continuation.invokeOnCancellation {
+                callbackHolder.clear()
+            }
+            launcher.launch(permissions.toTypedArray())
+        }
+    }
+}
+
 private class TaskFlowPermissionInterceptUiImpl(
     private val scope: CoroutineScope,
     private val grantChecker: TaskFlowPermissionGrantChecker,
     private val demoSession: TaskFlowPermissionDemoSession?,
+    private val runtimeRequester: TaskFlowComposeRuntimePermissionRequester?,
     private val dialogController: TaskFlowDialogController?,
     private val snackbarDispatcher: TaskFlowSnackbarDispatcher?,
     private val title: String,
@@ -294,22 +422,33 @@ private class TaskFlowPermissionInterceptUiImpl(
             dismissText = dismissText,
             onConfirm = {
                 scope.launch {
-                    performMockGrant(permissionGroup)
                     controller.dismissAll()
+                    val granted = resolvePermissionGrant(
+                        permissions = permissions,
+                        permissionGroup = permissionGroup,
+                    )
+                    if (granted) {
+                        showOutcomeSnackbar(
+                            message = successMessage,
+                            type = TaskFlowSnackbarType.Success,
+                        )
+                    } else {
+                        showOutcomeSnackbar(
+                            message = deniedMessage,
+                            type = TaskFlowSnackbarType.Error,
+                        )
+                    }
                     if (continuation.isActive) {
-                        continuation.resume(true)
+                        continuation.resume(granted)
                     }
                 }
             },
             onDismiss = {
                 controller.dismissAll()
-                snackbarDispatcher?.let { dispatcher ->
-                    showSnackbar(
-                        dispatcher = dispatcher,
-                        message = deniedMessage,
-                        type = TaskFlowSnackbarType.Error,
-                    )
-                }
+                showOutcomeSnackbar(
+                    message = deniedMessage,
+                    type = TaskFlowSnackbarType.Error,
+                )
                 if (continuation.isActive) {
                     continuation.resume(false)
                 }
@@ -317,19 +456,44 @@ private class TaskFlowPermissionInterceptUiImpl(
         )
     }
 
-    private suspend fun performMockGrant(permissionGroup: String) {
+    private suspend fun resolvePermissionGrant(
+        permissions: List<String>,
+        permissionGroup: String,
+    ): Boolean {
+        val requester = runtimeRequester
+        if (requester != null) {
+            return requester.request(permissions)
+        }
+        return performMockGrant(permissionGroup)
+    }
+
+    private suspend fun performMockGrant(permissionGroup: String): Boolean {
         delay(MOCK_PERMISSION_DELAY_MS)
         demoSession?.markGroupGranted(permissionGroup)
-        snackbarDispatcher?.let { dispatcher ->
-            showSnackbar(
-                dispatcher = dispatcher,
-                message = successMessage,
-                type = TaskFlowSnackbarType.Success,
-            )
-        }
+        return true
+    }
+
+    private fun showOutcomeSnackbar(
+        message: String,
+        type: TaskFlowSnackbarType,
+    ) {
+        val dispatcher = snackbarDispatcher ?: return
+        showSnackbar(
+            dispatcher = dispatcher,
+            message = message,
+            type = type,
+        )
     }
 
     private companion object {
         const val MOCK_PERMISSION_DELAY_MS: Long = 300L
+    }
+}
+
+private tailrec fun Context.findHostActivity(): Activity? {
+    return when (this) {
+        is Activity -> this
+        is ContextWrapper -> baseContext.findHostActivity()
+        else -> null
     }
 }
