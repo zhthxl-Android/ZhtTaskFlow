@@ -188,7 +188,15 @@ object TaskFlowLocalLogStore {
     }
 
     fun exportRecentLogs(context: Context, maxEntries: Int = 2_000): File {
-        val records = query(QueryFilter(maxEntries = maxEntries))
+        return exportRecentLogs(context, QueryFilter(maxEntries = maxEntries), maxEntries)
+    }
+
+    /**
+     * 按 [QueryFilter] 导出日志（与列表筛选条件一致），最多 [maxEntries] 条。
+     */
+    fun exportRecentLogs(context: Context, filter: QueryFilter, maxEntries: Int = 2_000): File {
+        val capped = maxEntries.coerceAtLeast(1)
+        val records = query(filter.copy(maxEntries = capped))
         val exportDir = File(context.cacheDir, "observability_export").apply { mkdirs() }
         val exportFile = File(exportDir, "taskflow_observability_export_${System.currentTimeMillis()}.jsonl")
         OutputStreamWriter(FileOutputStream(exportFile), StandardCharsets.UTF_8).use { writer ->

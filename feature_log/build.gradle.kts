@@ -7,5 +7,7 @@ taskFlow {
 }
 
 dependencies {
-    // 后续接入日志数据源时可按需添加 compileOnly API 注解
+    testImplementation(libs.junit)
+    testImplementation(libs.mockk)
+    testImplementation(libs.kotlinx.coroutines.test)
 }

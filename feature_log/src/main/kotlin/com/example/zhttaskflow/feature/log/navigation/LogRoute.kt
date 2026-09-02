@@ -4,6 +4,12 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.example.zhttaskflow.feature.log.data.repository.LogRepositoryImpl
+import com.example.zhttaskflow.feature.log.domain.repository.LogRepository
+import com.example.zhttaskflow.feature.log.domain.usecase.ClearLogsUseCase
+import com.example.zhttaskflow.feature.log.domain.usecase.ExportLogsUseCase
+import com.example.zhttaskflow.feature.log.domain.usecase.LogDisplayUseCase
+import com.example.zhttaskflow.feature.log.domain.usecase.QueryLogsUseCase
 import com.example.zhttaskflow.feature.log.presentation.LogScreen
 import com.example.zhttaskflow.feature.log.presentation.LogViewModel
 import com.example.zhttaskflow.feature.log.presentation.LogViewModelFactory
@@ -32,8 +38,30 @@ fun registerLogRoutes(
 
 @Composable
 private fun LogRouteHost() {
-    val appContext = LocalContext.current.applicationContext
-    val factory = remember(appContext) { LogViewModelFactory(appContext) }
+    val factory = rememberLogViewModelFactory()
     val viewModel: LogViewModel = viewModel(factory = factory)
     LogScreen(viewModel = viewModel)
+}
+
+@Composable
+private fun rememberLogRepository(): LogRepository {
+    val appContext = LocalContext.current.applicationContext
+    return remember(appContext) {
+        LogRepositoryImpl(appContext)
+    }
+}
+
+@Composable
+private fun rememberLogViewModelFactory(): LogViewModelFactory {
+    val appContext = LocalContext.current.applicationContext
+    val repository = rememberLogRepository()
+    return remember(appContext, repository) {
+        LogViewModelFactory(
+            appContext = appContext,
+            queryLogsUseCase = QueryLogsUseCase(repository),
+            exportLogsUseCase = ExportLogsUseCase(repository),
+            clearLogsUseCase = ClearLogsUseCase(repository),
+            logDisplayUseCase = LogDisplayUseCase(repository),
+        )
+    }
 }

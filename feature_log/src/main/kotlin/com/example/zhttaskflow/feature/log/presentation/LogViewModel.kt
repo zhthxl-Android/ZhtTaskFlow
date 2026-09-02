@@ -5,27 +5,36 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import com.example.zhttaskflow.base.mvi.BaseUiState
 import com.example.zhttaskflow.base.mvi.BaseViewModel
-import com.example.zhttaskflow.core.observability.TaskFlowLocalLogStore
 import com.example.zhttaskflow.feature.log.R
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.withContext
+import com.example.zhttaskflow.feature.log.domain.LogCategory
+import com.example.zhttaskflow.feature.log.domain.LogEntry
+import com.example.zhttaskflow.feature.log.domain.LogQueryFilter
+import com.example.zhttaskflow.feature.log.domain.usecase.ClearLogsUseCase
+import com.example.zhttaskflow.feature.log.domain.usecase.ExportLogsUseCase
+import com.example.zhttaskflow.feature.log.domain.usecase.LogDisplayUseCase
+import com.example.zhttaskflow.feature.log.domain.usecase.QueryLogsUseCase
 
 /** 日志查看页埋点 pageId（与 [PageLifecycleLog] 一致）。 */
 internal const val LOG_PAGE_ID: String = "LogViewer"
 
 private const val LOG_PAGE_SIZE: Int = 50
+private const val LOG_EXPORT_MAX_ENTRIES: Int = 2_000
 
 /**
  * 日志查看 ViewModel：索引分页查询、展开懒加载详情、导出与清空。
  */
 internal class LogViewModel(
     private val appContext: Context,
+    private val queryLogsUseCase: QueryLogsUseCase,
+    private val exportLogsUseCase: ExportLogsUseCase,
+    private val clearLogsUseCase: ClearLogsUseCase,
+    private val logDisplayUseCase: LogDisplayUseCase,
 ) : BaseViewModel<LogUiState, LogUiEvent, LogUiEffect>(BaseUiState.Loading) {
 
     private var currentFilter: LogTypeFilter = LogTypeFilter.ALL
     private var expandedEntryIds: Set<String> = emptySet()
     /** 仅持有当前已加载页对应的记录，用于展开详情。 */
-    private var recordByEntryId: Map<String, TaskFlowLocalLogStore.LogRecord> = emptyMap()
+    private var recordByEntryId: Map<String, LogEntry> = emptyMap()
     /** 详情 JSON 缓存，仅保留当前已加载列表中的条目。 */
     private var entryDetailCache: Map<String, String> = emptyMap()
     private var loadedPageCount: Int = 0
@@ -77,10 +86,12 @@ internal class LogViewModel(
                 setState { BaseUiState.Error(userMessage) }
             },
         ) {
-            val pageResult = withContext(Dispatchers.IO) {
-                fetchPage(page = 0)
-            }
-            applyPageResult(pageResult, append = false, showLoading = showLoading)
+            val pageResult = queryLogsUseCase(
+                filter = currentFilter.toQueryFilter(),
+                page = 0,
+                pageSize = LOG_PAGE_SIZE,
+            )
+            applyPageResult(pageResult.entries, pageResult.hasMore, append = false, showLoading = showLoading)
         }
     }
 
@@ -106,30 +117,22 @@ internal class LogViewModel(
             },
         ) {
             val nextPage = loadedPageCount
-            val pageResult = withContext(Dispatchers.IO) {
-                fetchPage(page = nextPage)
-            }
-            applyPageResult(pageResult, append = true, showLoading = false)
+            val pageResult = queryLogsUseCase(
+                filter = currentFilter.toQueryFilter(),
+                page = nextPage,
+                pageSize = LOG_PAGE_SIZE,
+            )
+            applyPageResult(pageResult.entries, pageResult.hasMore, append = true, showLoading = false)
         }
     }
 
-    private fun fetchPage(page: Int): TaskFlowLocalLogStore.PagedQueryResult {
-        return TaskFlowLocalLogStore.queryPaged(
-            TaskFlowLocalLogStore.PagedQueryFilter(
-                logType = currentFilter.toStoreLogType(),
-                page = page,
-                pageSize = LOG_PAGE_SIZE,
-            ),
-        )
-    }
-
     private fun applyPageResult(
-        pageResult: TaskFlowLocalLogStore.PagedQueryResult,
+        newEntries: List<LogEntry>,
+        hasMore: Boolean,
         append: Boolean,
         @Suppress("UNUSED_PARAMETER") showLoading: Boolean,
     ) {
         isLoadingMore = false
-        val newRecords = pageResult.records
         val previousIds = if (append) {
             (currentState as? BaseUiState.Success)?.data?.entries?.map { entry -> entry.id }.orEmpty()
         } else {
@@ -138,22 +141,22 @@ internal class LogViewModel(
         if (!append) {
             releaseMemoryCaches()
             loadedPageCount = 0
-        } else if (newRecords.isNotEmpty()) {
+        } else if (newEntries.isNotEmpty()) {
             entryDetailCache = emptyMap()
             expandedEntryIds = emptySet()
         }
         val mergedRecords = if (append) {
             val orderedExisting = previousIds.mapNotNull { id -> recordByEntryId[id] }
-            orderedExisting + newRecords
+            orderedExisting + newEntries
         } else {
-            newRecords
+            newEntries
         }
-        recordByEntryId = mergedRecords.associateBy { record -> record.stableId() }
+        recordByEntryId = mergedRecords.associateBy { record -> record.id }
         trimDetailCacheToLoadedEntries()
-        if (newRecords.isNotEmpty()) {
+        if (newEntries.isNotEmpty()) {
             loadedPageCount += 1
         }
-        hasMorePages = pageResult.hasMore
+        hasMorePages = hasMore
         val entries = mergedRecords.map { record -> mapRecordToUi(record) }
         val data = buildLogData(entries)
         setState {
@@ -176,7 +179,7 @@ internal class LogViewModel(
         if (willExpand) {
             val record = recordByEntryId[entryId]
             if (record != null && entryId !in entryDetailCache) {
-                entryDetailCache = entryDetailCache + (entryId to TaskFlowLocalLogStore.encodeRecord(record))
+                entryDetailCache = entryDetailCache + (entryId to logDisplayUseCase.encodeDetail(record))
             }
         }
         setState {
@@ -203,9 +206,10 @@ internal class LogViewModel(
                 )
             },
         ) {
-            val exportFile = withContext(Dispatchers.IO) {
-                TaskFlowLocalLogStore.exportRecentLogs(appContext)
-            }
+            val exportFile = exportLogsUseCase(
+                filter = currentFilter.toQueryFilter(),
+                maxEntries = LOG_EXPORT_MAX_ENTRIES,
+            )
             val chooserTitle = appContext.getString(R.string.log_str_export_share_title)
             sendEffect(
                 LogUiEffect.ShareLogExport(exportFile = exportFile, chooserTitle = chooserTitle),
@@ -227,9 +231,7 @@ internal class LogViewModel(
                 )
             },
         ) {
-            withContext(Dispatchers.IO) {
-                TaskFlowLocalLogStore.clearAllLogs()
-            }
+            clearLogsUseCase()
             releaseMemoryCaches()
             loadedPageCount = 0
             hasMorePages = false
@@ -253,11 +255,11 @@ internal class LogViewModel(
         expandedEntryIds = expandedEntryIds.intersect(allowedIds)
     }
 
-    private fun mapRecordToUi(record: TaskFlowLocalLogStore.LogRecord): LogEntryUi {
+    private fun mapRecordToUi(record: LogEntry): LogEntryUi {
         return LogEntryUi(
-            id = record.stableId(),
-            timestampText = TaskFlowLocalLogStore.formatTimestamp(record.timestampEpochMs),
-            typeLabel = record.logType.displayName,
+            id = record.id,
+            timestampText = logDisplayUseCase.formatTimestamp(record.timestampEpochMs),
+            typeLabel = record.typeLabel,
             pageId = record.pageId.ifBlank { "—" },
             actionId = record.actionId.ifBlank { "—" },
             summary = buildSummary(record),
@@ -284,7 +286,7 @@ internal class LogViewModel(
         }
     }
 
-    private fun buildSummary(record: TaskFlowLocalLogStore.LogRecord): String {
+    private fun buildSummary(record: LogEntry): String {
         val paramsPreview = record.params.entries
             .take(3)
             .joinToString(separator = ", ") { (key, value) -> "$key=$value" }
@@ -301,12 +303,16 @@ internal class LogViewModel(
     }
 }
 
-private fun LogTypeFilter.toStoreLogType(): TaskFlowLocalLogStore.LogType? {
+private fun LogTypeFilter.toQueryFilter(): LogQueryFilter {
+    return LogQueryFilter(logType = toLogCategory())
+}
+
+private fun LogTypeFilter.toLogCategory(): LogCategory? {
     return when (this) {
         LogTypeFilter.ALL -> null
-        LogTypeFilter.ANALYTICS -> TaskFlowLocalLogStore.LogType.ANALYTICS
-        LogTypeFilter.PERFORMANCE -> TaskFlowLocalLogStore.LogType.PERFORMANCE
-        LogTypeFilter.CRASH -> TaskFlowLocalLogStore.LogType.CRASH
+        LogTypeFilter.ANALYTICS -> LogCategory.ANALYTICS
+        LogTypeFilter.PERFORMANCE -> LogCategory.PERFORMANCE
+        LogTypeFilter.CRASH -> LogCategory.CRASH
     }
 }
 
@@ -317,12 +323,22 @@ internal typealias LogUiState = BaseUiState<LogData>
  */
 internal class LogViewModelFactory(
     private val appContext: Context,
+    private val queryLogsUseCase: QueryLogsUseCase,
+    private val exportLogsUseCase: ExportLogsUseCase,
+    private val clearLogsUseCase: ClearLogsUseCase,
+    private val logDisplayUseCase: LogDisplayUseCase,
 ) : ViewModelProvider.Factory {
 
     @Suppress("UNCHECKED_CAST")
     override fun <T : ViewModel> create(modelClass: Class<T>): T {
         if (modelClass.isAssignableFrom(LogViewModel::class.java)) {
-            return LogViewModel(appContext.applicationContext) as T
+            return LogViewModel(
+                appContext = appContext.applicationContext,
+                queryLogsUseCase = queryLogsUseCase,
+                exportLogsUseCase = exportLogsUseCase,
+                clearLogsUseCase = clearLogsUseCase,
+                logDisplayUseCase = logDisplayUseCase,
+            ) as T
         }
         throw IllegalArgumentException("未知 ViewModel: ${modelClass.name}")
     }
