@@ -1,0 +1,25 @@
+# 本地强制校验（Windows PowerShell）。与 .github/workflows/ci.yml 对齐。
+$ErrorActionPreference = "Stop"
+$Root = Split-Path -Parent $PSScriptRoot
+Set-Location $Root
+
+function Invoke-Gradle {
+    param([string[]]$Args)
+    & .\gradlew.bat @Args
+    if ($LASTEXITCODE -ne 0) { throw "Gradle failed: gradlew.bat $($Args -join ' ')" }
+}
+
+Write-Host "==> clean :app:compileDebugKotlin"
+Invoke-Gradle @("clean", ":app:compileDebugKotlin", "--no-daemon")
+
+Write-Host "==> :app:lintVitalRelease"
+Invoke-Gradle @(":app:lintVitalRelease", "--no-daemon")
+
+Write-Host "==> :component_nav:testDebugUnitTest"
+Invoke-Gradle @(":component_nav:testDebugUnitTest", "--no-daemon")
+
+Write-Host "==> Release assemble + observability artifact check"
+Invoke-Gradle @(":app:assembleRelease", "--no-daemon")
+& "$PSScriptRoot\verify-release-observability.ps1"
+
+Write-Host "CI verify: all steps passed."
