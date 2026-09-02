@@ -10,6 +10,7 @@ import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
 import com.example.zhttaskflow.base.analytics.TaskFlowPageViewEvent
 import com.example.zhttaskflow.base.analytics.rememberTaskFlowAnalytics
+import com.example.zhttaskflow.base.performance.rememberTaskFlowPerformance
 
 private const val PAGE_LIFECYCLE_LOG_TAG = "PageLifecycle"
 
@@ -37,10 +38,12 @@ fun PageLifecycleLog(
     onArgsChange: (String?) -> Unit = {},
 ) {
     val analytics = rememberTaskFlowAnalytics()
+    val performance = rememberTaskFlowPerformance()
     val argsState = rememberUpdatedState(pageArgs)
     var argsEffectInitialized by remember(pageName) { mutableStateOf(false) }
 
     DisposableEffect(pageName) {
+        performance.beginPage(pageName)
         analytics.trackPageView(
             pageId = pageName,
             pageArgs = argsState.value,
@@ -48,6 +51,7 @@ fun PageLifecycleLog(
         )
         onEnter()
         onDispose {
+            performance.endPage(pageName)
             analytics.trackPageLeave(pageId = pageName)
             onLeave()
         }

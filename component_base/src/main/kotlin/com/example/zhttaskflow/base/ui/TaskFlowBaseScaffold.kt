@@ -19,6 +19,10 @@ import androidx.compose.ui.Modifier
 import com.example.zhttaskflow.base.analytics.TaskFlowAnalytics
 import com.example.zhttaskflow.base.analytics.TaskFlowAnalyticsCompositionRoot
 import com.example.zhttaskflow.base.analytics.rememberTaskFlowDebugAnalytics
+import com.example.zhttaskflow.base.performance.TaskFlowPerformanceCompositionRoot
+import com.example.zhttaskflow.base.performance.TaskFlowPerformanceScaffoldBindings
+import com.example.zhttaskflow.base.performance.rememberTaskFlowDebugPerformance
+import com.example.zhttaskflow.base.performance.rememberTaskFlowPerformance
 import com.example.zhttaskflow.base.ext.LocalTaskFlowDialogController
 import com.example.zhttaskflow.base.ext.LocalTaskFlowLoadingController
 import com.example.zhttaskflow.base.ext.LocalTaskFlowSnackbarDispatcher
@@ -69,6 +73,8 @@ internal fun taskFlowParentGlobalHostsOrNull(): TaskFlowScaffoldGlobalHosts? {
  * 独立调试等无外层宿主场景下，本组件自动降级为本地宿主创建模式。
  *
  * @param analytics 壳层注入的埋点实现；为 `null` 时使用 [com.example.zhttaskflow.base.analytics.rememberTaskFlowDebugAnalytics]。
+ * 页面性能（首帧 / 滚动 FPS / 停留）由 [com.example.zhttaskflow.base.performance.TaskFlowPerformanceCompositionRoot] 注入，
+ * 并与 [com.example.zhttaskflow.base.ui.extension.PageLifecycleLog] 的 `pageName` 关联。
  * @see com.example.zhttaskflow.base.doc.TaskFlowBaseArchitecture
  */
 @Composable
@@ -130,6 +136,7 @@ fun TaskFlowBaseScaffold(
     }
 
     val resolvedAnalytics = analytics ?: rememberTaskFlowDebugAnalytics()
+    val performance = rememberTaskFlowDebugPerformance()
 
     CompositionLocalProvider(
         LocalTaskFlowSnackbarHostState provides snackbarHostState,
@@ -137,18 +144,20 @@ fun TaskFlowBaseScaffold(
         LocalTaskFlowLoadingController provides loadingController,
         LocalTaskFlowDialogController provides dialogController,
     ) {
-        TaskFlowAnalyticsCompositionRoot(analytics = resolvedAnalytics) {
-            TaskFlowBaseScaffoldContent(
-                modifier = modifier,
-                consumeStatusBarsInContent = consumeStatusBarsInContent,
-                bottomBar = bottomBar,
-                floatingActionButton = floatingActionButton,
-                header = header,
-                contentModifier = contentModifier,
-                hosts = localHosts,
-                ownsGlobalHosts = true,
-                content = content,
-            )
+        TaskFlowPerformanceCompositionRoot(performance = performance) {
+            TaskFlowAnalyticsCompositionRoot(analytics = resolvedAnalytics) {
+                TaskFlowBaseScaffoldContent(
+                    modifier = modifier,
+                    consumeStatusBarsInContent = consumeStatusBarsInContent,
+                    bottomBar = bottomBar,
+                    floatingActionButton = floatingActionButton,
+                    header = header,
+                    contentModifier = contentModifier,
+                    hosts = localHosts,
+                    ownsGlobalHosts = true,
+                    content = content,
+                )
+            }
         }
     }
 }
@@ -165,6 +174,11 @@ private fun TaskFlowBaseScaffoldContent(
     ownsGlobalHosts: Boolean,
     content: @Composable (PaddingValues) -> Unit,
 ) {
+    val performance = rememberTaskFlowPerformance()
+    val performanceContentModifier = TaskFlowPerformanceScaffoldBindings(
+        performance = performance,
+        contentModifier = contentModifier,
+    )
     val pageBackground = TaskFlowPageBackground.color()
     Box(
         modifier = modifier
@@ -198,7 +212,7 @@ private fun TaskFlowBaseScaffoldContent(
                                 Modifier
                             },
                         )
-                        .then(contentModifier)
+                        .then(performanceContentModifier)
                         .padding(contentInsets),
                 ) {
                     content(contentInsets)
