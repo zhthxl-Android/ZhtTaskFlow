@@ -14,11 +14,23 @@
 |------|-------------------|------|
 | app | com.example.zhttaskflow | 壳工程、NavHost、拦截链、深链 Intent、`AppMainShell` |
 | component_base | com.example.zhttaskflow.base | MVI 基类、Compose 脚手架、Snackbar/Loading/Dialog/BottomSheet、Inset/IME、埋点抽象、页面性能 |
-| component_core | com.example.zhttaskflow.core | 网络、Room、日志、NetworkChecker |
+| component_core | com.example.zhttaskflow.core | 网络、Room、**本地可观测日志仓**（`TaskFlowLocalLogStore`）、NetworkChecker |
 | component_nav | com.example.zhttaskflow.nav | Navigation 封装、路由常量、拦截器链 |
-| feature_log / feature_task / feature_article | com.example.zhttaskflow.feature.* | 业务自治（Clean 三层 + MVI + 路由注册） |
+| feature_log | com.example.zhttaskflow.feature.log | **日志查看**（`app/log` Tab）：本地可观测 JSONL 列表、筛选、导出、清空；MVI + `registerLogRoutes` |
+| feature_task | com.example.zhttaskflow.feature.task | 任务列表/详情（Clean 三层 + MVI） |
+| feature_article | com.example.zhttaskflow.feature.article | 资讯列表/WebView 详情（Clean 三层 + MVI） |
 
 禁止顶层 `lib-domain`、`lib-data`；禁止 `feature_*` 互相依赖。
+
+### 2.1 主壳底部 Tab（`AppMainShell`）
+
+| 顺序 | Tab 文案 | 路由 path | 说明 |
+|------|----------|-----------|------|
+| 1 | 资讯 | `feature_article/list` | **默认启动页**（`TaskFlowMainTab.startDestinationRoute`）；`interceptTabRootBackToDesktop = true` |
+| 2 | 任务 | `feature_task/list` | 任务列表根页 |
+| 3 | 日志 | `app/log` | 日志查看（`feature_log`）；Debug/Release 均展示，无环境隐藏 |
+
+配置类：`app` 模块 `TaskFlowMainTab`；底栏 UI：`MainBottomNavigationBar`。桌面 `MAIN`/`LAUNCHER` 启动无深链时进入 **资讯列表**（见 `MainActivity` KDoc）。
 
 ## 3. SDK 与工具链
 
@@ -99,7 +111,7 @@
 ```kotlin
 AppMainShell(
     registry = routeRegistry,
-    startDestination = TaskFlowLogNavRoutes.LOG_ROUTE,
+    startDestination = TaskFlowMainTab.startDestinationRoute, // 默认：资讯列表 feature_article/list
     navigator = navigator,
     analyticsImpl = MyProductAnalytics(),           // 可选；默认 ReleaseTaskFlowAnalytics
     performanceImpl = MyApmPerformanceReporter(),   // 可选；默认 ReleaseTaskFlowPerformanceReporter
@@ -114,7 +126,7 @@ AppMainShell(
 ```kotlin
 AppMainShell(
     registry = routeRegistry,
-    startDestination = TaskFlowLogNavRoutes.LOG_ROUTE,
+    startDestination = TaskFlowMainTab.startDestinationRoute,
     navigator = navigator,
     analyticsImpl = MyProductAnalytics(), // 实现 TaskFlowAnalytics
 )
@@ -125,7 +137,7 @@ AppMainShell(
 ```kotlin
 AppMainShell(
     registry = routeRegistry,
-    startDestination = TaskFlowLogNavRoutes.LOG_ROUTE,
+    startDestination = TaskFlowMainTab.startDestinationRoute,
     navigator = navigator,
     performanceImpl = MyApmPerformanceReporter(), // 实现 TaskFlowPerformanceReporter
 )
@@ -136,7 +148,7 @@ AppMainShell(
 ```kotlin
 AppMainShell(
     registry = routeRegistry,
-    startDestination = TaskFlowLogNavRoutes.LOG_ROUTE,
+    startDestination = TaskFlowMainTab.startDestinationRoute,
     navigator = navigator,
     crashReporterImpl = object : TaskFlowCrashReporter {
         override fun reportCrash(throwable: Throwable, fatal: Boolean) {
@@ -213,7 +225,7 @@ SDK 接入：修改 `app` 模块 `ReleaseTaskFlowObservabilityContract.dispatchT
 | 二级详情 | `TaskFlowScaffold` | 顶栏返回 + `onBackIntercept`（WebView 内后退等） |
 | 确认弹窗 | `TaskFlowConfirmDialog` 或 `showConfirmDialog` | 登录/权限引导等走 DialogController |
 | 底部弹窗 | `showBottomSheet` + `TaskFlowBottomSheet` | 任务列表「更多」为样板；圆角/拖拽/动画由基建统一 |
-| 列表状态 | `StateBox` + `TaskFlowStateRefreshableListContent` 等 | contentPadding 用 `rememberTaskFlowStateBoxContentPadding` |
+| 列表状态 | `StateBox` + `TaskFlowStateRefreshableListContent` 等 | contentPadding 用 `rememberTaskFlowStateBoxContentPadding`；**日志 Tab** 使用 `StateBox` + 本地列表 |
 | 表单键盘 | `rememberTaskFlowImePadding` | 弹窗内 `taskFlowImePadding` |
 
 顶栏统一使用 [TaskFlowTopBar](component_base/src/main/kotlin/com/example/zhttaskflow/base/ui/TaskFlowTopBar.kt) / `TaskFlowListScaffold`；历史 `TaskFlowPageTitleBar` 已自源码移除，尺寸见 `TaskFlowUiConstants.TopBarHeight`。
@@ -223,7 +235,7 @@ SDK 接入：修改 `app` 模块 `ReleaseTaskFlowObservabilityContract.dispatchT
 1. **统一外壳**：二级页使用 `TaskFlowScaffold`，`onNavigateUp` 绑定 `navigator.navigateUp()`。
 2. **系统返回键**：由 Scaffold 内 `BackHandler` 与顶栏返回共用 `handleTaskFlowPageBack(onNavigateUp, onBackIntercept)`。
 3. **可消费后退的容器**（如 WebView）：在 `onBackIntercept` 中若 `webView.canGoBack()` 则 `goBack()` 并返回 `true`；否则返回 `false` 走 `navigateUp`。参考 `ArticleDetailScreen`。
-4. **一级 Tab 根页**：`TaskFlowListScaffold(interceptTabRootBackToDesktop = true)`，返回退桌面而非销毁进程。
+4. **一级 Tab 根页（首个 Tab：资讯列表）**：`TaskFlowListScaffold(interceptTabRootBackToDesktop = true)`，系统返回退桌面而非销毁进程；任务/日志 Tab 根页为 `false`。
 
 禁止在 Screen 内单独再挂一层 `BackHandler` 与 Scaffold 冲突。
 

@@ -10,6 +10,7 @@ import java.nio.charset.StandardCharsets
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
+import java.util.PriorityQueue
 import java.util.concurrent.Executors
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.AtomicReference
@@ -108,24 +109,35 @@ object TaskFlowLocalLogStore {
     }
 
     /**
-     * 查询日志，默认按 [LogRecord.timestampEpochMs] 倒序。
+     * 查询日志，按 [LogRecord.timestampEpochMs] 倒序，最多返回 [QueryFilter.maxEntries] 条。
+     *
+     * 扫描全量 JSONL 行时使用固定大小最小堆，避免将全部匹配记录载入内存再排序。
      */
     fun query(filter: QueryFilter = QueryFilter()): List<LogRecord> {
         val context = appContextRef.get() ?: return emptyList()
-        val results = mutableListOf<LogRecord>()
+        val maxEntries = filter.maxEntries.coerceAtLeast(1)
+        val minHeap = PriorityQueue<LogRecord>(compareBy { record -> record.timestampEpochMs })
         listLogFiles(context).forEach { file ->
             file.bufferedReader(StandardCharsets.UTF_8).use { reader ->
                 reader.lineSequence().forEach { line ->
                     val record = decodeRecord(line) ?: return@forEach
-                    if (matchesFilter(record, filter)) {
-                        results.add(record)
+                    if (!matchesFilter(record, filter)) {
+                        return@forEach
+                    }
+                    when {
+                        minHeap.size < maxEntries -> minHeap.add(record)
+                        else -> {
+                            val oldest = minHeap.peek() ?: return@forEach
+                            if (record.timestampEpochMs > oldest.timestampEpochMs) {
+                                minHeap.poll()
+                                minHeap.add(record)
+                            }
+                        }
                     }
                 }
             }
         }
-        return results
-            .sortedByDescending { record -> record.timestampEpochMs }
-            .take(filter.maxEntries)
+        return minHeap.sortedByDescending { record -> record.timestampEpochMs }
     }
 
     /**

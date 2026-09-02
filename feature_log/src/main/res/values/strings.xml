@@ -21,4 +21,5 @@
     <string name="log_str_entry_time">时间：%1$s</string>
     <string name="log_str_entry_summary">摘要：%1$s</string>
     <string name="log_str_entry_detail">详情</string>
+    <string name="log_str_detail_loading">加载详情…</string>
 </resources>

@@ -22,6 +22,8 @@ internal class LogViewModel(
 
     private var currentFilter: LogTypeFilter = LogTypeFilter.ALL
     private var expandedEntryIds: Set<String> = emptySet()
+    private var recordByEntryId: Map<String, TaskFlowLocalLogStore.LogRecord> = emptyMap()
+    private var entryDetailCache: Map<String, String> = emptyMap()
 
     init {
         onEvent(LogUiEvent.Load)
@@ -36,6 +38,7 @@ internal class LogViewModel(
                 if (currentFilter != event.filter) {
                     currentFilter = event.filter
                     expandedEntryIds = emptySet()
+                    entryDetailCache = emptyMap()
                     loadLogs(showLoading = false)
                 }
             }
@@ -63,11 +66,7 @@ internal class LogViewModel(
             val entries = withContext(Dispatchers.IO) {
                 queryEntries(currentFilter)
             }
-            val data = LogData(
-                filter = currentFilter,
-                entries = entries,
-                expandedEntryIds = expandedEntryIds,
-            )
+            val data = buildLogData(entries)
             setState {
                 if (entries.isEmpty()) {
                     BaseUiState.Empty
@@ -81,14 +80,25 @@ internal class LogViewModel(
     private fun toggleExpanded(entryId: String) {
         val current = currentState
         val data = (current as? BaseUiState.Success)?.data ?: return
-        expandedEntryIds = if (entryId in expandedEntryIds) {
-            expandedEntryIds - entryId
-        } else {
+        val willExpand = entryId !in expandedEntryIds
+        expandedEntryIds = if (willExpand) {
             expandedEntryIds + entryId
+        } else {
+            expandedEntryIds - entryId
+        }
+        if (willExpand) {
+            val record = recordByEntryId[entryId]
+            if (record != null && entryId !in entryDetailCache) {
+                val encoded = TaskFlowLocalLogStore.encodeRecord(record)
+                entryDetailCache = entryDetailCache + (entryId to encoded)
+            }
         }
         setState {
             BaseUiState.Success(
-                data.copy(expandedEntryIds = expandedEntryIds),
+                data.copy(
+                    entries = applyDetailsToEntries(data.entries),
+                    expandedEntryIds = expandedEntryIds,
+                ),
             )
         }
     }
@@ -134,7 +144,9 @@ internal class LogViewModel(
             withContext(Dispatchers.IO) {
                 TaskFlowLocalLogStore.clearAllLogs()
             }
+            recordByEntryId = emptyMap()
             expandedEntryIds = emptySet()
+            entryDetailCache = emptyMap()
             val message = appContext.getString(R.string.log_str_clear_success)
             sendEffect(LogUiEffect.ShowSnackbar(message = message))
             loadLogs(showLoading = false)
@@ -151,17 +163,37 @@ internal class LogViewModel(
             logType = filter.toStoreLogType(),
             maxEntries = 2_000,
         )
-        return TaskFlowLocalLogStore.query(storeFilter).map { record ->
-            val summary = buildSummary(record)
-            LogEntryUi(
-                id = record.stableId(),
-                timestampText = TaskFlowLocalLogStore.formatTimestamp(record.timestampEpochMs),
-                typeLabel = record.logType.displayName,
-                pageId = record.pageId.ifBlank { "—" },
-                actionId = record.actionId.ifBlank { "—" },
-                summary = summary,
-                detailText = TaskFlowLocalLogStore.encodeRecord(record),
-            )
+        val records = TaskFlowLocalLogStore.query(storeFilter)
+        recordByEntryId = records.associateBy { record -> record.stableId() }
+        return records.map { record -> mapRecordToUi(record) }
+    }
+
+    private fun mapRecordToUi(record: TaskFlowLocalLogStore.LogRecord): LogEntryUi {
+        return LogEntryUi(
+            id = record.stableId(),
+            timestampText = TaskFlowLocalLogStore.formatTimestamp(record.timestampEpochMs),
+            typeLabel = record.logType.displayName,
+            pageId = record.pageId.ifBlank { "—" },
+            actionId = record.actionId.ifBlank { "—" },
+            summary = buildSummary(record),
+        )
+    }
+
+    private fun buildLogData(entries: List<LogEntryUi>): LogData {
+        return LogData(
+            filter = currentFilter,
+            entries = applyDetailsToEntries(entries),
+            expandedEntryIds = expandedEntryIds,
+        )
+    }
+
+    private fun applyDetailsToEntries(entries: List<LogEntryUi>): List<LogEntryUi> {
+        return entries.map { entry ->
+            if (entry.id in expandedEntryIds) {
+                entry.copy(detailText = entryDetailCache[entry.id])
+            } else {
+                entry.copy(detailText = null)
+            }
         }
     }
 

@@ -297,7 +297,8 @@ private fun LogEntryCard(
                         style = MaterialTheme.typography.labelMedium,
                     )
                     Text(
-                        text = entry.detailText,
+                        text = entry.detailText
+                            ?: stringResource(id = R.string.log_str_detail_loading),
                         style = MaterialTheme.typography.bodySmall,
                         fontFamily = FontFamily.Monospace,
                     )

@@ -29,5 +29,6 @@ data class LogEntryUi(
     val pageId: String,
     val actionId: String,
     val summary: String,
-    val detailText: String,
+    /** 展开后懒加载的 JSON 详情；未展开时为 null。 */
+    val detailText: String? = null,
 )
