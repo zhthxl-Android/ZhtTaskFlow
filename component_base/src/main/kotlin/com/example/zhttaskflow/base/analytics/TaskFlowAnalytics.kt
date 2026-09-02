@@ -12,8 +12,8 @@ import androidx.compose.runtime.remember
  * 业务侧优先使用 [rememberTaskFlowAnalytics] 或 [com.example.zhttaskflow.base.ui.extension.logUiInteraction] 等封装，
  * 禁止直接依赖 [TaskFlowDebugAnalytics]（调试默认实现）。
  *
- * 后续接入友盟 / 自研 SDK 时，实现本接口并在壳层通过 [TaskFlowAnalyticsCompositionRoot] 注入
- * （[com.example.zhttaskflow.base.ui.TaskFlowBaseScaffold] 已包裹默认 [TaskFlowDebugAnalytics]；可在外层再包一层替换 [LocalTaskFlowAnalytics]）。
+ * 后续接入友盟 / 自研 SDK 时，实现本接口并在应用壳 `AppMainShell` 传入 `analyticsImpl`，
+ * 或经 [TaskFlowAnalyticsCompositionRoot] / [com.example.zhttaskflow.base.ui.TaskFlowBaseScaffold] 的 `analytics` 参数注入。
  */
 interface TaskFlowAnalytics {
 
@@ -67,14 +67,24 @@ fun rememberTaskFlowAnalytics(): TaskFlowAnalytics {
     return LocalTaskFlowAnalytics.current
 }
 
+/**
+ * 调试默认 [TaskFlowAnalytics] 实例（壳层未注入 [analyticsImpl] 时使用）。
+ */
+@Composable
+fun rememberTaskFlowDebugAnalytics(): TaskFlowAnalytics {
+    return remember { TaskFlowDebugAnalytics }
+}
+
 internal val TaskFlowAnalyticsFallback: TaskFlowAnalytics = TaskFlowDebugAnalytics
 
 /**
  * 在壳层装配 Analytics，并与 [TaskFlowAnalyticsRegistry] 同步。
+ *
+ * 通常由 [com.example.zhttaskflow.base.ui.TaskFlowBaseScaffold] 调用；应用壳也可在更外层包裹以提前注入。
  */
 @Composable
-internal fun TaskFlowAnalyticsCompositionRoot(
-    analytics: TaskFlowAnalytics = remember { TaskFlowDebugAnalytics },
+fun TaskFlowAnalyticsCompositionRoot(
+    analytics: TaskFlowAnalytics = rememberTaskFlowDebugAnalytics(),
     content: @Composable () -> Unit,
 ) {
     CompositionLocalProvider(LocalTaskFlowAnalytics provides analytics) {

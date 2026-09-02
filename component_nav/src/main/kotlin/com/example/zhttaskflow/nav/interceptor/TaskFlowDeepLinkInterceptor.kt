@@ -110,6 +110,10 @@ class TaskFlowDeepLinkRouteMapperImpl(
 fun rememberTaskFlowDeepLinkRouteMapper(
     configure: (TaskFlowDeepLinkRouteMapperImpl.Builder.() -> Unit)? = null,
 ): TaskFlowDeepLinkRouteMapper {
+    val injected = LocalTaskFlowDeepLinkRouteMapper.current
+    if (injected != null) {
+        return injected
+    }
     return remember(configure) {
         val builder = TaskFlowDeepLinkRouteMapperImpl.defaultBuilder()
         configure?.invoke(builder)

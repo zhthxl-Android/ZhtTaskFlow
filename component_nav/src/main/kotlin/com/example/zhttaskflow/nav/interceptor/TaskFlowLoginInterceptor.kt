@@ -85,6 +85,10 @@ class TaskFlowLoginSession {
 
 @Composable
 fun rememberTaskFlowLoginSession(): TaskFlowLoginSession {
+    val injected = LocalTaskFlowLoginSession.current
+    if (injected != null) {
+        return injected
+    }
     return remember { TaskFlowLoginSession() }
 }
 

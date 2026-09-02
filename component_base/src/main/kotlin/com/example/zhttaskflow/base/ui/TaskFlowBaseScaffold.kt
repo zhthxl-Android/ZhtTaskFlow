@@ -16,7 +16,9 @@ import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
+import com.example.zhttaskflow.base.analytics.TaskFlowAnalytics
 import com.example.zhttaskflow.base.analytics.TaskFlowAnalyticsCompositionRoot
+import com.example.zhttaskflow.base.analytics.rememberTaskFlowDebugAnalytics
 import com.example.zhttaskflow.base.ext.LocalTaskFlowDialogController
 import com.example.zhttaskflow.base.ext.LocalTaskFlowLoadingController
 import com.example.zhttaskflow.base.ext.LocalTaskFlowSnackbarDispatcher
@@ -66,12 +68,14 @@ internal fun taskFlowParentGlobalHostsOrNull(): TaskFlowScaffoldGlobalHosts? {
  *
  * 独立调试等无外层宿主场景下，本组件自动降级为本地宿主创建模式。
  *
+ * @param analytics 壳层注入的埋点实现；为 `null` 时使用 [com.example.zhttaskflow.base.analytics.rememberTaskFlowDebugAnalytics]。
  * @see com.example.zhttaskflow.base.doc.TaskFlowBaseArchitecture
  */
 @Composable
 fun TaskFlowBaseScaffold(
     modifier: Modifier = Modifier,
     consumeStatusBarsInContent: Boolean,
+    analytics: TaskFlowAnalytics? = null,
     bottomBar: @Composable () -> Unit = {},
     floatingActionButton: @Composable () -> Unit = {},
     header: @Composable () -> Unit = {},
@@ -125,13 +129,15 @@ fun TaskFlowBaseScaffold(
         onDispose { dialogController.dismissAll() }
     }
 
+    val resolvedAnalytics = analytics ?: rememberTaskFlowDebugAnalytics()
+
     CompositionLocalProvider(
         LocalTaskFlowSnackbarHostState provides snackbarHostState,
         LocalTaskFlowSnackbarDispatcher provides snackbarDispatcher,
         LocalTaskFlowLoadingController provides loadingController,
         LocalTaskFlowDialogController provides dialogController,
     ) {
-        TaskFlowAnalyticsCompositionRoot {
+        TaskFlowAnalyticsCompositionRoot(analytics = resolvedAnalytics) {
             TaskFlowBaseScaffoldContent(
                 modifier = modifier,
                 consumeStatusBarsInContent = consumeStatusBarsInContent,
