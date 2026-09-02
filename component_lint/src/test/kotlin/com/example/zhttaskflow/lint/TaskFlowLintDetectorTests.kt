@@ -67,7 +67,7 @@ class TaskFlowLogUiInteractionMissingPageIdDetectorTest {
                     package com.example.zhttaskflow.feature.log.presentation
                     import com.example.zhttaskflow.base.ui.extension.logUiInteraction
                     fun demo() {
-                        logUiInteraction(action = "click", identifier = "home_btn")
+                        logUiInteraction(action = "click", identifier = "log_export")
                     }
                     """.trimIndent(),
                     "src/com/example/zhttaskflow/feature/log/presentation/LogDemo.kt",
@@ -91,7 +91,7 @@ class TaskFlowLogUiInteractionMissingPageIdDetectorTest {
                     fun demo() {
                         logUiInteraction(
                             action = "click",
-                            identifier = "home_btn",
+                            identifier = "log_export",
                             pageId = LOG_PAGE_ID,
                         )
                     }

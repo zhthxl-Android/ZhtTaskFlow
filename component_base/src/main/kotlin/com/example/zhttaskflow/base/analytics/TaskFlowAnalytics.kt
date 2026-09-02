@@ -36,7 +36,7 @@ interface TaskFlowAnalytics {
     /**
      * 交互类埋点：点击、下拉刷新、操作成功/失败等。
      *
-     * @param operationId 操作 ID，对应日志与监控契约中的 **actionId**（如 `home_entrance_card`）
+     * @param operationId 操作 ID，对应日志与监控契约中的 **actionId**（如 `task_list_fab_add`）
      * @param logTag 调试实现写入 Logcat 的子 Tag；产品实现可忽略
      */
     fun trackInteraction(

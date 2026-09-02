@@ -12,7 +12,7 @@
 
 1. **Toast** → MVI `UiEffect` + `TaskFlowBaseScaffold` / `TaskFlowSnackbarHost`。
 2. **Scaffold** → `TaskFlowListScaffold`（Tab 列表）或 `TaskFlowScaffold`（二级页）。
-3. **pageId** → 与 `PageLifecycleLog` 的 `pageName` 使用同一页面常量，例如 `pageId = HOME_PAGE_ID`。
+3. **pageId** → 与 `PageLifecycleLog` 的 `pageName` 使用同一页面常量，例如 `pageId = LOG_PAGE_ID`（日志页）或 `TASK_LIST_PAGE_ID`。
 
 ## 本地校验
 

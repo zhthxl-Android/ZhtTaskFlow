@@ -24,7 +24,6 @@ import androidx.compose.ui.graphics.vector.ImageVector
  * ## 分类
  * - [Tab]：主界面底部导航选中/未选中态
  * - [Nav]：通用导航与操作
- * - [HomeEntrance]：首页功能入口卡片
  */
 object TaskFlowIcons {
 
@@ -45,14 +44,6 @@ object TaskFlowIcons {
      */
     object Nav {
         val Back: ImageVector = Icons.AutoMirrored.Filled.ArrowBack
-    }
-
-    /**
-     * 首页功能入口卡片图标。
-     */
-    object HomeEntrance {
-        val Task: ImageVector = Icons.AutoMirrored.Filled.List
-        val Article: ImageVector = Icons.AutoMirrored.Filled.Article
     }
 
     /** Snackbar 预设类型图标。 */

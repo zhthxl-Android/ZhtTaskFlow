@@ -12,7 +12,7 @@ import retrofit2.http.Query
 interface ArticleApi {
 
     /**
-     * 拉取玩 Android 首页文章分页列表。
+     * 拉取玩 Android 文章分页列表。
      *
      * @param page 页码，从 **0** 开始，对应路径占位符 `{page}`
      * @param pageSize 每页条数，对应 query 参数 `page_size`（取值 1–40）

@@ -48,7 +48,7 @@ class ArticleViewModel(
 
     // endregion
 
-    // region 首页加载
+    // region 资讯列表加载
 
     private fun loadFirstPage() {
         setState { BaseUiState.Loading }

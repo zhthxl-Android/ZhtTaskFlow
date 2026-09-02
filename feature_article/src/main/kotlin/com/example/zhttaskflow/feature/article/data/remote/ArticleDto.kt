@@ -25,7 +25,7 @@ data class ArticlePageDto(
 )
 
 /**
- * 玩 Android 首页文章列表单条 `datas` 元素。
+ * 玩 Android 文章列表单条 `datas` 元素。
  */
 data class ArticleItemDto(
     @SerializedName("apkLink")

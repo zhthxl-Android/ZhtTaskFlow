@@ -23,10 +23,10 @@ private const val UI_OUTCOME_LOG_TAG = "UiOutcome"
  * 每个业务页面至少覆盖以下三类日志，便于联调与线上问题还原：
  *
  * 1. **页面级曝光** — 使用 [PageLifecycleLog]：`onEnter` / `onLeave` / `onArgsChange`，
- *    `pageName` 与业务 Screen 一致（如 `Home`、`TaskList`），`pageArgs` 携带列表条数、加载态等快照。
+ *    `pageName` 与业务 Screen 一致（如 `LogViewer`、`TaskList`、`ArticleList`），`pageArgs` 携带列表条数、加载态等快照。
  * 2. **核心 CTA 点击** — 使用 [logUiInteraction] 或 [Modifier.clickWithLog] / [listItemClickWithLog]：
  *    `action` 为 `click`、`pullRefresh`、`loadMore` 等；`actionId`（入参 [identifier]）命名 `{page}_{控件}`
- *    （如 `home_entrance_card`、`task_list_fab_add`）；**必须**传入 [pageId]（与 [PageLifecycleLog] 的 `pageName` 对齐），
+ *    （如 `task_list_fab_add`、`log_export`）；**必须**传入 [pageId]（与 [PageLifecycleLog] 的 `pageName` 对齐），
  *    业务字段写入 [params]。
  * 3. **操作成功 / 失败** — 在展示 Snackbar 等反馈处调用 [logUiOutcome] 或 [logUiInteraction]：
  *    `action` 使用 `success` / `failure` / `info`；`actionId` 如 `{page}_snackbar` 或 `{page}_{业务}_result`；

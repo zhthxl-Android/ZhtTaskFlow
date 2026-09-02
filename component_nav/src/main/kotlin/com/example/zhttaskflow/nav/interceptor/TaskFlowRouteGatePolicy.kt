@@ -61,7 +61,7 @@ object TaskFlowRouteGatePolicy {
             segments[1].isNotBlank()
     }
 
-    /** 首页 hub：无门禁（文档对照用）。 */
+    /** 日志 Tab 路由：无门禁（文档对照用）。 */
     fun isLogNavigationPath(pathWithoutQuery: String): Boolean {
         return pathWithoutQuery == TaskFlowLogNavRoutes.LOG_ROUTE
     }

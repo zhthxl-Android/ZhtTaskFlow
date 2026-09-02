@@ -50,7 +50,7 @@ class TaskFlowLogUiInteractionMissingPageIdDetector : Detector(), SourceCodeScan
                 ISSUE,
                 pageIdExpression,
                 context.getLocation(pageIdExpression),
-                "logUiInteraction 的 pageId 不能为 null，请传入当前页面常量（如 HOME_PAGE_ID）。",
+                "logUiInteraction 的 pageId 不能为 null，请传入当前页面常量（如 LOG_PAGE_ID、TASK_LIST_PAGE_ID）。",
             )
         }
     }

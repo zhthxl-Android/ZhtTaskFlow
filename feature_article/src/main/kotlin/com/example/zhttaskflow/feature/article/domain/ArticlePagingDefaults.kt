@@ -7,6 +7,6 @@ object ArticlePagingDefaults {
     /** 默认每页条数 */
     const val DEFAULT_PAGE_SIZE = 20
 
-    /** 列表首页页码 */
+    /** 列表起始页码（从 0 开始） */
     const val FIRST_PAGE = 1
 }

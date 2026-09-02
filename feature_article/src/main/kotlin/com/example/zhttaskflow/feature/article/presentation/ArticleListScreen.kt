@@ -64,7 +64,7 @@ fun ArticleListScreen(
     TaskFlowListScaffold(
         modifier = modifier,
         collapsibleTopBarOnScroll = true,
-        // 首个 Tab 根页：系统返回退桌面（与原 Home Tab 行为一致）
+        // 启动 Tab 根页：系统返回退桌面（与资讯列表 Tab 行为一致）
         interceptTabRootBackToDesktop = true,
     ) { scaffoldContentPadding ->
         val snackbarDispatcher = rememberTaskFlowSnackbarDispatcher()
