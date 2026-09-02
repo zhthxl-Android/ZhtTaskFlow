@@ -7,6 +7,8 @@ data class LogData(
     val filter: LogTypeFilter,
     val entries: List<LogEntryUi>,
     val expandedEntryIds: Set<String>,
+    val hasMore: Boolean = false,
+    val isLoadingMore: Boolean = false,
 )
 
 /**

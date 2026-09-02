@@ -1,10 +1,9 @@
 package com.example.zhttaskflow.feature.log.presentation
 
 import android.content.Intent
-import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
@@ -13,9 +12,9 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -23,10 +22,11 @@ import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.snapshotFlow
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.unit.dp
 import androidx.core.content.FileProvider
 import com.example.zhttaskflow.base.ext.SnackbarType
@@ -63,7 +63,7 @@ internal fun LogScreen(
         is BaseUiState.Error -> "error"
         is BaseUiState.Success -> {
             val data = (uiState as BaseUiState.Success).data
-            "count=${data.entries.size};filter=${data.filter.name}"
+            "count=${data.entries.size};hasMore=${data.hasMore};filter=${data.filter.name}"
         }
     }
 
@@ -169,7 +169,17 @@ internal fun LogScreen(
                 LogEntryList(
                     entries = data.entries,
                     expandedEntryIds = data.expandedEntryIds,
+                    hasMore = data.hasMore,
+                    isLoadingMore = data.isLoadingMore,
                     listContentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp),
+                    onLoadMore = {
+                        logUiInteraction(
+                            action = "scroll",
+                            identifier = "log_load_more",
+                            pageId = LOG_PAGE_ID,
+                        )
+                        viewModel.onEvent(LogUiEvent.LoadMore)
+                    },
                     onEntryClick = { entryId ->
                         logUiInteraction(
                             action = "click",
@@ -219,10 +229,25 @@ private fun LogTypeFilterRow(
 private fun LogEntryList(
     entries: List<LogEntryUi>,
     expandedEntryIds: Set<String>,
+    hasMore: Boolean,
+    isLoadingMore: Boolean,
     listContentPadding: PaddingValues,
+    onLoadMore: () -> Unit,
     onEntryClick: (String) -> Unit,
     modifier: Modifier = Modifier,
 ) {
+    val listState = rememberLazyListState()
+    LaunchedEffect(listState, entries.size, hasMore, isLoadingMore) {
+        snapshotFlow {
+            val layoutInfo = listState.layoutInfo
+            val lastVisible = layoutInfo.visibleItemsInfo.lastOrNull()?.index ?: -1
+            lastVisible to layoutInfo.totalItemsCount
+        }.collect { (lastVisible, totalItems) ->
+            if (hasMore && !isLoadingMore && totalItems > 0 && lastVisible >= totalItems - 3) {
+                onLoadMore()
+            }
+        }
+    }
     if (entries.isEmpty()) {
         BaseEmptyScreen(
             message = stringResource(id = R.string.log_str_empty),
@@ -231,6 +256,7 @@ private fun LogEntryList(
         return
     }
     LazyColumn(
+        state = listState,
         modifier = modifier.fillMaxSize(),
         contentPadding = listContentPadding,
         verticalArrangement = Arrangement.spacedBy(8.dp),
@@ -243,65 +269,15 @@ private fun LogEntryList(
                 onClick = { onEntryClick(entry.id) },
             )
         }
-    }
-}
-
-@Composable
-private fun LogEntryCard(
-    entry: LogEntryUi,
-    expanded: Boolean,
-    onClick: () -> Unit,
-    modifier: Modifier = Modifier,
-) {
-    Card(
-        modifier = modifier
-            .fillMaxWidth()
-            .clickable(onClick = onClick),
-        colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surfaceContainerLow,
-        ),
-    ) {
-        Column(
-            modifier = Modifier.padding(12.dp),
-            verticalArrangement = Arrangement.spacedBy(4.dp),
-        ) {
-            Text(
-                text = stringResource(id = R.string.log_str_entry_time, entry.timestampText),
-                style = MaterialTheme.typography.labelMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-            )
-            Text(
-                text = stringResource(id = R.string.log_str_entry_type, entry.typeLabel),
-                style = MaterialTheme.typography.bodyMedium,
-            )
-            Text(
-                text = stringResource(id = R.string.log_str_entry_page_id, entry.pageId),
-                style = MaterialTheme.typography.bodySmall,
-            )
-            Text(
-                text = stringResource(id = R.string.log_str_entry_action_id, entry.actionId),
-                style = MaterialTheme.typography.bodySmall,
-            )
-            Text(
-                text = stringResource(id = R.string.log_str_entry_summary, entry.summary),
-                style = MaterialTheme.typography.bodyMedium,
-                maxLines = if (expanded) Int.MAX_VALUE else 2,
-            )
-            AnimatedVisibility(visible = expanded) {
-                Column(
-                    modifier = Modifier.padding(top = 8.dp),
-                    verticalArrangement = Arrangement.spacedBy(4.dp),
+        if (isLoadingMore) {
+            item(key = "log_list_loading_more") {
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(16.dp),
+                    contentAlignment = Alignment.Center,
                 ) {
-                    Text(
-                        text = stringResource(id = R.string.log_str_entry_detail),
-                        style = MaterialTheme.typography.labelMedium,
-                    )
-                    Text(
-                        text = entry.detailText
-                            ?: stringResource(id = R.string.log_str_detail_loading),
-                        style = MaterialTheme.typography.bodySmall,
-                        fontFamily = FontFamily.Monospace,
-                    )
+                    CircularProgressIndicator()
                 }
             }
         }

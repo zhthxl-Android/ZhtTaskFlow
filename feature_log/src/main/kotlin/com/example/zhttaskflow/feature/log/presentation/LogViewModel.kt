@@ -13,8 +13,10 @@ import kotlinx.coroutines.withContext
 /** 日志查看页埋点 pageId（与 [PageLifecycleLog] 一致）。 */
 internal const val LOG_PAGE_ID: String = "LogViewer"
 
+private const val LOG_PAGE_SIZE: Int = 50
+
 /**
- * 日志查看 ViewModel：本地日志查询、筛选、导出、清空。
+ * 日志查看 ViewModel：索引分页查询、展开懒加载详情、导出与清空。
  */
 internal class LogViewModel(
     private val appContext: Context,
@@ -22,27 +24,37 @@ internal class LogViewModel(
 
     private var currentFilter: LogTypeFilter = LogTypeFilter.ALL
     private var expandedEntryIds: Set<String> = emptySet()
+    /** 仅持有当前已加载页对应的记录，用于展开详情。 */
     private var recordByEntryId: Map<String, TaskFlowLocalLogStore.LogRecord> = emptyMap()
+    /** 详情 JSON 缓存，仅保留当前已加载列表中的条目。 */
     private var entryDetailCache: Map<String, String> = emptyMap()
+    private var loadedPageCount: Int = 0
+    private var hasMorePages: Boolean = false
+    private var isLoadingMore: Boolean = false
 
     init {
         onEvent(LogUiEvent.Load)
+    }
+
+    override fun onCleared() {
+        releaseMemoryCaches()
+        super.onCleared()
     }
 
     override fun handleEvent(event: LogUiEvent) {
         when (event) {
             LogUiEvent.Load,
             LogUiEvent.Retry,
-            -> loadLogs()
+            -> loadFirstPage()
             is LogUiEvent.FilterSelected -> {
                 if (currentFilter != event.filter) {
                     currentFilter = event.filter
-                    expandedEntryIds = emptySet()
-                    entryDetailCache = emptyMap()
-                    loadLogs(showLoading = false)
+                    releaseMemoryCaches()
+                    loadFirstPage(showLoading = false)
                 }
             }
             is LogUiEvent.EntryToggled -> toggleExpanded(event.entryId)
+            LogUiEvent.LoadMore -> loadNextPage()
             LogUiEvent.ExportRequested -> exportLogs()
             LogUiEvent.ClearRequested -> {
                 // 二次确认在 Screen 层完成
@@ -51,28 +63,103 @@ internal class LogViewModel(
         }
     }
 
-    private fun loadLogs(showLoading: Boolean = true) {
+    private fun loadFirstPage(showLoading: Boolean = true) {
+        loadedPageCount = 0
+        hasMorePages = false
         if (showLoading) {
             setState { BaseUiState.Loading }
         }
         launchTask(
             tag = "LogViewModel",
-            scene = "loadLogs",
+            scene = "loadFirstPage",
             precheckNetwork = false,
             onError = { _, userMessage ->
                 setState { BaseUiState.Error(userMessage) }
             },
         ) {
-            val entries = withContext(Dispatchers.IO) {
-                queryEntries(currentFilter)
+            val pageResult = withContext(Dispatchers.IO) {
+                fetchPage(page = 0)
             }
-            val data = buildLogData(entries)
-            setState {
-                if (entries.isEmpty()) {
-                    BaseUiState.Empty
-                } else {
-                    BaseUiState.Success(data)
+            applyPageResult(pageResult, append = false, showLoading = showLoading)
+        }
+    }
+
+    private fun loadNextPage() {
+        if (!hasMorePages || isLoadingMore) {
+            return
+        }
+        val current = currentState as? BaseUiState.Success ?: return
+        isLoadingMore = true
+        setState {
+            BaseUiState.Success(current.data.copy(isLoadingMore = true))
+        }
+        launchTask(
+            tag = "LogViewModel",
+            scene = "loadNextPage",
+            precheckNetwork = false,
+            onError = { _, _ ->
+                isLoadingMore = false
+                val success = currentState as? BaseUiState.Success ?: return@launchTask
+                setState {
+                    BaseUiState.Success(success.data.copy(isLoadingMore = false))
                 }
+            },
+        ) {
+            val nextPage = loadedPageCount
+            val pageResult = withContext(Dispatchers.IO) {
+                fetchPage(page = nextPage)
+            }
+            applyPageResult(pageResult, append = true, showLoading = false)
+        }
+    }
+
+    private fun fetchPage(page: Int): TaskFlowLocalLogStore.PagedQueryResult {
+        return TaskFlowLocalLogStore.queryPaged(
+            TaskFlowLocalLogStore.PagedQueryFilter(
+                logType = currentFilter.toStoreLogType(),
+                page = page,
+                pageSize = LOG_PAGE_SIZE,
+            ),
+        )
+    }
+
+    private fun applyPageResult(
+        pageResult: TaskFlowLocalLogStore.PagedQueryResult,
+        append: Boolean,
+        @Suppress("UNUSED_PARAMETER") showLoading: Boolean,
+    ) {
+        isLoadingMore = false
+        val newRecords = pageResult.records
+        val previousIds = if (append) {
+            (currentState as? BaseUiState.Success)?.data?.entries?.map { entry -> entry.id }.orEmpty()
+        } else {
+            emptyList()
+        }
+        if (!append) {
+            releaseMemoryCaches()
+            loadedPageCount = 0
+        } else if (newRecords.isNotEmpty()) {
+            entryDetailCache = emptyMap()
+            expandedEntryIds = emptySet()
+        }
+        val mergedRecords = if (append) {
+            val orderedExisting = previousIds.mapNotNull { id -> recordByEntryId[id] }
+            orderedExisting + newRecords
+        } else {
+            newRecords
+        }
+        recordByEntryId = mergedRecords.associateBy { record -> record.stableId() }
+        trimDetailCacheToLoadedEntries()
+        if (newRecords.isNotEmpty()) {
+            loadedPageCount += 1
+        }
+        hasMorePages = pageResult.hasMore
+        val entries = mergedRecords.map { record -> mapRecordToUi(record) }
+        val data = buildLogData(entries)
+        setState {
+            when {
+                entries.isEmpty() && !append -> BaseUiState.Empty
+                else -> BaseUiState.Success(data)
             }
         }
     }
@@ -89,8 +176,7 @@ internal class LogViewModel(
         if (willExpand) {
             val record = recordByEntryId[entryId]
             if (record != null && entryId !in entryDetailCache) {
-                val encoded = TaskFlowLocalLogStore.encodeRecord(record)
-                entryDetailCache = entryDetailCache + (entryId to encoded)
+                entryDetailCache = entryDetailCache + (entryId to TaskFlowLocalLogStore.encodeRecord(record))
             }
         }
         setState {
@@ -144,28 +230,27 @@ internal class LogViewModel(
             withContext(Dispatchers.IO) {
                 TaskFlowLocalLogStore.clearAllLogs()
             }
-            recordByEntryId = emptyMap()
-            expandedEntryIds = emptySet()
-            entryDetailCache = emptyMap()
+            releaseMemoryCaches()
+            loadedPageCount = 0
+            hasMorePages = false
             val message = appContext.getString(R.string.log_str_clear_success)
             sendEffect(LogUiEffect.ShowSnackbar(message = message))
-            loadLogs(showLoading = false)
+            loadFirstPage(showLoading = false)
         }
     }
 
-    /**
-     * 供空态 / 加载态顶栏筛选展示当前选中项。
-     */
     fun currentFilterForUi(): LogTypeFilter = currentFilter
 
-    private fun queryEntries(filter: LogTypeFilter): List<LogEntryUi> {
-        val storeFilter = TaskFlowLocalLogStore.QueryFilter(
-            logType = filter.toStoreLogType(),
-            maxEntries = 2_000,
-        )
-        val records = TaskFlowLocalLogStore.query(storeFilter)
-        recordByEntryId = records.associateBy { record -> record.stableId() }
-        return records.map { record -> mapRecordToUi(record) }
+    private fun releaseMemoryCaches() {
+        recordByEntryId = emptyMap()
+        entryDetailCache = emptyMap()
+        expandedEntryIds = emptySet()
+    }
+
+    private fun trimDetailCacheToLoadedEntries() {
+        val allowedIds = recordByEntryId.keys
+        entryDetailCache = entryDetailCache.filterKeys { id -> id in allowedIds }
+        expandedEntryIds = expandedEntryIds.intersect(allowedIds)
     }
 
     private fun mapRecordToUi(record: TaskFlowLocalLogStore.LogRecord): LogEntryUi {
@@ -184,6 +269,8 @@ internal class LogViewModel(
             filter = currentFilter,
             entries = applyDetailsToEntries(entries),
             expandedEntryIds = expandedEntryIds,
+            hasMore = hasMorePages,
+            isLoadingMore = isLoadingMore,
         )
     }
 

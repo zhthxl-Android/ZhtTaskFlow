@@ -6,11 +6,11 @@ import org.json.JSONObject
 import java.io.File
 import java.io.FileOutputStream
 import java.io.OutputStreamWriter
+import java.io.FileInputStream
 import java.nio.charset.StandardCharsets
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
-import java.util.PriorityQueue
 import java.util.concurrent.Executors
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.AtomicReference
@@ -26,6 +26,8 @@ object TaskFlowLocalLogStore {
     private const val RETENTION_DAYS: Int = 7
     private const val DATE_PATTERN: String = "yyyy-MM-dd"
     private const val TIMESTAMP_PATTERN: String = "yyyy-MM-dd'T'HH:mm:ss.SSSZ"
+    private const val INDEX_SUFFIX: String = ".idx"
+    private const val INDEX_FIELD_SEPARATOR: String = "\t"
 
     enum class LogType(val wireName: String, val displayName: String) {
         ANALYTICS("analytics", "埋点"),
@@ -59,6 +61,32 @@ object TaskFlowLocalLogStore {
         val sinceEpochMs: Long? = null,
         val maxEntries: Int = 2_000,
         val anomaliesOnly: Boolean = false,
+    )
+
+    /**
+     * 分页查询条件（页码从 0 开始）。
+     */
+    data class PagedQueryFilter(
+        val logType: LogType? = null,
+        val pageId: String? = null,
+        val sinceEpochMs: Long? = null,
+        val anomaliesOnly: Boolean = false,
+        val page: Int = 0,
+        val pageSize: Int = 50,
+    )
+
+    data class PagedQueryResult(
+        val records: List<LogRecord>,
+        val hasMore: Boolean,
+    )
+
+    private data class LogIndexEntry(
+        val logFile: File,
+        val byteOffset: Long,
+        val timestampEpochMs: Long,
+        val logType: LogType,
+        val anomaly: Boolean,
+        val pageId: String,
     )
 
     private val appContextRef = AtomicReference<Context?>(null)
@@ -97,10 +125,12 @@ object TaskFlowLocalLogStore {
             val line = encodeRecord(record)
             val dayFile = logFileForDay(context, dayKey(record.timestampEpochMs))
             dayFile.parentFile?.mkdirs()
+            val startOffset = dayFile.length()
             FileOutputStream(dayFile, true).use { output ->
                 output.write(line.toByteArray(StandardCharsets.UTF_8))
                 output.write('\n'.code)
             }
+            appendIndexEntry(dayFile, startOffset, record)
             if (record.logType == LogType.CRASH) {
                 writeLastCrashFile(context, line)
                 lastCrashRecord = record
@@ -109,35 +139,39 @@ object TaskFlowLocalLogStore {
     }
 
     /**
-     * 查询日志，按 [LogRecord.timestampEpochMs] 倒序，最多返回 [QueryFilter.maxEntries] 条。
-     *
-     * 扫描全量 JSONL 行时使用固定大小最小堆，避免将全部匹配记录载入内存再排序。
+     * 查询日志，按时间倒序，最多 [QueryFilter.maxEntries] 条（基于索引，不全量解析 JSONL）。
      */
     fun query(filter: QueryFilter = QueryFilter()): List<LogRecord> {
-        val context = appContextRef.get() ?: return emptyList()
-        val maxEntries = filter.maxEntries.coerceAtLeast(1)
-        val minHeap = PriorityQueue<LogRecord>(compareBy { record -> record.timestampEpochMs })
-        listLogFiles(context).forEach { file ->
-            file.bufferedReader(StandardCharsets.UTF_8).use { reader ->
-                reader.lineSequence().forEach { line ->
-                    val record = decodeRecord(line) ?: return@forEach
-                    if (!matchesFilter(record, filter)) {
-                        return@forEach
-                    }
-                    when {
-                        minHeap.size < maxEntries -> minHeap.add(record)
-                        else -> {
-                            val oldest = minHeap.peek() ?: return@forEach
-                            if (record.timestampEpochMs > oldest.timestampEpochMs) {
-                                minHeap.poll()
-                                minHeap.add(record)
-                            }
-                        }
-                    }
-                }
-            }
+        val pageSize = filter.maxEntries.coerceAtLeast(1)
+        return queryPaged(
+            PagedQueryFilter(
+                logType = filter.logType,
+                pageId = filter.pageId,
+                sinceEpochMs = filter.sinceEpochMs,
+                anomaliesOnly = filter.anomaliesOnly,
+                page = 0,
+                pageSize = pageSize,
+            ),
+        ).records
+    }
+
+    /**
+     * 按页查询日志：先读侧车索引筛选排序，再按字节偏移只解析当前页对应行。
+     */
+    fun queryPaged(filter: PagedQueryFilter): PagedQueryResult {
+        val context = appContextRef.get() ?: return PagedQueryResult(emptyList(), hasMore = false)
+        val page = filter.page.coerceAtLeast(0)
+        val pageSize = filter.pageSize.coerceIn(1, 500)
+        val indexEntries = loadFilteredIndexEntries(context, filter)
+        val fromIndex = page * pageSize
+        if (fromIndex >= indexEntries.size) {
+            return PagedQueryResult(emptyList(), hasMore = false)
         }
-        return minHeap.sortedByDescending { record -> record.timestampEpochMs }
+        val toIndex = minOf(fromIndex + pageSize, indexEntries.size)
+        val slice = indexEntries.subList(fromIndex, toIndex)
+        val records = slice.mapNotNull { entry -> readRecordAt(entry.logFile, entry.byteOffset) }
+        val hasMore = toIndex < indexEntries.size
+        return PagedQueryResult(records = records, hasMore = hasMore)
     }
 
     /**
@@ -145,7 +179,10 @@ object TaskFlowLocalLogStore {
      */
     fun clearAllLogs() {
         val context = appContextRef.get() ?: return
-        listLogFiles(context).forEach { file -> file.delete() }
+        listLogFiles(context).forEach { file ->
+            file.delete()
+            indexFileFor(file).delete()
+        }
         File(rootDir(context), LAST_CRASH_FILE_NAME).delete()
         lastCrashRecord = null
     }
@@ -258,8 +295,155 @@ object TaskFlowLocalLogStore {
             val day = file.name.removeSuffix(".jsonl")
             if (day < cutoffDay) {
                 file.delete()
+                indexFileFor(file).delete()
             }
         }
+    }
+
+    private fun indexFileFor(logFile: File): File {
+        return File(logFile.parentFile, logFile.name + INDEX_SUFFIX)
+    }
+
+    private fun appendIndexEntry(logFile: File, byteOffset: Long, record: LogRecord) {
+        val indexFile = indexFileFor(logFile)
+        indexFile.parentFile?.mkdirs()
+        FileOutputStream(indexFile, true).use { output ->
+            output.write(formatIndexLine(byteOffset, record).toByteArray(StandardCharsets.UTF_8))
+            output.write('\n'.code)
+        }
+    }
+
+    private fun formatIndexLine(byteOffset: Long, record: LogRecord): String {
+        val safePageId = record.pageId.replace(INDEX_FIELD_SEPARATOR, " ")
+        return buildString {
+            append(byteOffset)
+            append(INDEX_FIELD_SEPARATOR)
+            append(record.timestampEpochMs)
+            append(INDEX_FIELD_SEPARATOR)
+            append(record.logType.wireName)
+            append(INDEX_FIELD_SEPARATOR)
+            append(if (record.anomaly) "1" else "0")
+            append(INDEX_FIELD_SEPARATOR)
+            append(safePageId)
+        }
+    }
+
+    private fun parseIndexLine(logFile: File, line: String): LogIndexEntry? {
+        if (line.isBlank()) {
+            return null
+        }
+        val parts = line.split(INDEX_FIELD_SEPARATOR, limit = 5)
+        if (parts.size < 5) {
+            return null
+        }
+        val offset = parts[0].toLongOrNull() ?: return null
+        val timestamp = parts[1].toLongOrNull() ?: return null
+        val typeWire = parts[2]
+        val logType = LogType.entries.firstOrNull { it.wireName == typeWire } ?: LogType.ANALYTICS
+        val anomaly = parts[3] == "1"
+        val pageId = parts[4]
+        return LogIndexEntry(
+            logFile = logFile,
+            byteOffset = offset,
+            timestampEpochMs = timestamp,
+            logType = logType,
+            anomaly = anomaly,
+            pageId = pageId,
+        )
+    }
+
+    private fun ensureIndexForLogFile(logFile: File) {
+        val indexFile = indexFileFor(logFile)
+        if (!logFile.exists()) {
+            indexFile.delete()
+            return
+        }
+        if (indexFile.exists() && indexFile.lastModified() >= logFile.lastModified()) {
+            return
+        }
+        rebuildIndex(logFile)
+    }
+
+    private fun rebuildIndex(logFile: File) {
+        val indexFile = indexFileFor(logFile)
+        if (!logFile.exists()) {
+            indexFile.delete()
+            return
+        }
+        val bytes = logFile.readBytes()
+        indexFile.parentFile?.mkdirs()
+        FileOutputStream(indexFile, false).use { output ->
+            var lineStart = 0
+            while (lineStart < bytes.size) {
+                var lineEnd = lineStart
+                while (lineEnd < bytes.size && bytes[lineEnd] != '\n'.code.toByte()) {
+                    lineEnd++
+                }
+                val lineBytes = bytes.copyOfRange(lineStart, lineEnd)
+                val line = lineBytes.toString(StandardCharsets.UTF_8)
+                val nextStart = if (lineEnd < bytes.size) lineEnd + 1 else bytes.size
+                if (line.isNotBlank()) {
+                    val record = decodeRecord(line)
+                    if (record != null) {
+                        output.write(formatIndexLine(lineStart.toLong(), record).toByteArray(StandardCharsets.UTF_8))
+                        output.write('\n'.code)
+                    }
+                }
+                lineStart = nextStart
+            }
+        }
+    }
+
+    private fun loadFilteredIndexEntries(
+        context: Context,
+        filter: PagedQueryFilter,
+    ): List<LogIndexEntry> {
+        val entries = mutableListOf<LogIndexEntry>()
+        listLogFiles(context).forEach { logFile ->
+            ensureIndexForLogFile(logFile)
+            val indexFile = indexFileFor(logFile)
+            if (!indexFile.exists()) {
+                return@forEach
+            }
+            indexFile.forEachLine { line ->
+                val entry = parseIndexLine(logFile, line) ?: return@forEachLine
+                if (matchesIndexFilter(entry, filter)) {
+                    entries.add(entry)
+                }
+            }
+        }
+        return entries.sortedByDescending { entry -> entry.timestampEpochMs }
+    }
+
+    private fun matchesIndexFilter(entry: LogIndexEntry, filter: PagedQueryFilter): Boolean {
+        if (filter.logType != null && entry.logType != filter.logType) {
+            return false
+        }
+        if (!filter.pageId.isNullOrBlank() && entry.pageId != filter.pageId) {
+            return false
+        }
+        if (filter.sinceEpochMs != null && entry.timestampEpochMs < filter.sinceEpochMs) {
+            return false
+        }
+        if (filter.anomaliesOnly && !entry.anomaly) {
+            return false
+        }
+        return true
+    }
+
+    private fun readRecordAt(logFile: File, byteOffset: Long): LogRecord? {
+        if (!logFile.exists()) {
+            return null
+        }
+        return runCatching {
+            FileInputStream(logFile).use { input ->
+                input.channel.position(byteOffset)
+                input.bufferedReader(StandardCharsets.UTF_8).use { reader ->
+                    val line = reader.readLine() ?: return null
+                    decodeRecord(line)
+                }
+            }
+        }.getOrNull()
     }
 
     private fun writeLastCrashFile(context: Context, line: String) {

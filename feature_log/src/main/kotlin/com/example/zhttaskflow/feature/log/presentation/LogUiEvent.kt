@@ -27,4 +27,7 @@ sealed interface LogUiEvent : BaseUiEvent {
 
     /** 确认清空全部本地日志。 */
     data object ClearConfirmed : LogUiEvent
+
+    /** 列表滚动触底，加载下一页。 */
+    data object LoadMore : LogUiEvent
 }
