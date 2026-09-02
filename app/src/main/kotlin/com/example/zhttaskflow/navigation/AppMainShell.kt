@@ -7,8 +7,11 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
+import androidx.compose.ui.platform.LocalContext
+import com.example.zhttaskflow.analytics.ReleaseTaskFlowAnalytics
 import com.example.zhttaskflow.base.analytics.TaskFlowAnalytics
-import com.example.zhttaskflow.base.analytics.rememberTaskFlowDebugAnalytics
+import com.example.zhttaskflow.base.analytics.TaskFlowDebugAnalytics
+import com.example.zhttaskflow.core.util.isTaskFlowDebugLoggingEnabled
 import com.example.zhttaskflow.base.performance.TaskFlowDebugPerformanceReporter
 import com.example.zhttaskflow.base.performance.TaskFlowPerformanceReporter
 import com.example.zhttaskflow.base.ui.TaskFlowBaseScaffold
@@ -30,7 +33,7 @@ import com.example.zhttaskflow.nav.route.TaskFlowRouteRegistry
  *
  * | 参数 | 默认 | 传递方式 |
  * |------|------|----------|
- * | [analyticsImpl] | [rememberTaskFlowDebugAnalytics] | [TaskFlowBaseScaffold] → [LocalTaskFlowAnalytics] |
+ * | [analyticsImpl] | Debug：[TaskFlowDebugAnalytics]；Release：[ReleaseTaskFlowAnalytics] | [TaskFlowBaseScaffold] → [LocalTaskFlowAnalytics] |
  * | [performanceImpl] | [TaskFlowDebugPerformanceReporter] | [TaskFlowBaseScaffold] → [LocalTaskFlowPerformance] |
  * | [loginSessionImpl] | 内存 [TaskFlowLoginSession] | [LocalTaskFlowLoginSession] → 拦截链 |
  * | [deepLinkMapperImpl] | [TaskFlowDeepLinkRouteMapperImpl] 样板规则 | [LocalTaskFlowDeepLinkRouteMapper] → 拦截链 |
@@ -60,7 +63,7 @@ fun AppMainShell(
     val currentRoute = navBackStackEntry?.destination?.route
     val selectedTab = MainTab.fromRoute(currentRoute)
 
-    val analytics = analyticsImpl ?: rememberTaskFlowDebugAnalytics()
+    val analytics = analyticsImpl ?: rememberAppShellAnalytics()
     val performanceReporter = performanceImpl ?: TaskFlowDebugPerformanceReporter
     val loginSession = loginSessionImpl ?: remember { TaskFlowLoginSession() }
     val deepLinkMapper = deepLinkMapperImpl ?: rememberTaskFlowDeepLinkRouteMapper()
@@ -95,6 +98,21 @@ fun AppMainShell(
                 routerInterceptorChain = routerInterceptorChain,
                 modifier = Modifier.fillMaxSize(),
             )
+        }
+    }
+}
+
+/**
+ * 应用壳默认埋点：Debug 安装包走调试实现；Release 走 [ReleaseTaskFlowAnalytics]（可经 [analyticsImpl] 覆盖）。
+ */
+@Composable
+private fun rememberAppShellAnalytics(): TaskFlowAnalytics {
+    val context = LocalContext.current.applicationContext
+    return remember(context) {
+        if (isTaskFlowDebugLoggingEnabled()) {
+            TaskFlowDebugAnalytics
+        } else {
+            ReleaseTaskFlowAnalytics
         }
     }
 }
