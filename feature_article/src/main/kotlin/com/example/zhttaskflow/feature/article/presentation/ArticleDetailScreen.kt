@@ -36,6 +36,8 @@ import com.example.zhttaskflow.base.ui.extension.logUiInteraction
 import com.example.zhttaskflow.base.util.NetworkUtil
 import com.example.zhttaskflow.feature.article.R
 
+private const val ARTICLE_DETAIL_PAGE_ID: String = "ArticleDetail"
+
 /**
  * 文章详情页：WebView 加载 H5 链接；系统/顶栏返回经 [TaskFlowScaffold] 的 [onBackIntercept] 优先 WebView 历史栈。
  *
@@ -77,7 +79,7 @@ fun ArticleDetailScreen(
     }
 
     PageLifecycleLog(
-        pageName = "ArticleDetail",
+        pageName = ARTICLE_DETAIL_PAGE_ID,
         pageArgs = "articleId=$articleId url=$detailUrl",
     )
 
@@ -89,7 +91,11 @@ fun ArticleDetailScreen(
         navigationIcon = {
             IconButton(
                 onClick = {
-                    logUiInteraction(action = "click", identifier = "article_detail_back")
+                    logUiInteraction(
+                        action = "click",
+                        identifier = "article_detail_back",
+                        pageId = ARTICLE_DETAIL_PAGE_ID,
+                    )
                     handleTaskFlowPageBack(
                         onNavigateUp = onNavigateUp,
                         onBackIntercept = webViewBackIntercept,
@@ -106,7 +112,11 @@ fun ArticleDetailScreen(
         StateBox(
             uiState = networkUiState,
             onRetry = {
-                logUiInteraction(action = "click", identifier = "article_detail_network_retry")
+                logUiInteraction(
+                    action = "click",
+                    identifier = "article_detail_network_retry",
+                    pageId = ARTICLE_DETAIL_PAGE_ID,
+                )
                 networkUiState = resolveDetailNetworkUiState(
                     context = appContext,
                     networkErrorMessage = networkErrorMessage,

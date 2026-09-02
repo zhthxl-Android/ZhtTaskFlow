@@ -25,6 +25,8 @@ import com.example.zhttaskflow.base.ui.rememberTaskFlowStateBoxContentPadding
 import com.example.zhttaskflow.base.util.NetworkUtil
 import com.example.zhttaskflow.feature.task.R
 
+private const val TASK_DETAIL_PAGE_ID: String = "TaskDetail"
+
 /**
  * 任务详情占位页：二级页标准骨架（[StateBox] 四态 + [TaskFlowScaffold] 返回拦截），
  * 成功态保留占位文案，用于验证列表 → 详情导航与系统返回栈。
@@ -55,7 +57,7 @@ fun TaskDetailPlaceholderScreen(
     }
 
     PageLifecycleLog(
-        pageName = "TaskDetail",
+        pageName = TASK_DETAIL_PAGE_ID,
         pageArgs = "taskId=$taskId",
     )
 
@@ -66,7 +68,11 @@ fun TaskDetailPlaceholderScreen(
         navigationIcon = {
             IconButton(
                 onClick = {
-                    logUiInteraction(action = "click", identifier = "task_detail_back")
+                    logUiInteraction(
+                        action = "click",
+                        identifier = "task_detail_back",
+                        pageId = TASK_DETAIL_PAGE_ID,
+                    )
                     onNavigateUp()
                 },
             ) {
@@ -80,7 +86,11 @@ fun TaskDetailPlaceholderScreen(
         StateBox(
             uiState = detailUiState,
             onRetry = {
-                logUiInteraction(action = "click", identifier = "task_detail_retry")
+                logUiInteraction(
+                    action = "click",
+                    identifier = "task_detail_retry",
+                    pageId = TASK_DETAIL_PAGE_ID,
+                )
                 detailUiState = resolveTaskDetailUiState(
                     taskId = taskId,
                     context = appContext,
