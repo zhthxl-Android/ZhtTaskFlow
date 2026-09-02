@@ -21,8 +21,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import com.example.zhttaskflow.base.R
 import com.example.zhttaskflow.base.ui.icon.TaskFlowIcons
 
@@ -120,7 +118,7 @@ private fun TaskFlowStyledSnackbar(
                     Text(
                         text = visuals.actionLabel,
                         color = style.contentColor,
-                        fontSize = 14.sp,
+                        fontSize = TaskFlowUiConstants.CompactBodyTextSize,
                     )
                 }
             }
@@ -141,13 +139,13 @@ private fun TaskFlowStyledSnackbar(
             Icon(
                 imageVector = style.icon,
                 contentDescription = null,
-                modifier = Modifier.size(20.dp),
+                modifier = Modifier.size(TaskFlowUiConstants.SnackbarLeadingIconSize),
                 tint = style.contentColor,
             )
-            Spacer(modifier = Modifier.width(12.dp))
+            Spacer(modifier = Modifier.width(TaskFlowUiConstants.SnackbarLeadingIconSpacing))
             Text(
                 text = visuals.message,
-                fontSize = 14.sp,
+                fontSize = TaskFlowUiConstants.CompactBodyTextSize,
                 color = style.contentColor,
             )
         }

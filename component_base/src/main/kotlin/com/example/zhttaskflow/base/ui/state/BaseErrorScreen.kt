@@ -11,8 +11,8 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.unit.dp
 import com.example.zhttaskflow.base.R
+import com.example.zhttaskflow.base.ui.TaskFlowUiConstants
 
 /**
  * 错误态全屏展示，支持重试回调。
@@ -29,7 +29,7 @@ fun BaseErrorScreen(
     Column(
         modifier = modifier
             .fillMaxSize()
-            .padding(24.dp),
+            .padding(TaskFlowUiConstants.StateScreenContentPadding),
         verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
@@ -40,7 +40,7 @@ fun BaseErrorScreen(
         )
         Button(
             onClick = onRetry,
-            modifier = Modifier.padding(top = 16.dp),
+            modifier = Modifier.padding(top = TaskFlowUiConstants.StateScreenActionTopSpacing),
         ) {
             Text(text = stringResource(id = R.string.base_str_retry))
         }

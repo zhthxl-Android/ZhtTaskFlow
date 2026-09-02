@@ -279,9 +279,9 @@ fun TaskFlowListLoadMoreFooter(
             }
             pagination.isLoadingMore -> {
                 CircularProgressIndicator(
-                    modifier = Modifier.height(28.dp),
+                    modifier = Modifier.height(TaskFlowUiConstants.ListLoadMoreProgressHeight),
                     color = TaskFlowColors.primary,
-                    strokeWidth = 2.dp,
+                    strokeWidth = TaskFlowUiConstants.ListLoadMoreProgressStrokeWidth,
                 )
             }
             pagination.isLoadMoreError -> {

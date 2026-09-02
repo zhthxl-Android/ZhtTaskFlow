@@ -9,7 +9,6 @@ import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.unit.sp
 import com.example.zhttaskflow.base.R
 import com.example.zhttaskflow.base.ui.TaskFlowUiConstants
 
@@ -43,7 +42,7 @@ fun TaskFlowConfirmDialog(
             Text(
                 text = message,
                 style = MaterialTheme.typography.bodyMedium,
-                fontSize = 14.sp,
+                fontSize = TaskFlowUiConstants.CompactBodyTextSize,
             )
         },
         confirmButton = {

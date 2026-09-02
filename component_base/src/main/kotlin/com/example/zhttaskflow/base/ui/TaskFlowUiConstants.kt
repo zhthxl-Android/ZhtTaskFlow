@@ -1,10 +1,12 @@
 package com.example.zhttaskflow.base.ui
 
 import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 
 /**
- * 全项目 UI 布局尺寸唯一入口（顶栏高度、页面边距、列表间距、FAB 避让、骨架屏等）。
+ * 全项目 UI 布局尺寸唯一入口（顶栏高度、页面边距、列表间距、加载指示器、FAB 避让、骨架屏等）。
  *
  * 业务与基础组件禁止硬编码相同语义的 `dp` 值，应引用本 object。
  */
@@ -29,6 +31,45 @@ object TaskFlowUiConstants {
 
     /** 阻塞加载全屏遮罩不透明度（0~1）。 */
     const val LoadingScrimAlpha: Float = 0.45f
+
+    /** 阻塞加载卡片阴影高度。 */
+    val LoadingDialogElevation = 6.dp
+
+    /** 阻塞加载卡片内容水平内边距。 */
+    val LoadingDialogContentPaddingHorizontal = 28.dp
+
+    /** 阻塞加载卡片内容垂直内边距。 */
+    val LoadingDialogContentPaddingVertical = 24.dp
+
+    /** 阻塞加载指示器与文案间距。 */
+    val LoadingDialogContentSpacing = 16.dp
+
+    /** 阻塞加载 [androidx.compose.material3.CircularProgressIndicator] 尺寸。 */
+    val LoadingDialogProgressSize = 40.dp
+
+    /** 阻塞加载进度环描边宽度。 */
+    val LoadingDialogProgressStrokeWidth = 3.dp
+
+    /** 列表加载更多尾部 [androidx.compose.material3.CircularProgressIndicator] 高度。 */
+    val ListLoadMoreProgressHeight = 28.dp
+
+    /** 列表加载更多进度环描边宽度。 */
+    val ListLoadMoreProgressStrokeWidth = 2.dp
+
+    /** Snackbar / 加载层 / 弹窗正文等紧凑字号（与 [androidx.compose.material3.MaterialTheme.typography.bodyMedium] 对齐）。 */
+    val CompactBodyTextSize: TextUnit = 14.sp
+
+    /** Snackbar 左侧类型图标尺寸。 */
+    val SnackbarLeadingIconSize = 20.dp
+
+    /** Snackbar 图标与文案水平间距。 */
+    val SnackbarLeadingIconSpacing = 12.dp
+
+    /** 空态 / 错误态等内容区外边距。 */
+    val StateScreenContentPadding = 24.dp
+
+    /** 错误态重试按钮与文案的上间距。 */
+    val StateScreenActionTopSpacing = 16.dp
 
     /** 确认弹窗圆角。 */
     val DialogCornerRadius = 20.dp

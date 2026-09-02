@@ -22,8 +22,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import com.example.zhttaskflow.base.R
 
 /**
@@ -57,22 +55,27 @@ fun TaskFlowBlockingLoadingOverlay(
             colors = CardDefaults.cardColors(
                 containerColor = MaterialTheme.colorScheme.surface,
             ),
-            elevation = CardDefaults.cardElevation(defaultElevation = 6.dp),
+            elevation = CardDefaults.cardElevation(
+                defaultElevation = TaskFlowUiConstants.LoadingDialogElevation,
+            ),
         ) {
             Column(
-                modifier = Modifier.padding(horizontal = 28.dp, vertical = 24.dp),
+                modifier = Modifier.padding(
+                    horizontal = TaskFlowUiConstants.LoadingDialogContentPaddingHorizontal,
+                    vertical = TaskFlowUiConstants.LoadingDialogContentPaddingVertical,
+                ),
                 horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.spacedBy(16.dp),
+                verticalArrangement = Arrangement.spacedBy(TaskFlowUiConstants.LoadingDialogContentSpacing),
             ) {
                 CircularProgressIndicator(
-                    modifier = Modifier.size(40.dp),
-                    strokeWidth = 3.dp,
+                    modifier = Modifier.size(TaskFlowUiConstants.LoadingDialogProgressSize),
+                    strokeWidth = TaskFlowUiConstants.LoadingDialogProgressStrokeWidth,
                     color = MaterialTheme.colorScheme.primary,
                 )
                 Text(
                     text = displayMessage,
                     style = MaterialTheme.typography.bodyMedium,
-                    fontSize = 14.sp,
+                    fontSize = TaskFlowUiConstants.CompactBodyTextSize,
                     color = MaterialTheme.colorScheme.onSurface,
                     textAlign = TextAlign.Center,
                 )
