@@ -2,5 +2,23 @@
 <resources>
     <string name="log_str_module_name">feature_log</string>
     <string name="log_str_viewer_title">日志</string>
-    <string name="log_str_viewer_placeholder">日志查看功能开发中</string>
+    <string name="log_str_filter_all">全部</string>
+    <string name="log_str_filter_analytics">埋点</string>
+    <string name="log_str_filter_performance">性能</string>
+    <string name="log_str_filter_crash">崩溃</string>
+    <string name="log_str_export">导出分享</string>
+    <string name="log_str_clear">清空日志</string>
+    <string name="log_str_clear_confirm_title">清空本地日志？</string>
+    <string name="log_str_clear_confirm_message">将删除本机全部可观测日志，且不可恢复。</string>
+    <string name="log_str_confirm">确定</string>
+    <string name="log_str_cancel">取消</string>
+    <string name="log_str_empty">暂无日志</string>
+    <string name="log_str_clear_success">已清空本地日志</string>
+    <string name="log_str_export_share_title">分享 TaskFlow 可观测日志</string>
+    <string name="log_str_entry_page_id">页面：%1$s</string>
+    <string name="log_str_entry_action_id">动作：%1$s</string>
+    <string name="log_str_entry_type">类型：%1$s</string>
+    <string name="log_str_entry_time">时间：%1$s</string>
+    <string name="log_str_entry_summary">摘要：%1$s</string>
+    <string name="log_str_entry_detail">详情</string>
 </resources>

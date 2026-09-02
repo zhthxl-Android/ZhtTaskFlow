@@ -1,6 +1,7 @@
 package com.example.zhttaskflow.observability
 
 import android.util.Log
+import com.example.zhttaskflow.core.observability.TaskFlowLocalLogStore
 
 /**
  * 生产可观测三联（Analytics / Performance / Crash）统一落盘与 SDK 对接契约。
@@ -52,8 +53,13 @@ internal object ReleaseTaskFlowObservabilityContract {
             else -> Log.i(LOG_TAG, payload)
         }
         val stackTrace = throwable?.let { stackTraceOf(it) }
+        val storeChannel = when (channel) {
+            Channel.ANALYTICS -> TaskFlowLocalLogStore.ObservabilityChannel.ANALYTICS
+            Channel.PERFORMANCE -> TaskFlowLocalLogStore.ObservabilityChannel.PERFORMANCE
+            Channel.CRASH -> TaskFlowLocalLogStore.ObservabilityChannel.CRASH
+        }
         TaskFlowLocalLogStore.recordFromObservabilityEmit(
-            channel = channel,
+            channel = storeChannel,
             eventOrMetric = eventOrMetric,
             pageId = pageId,
             actionId = actionId,

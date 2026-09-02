@@ -25,6 +25,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.core.content.FileProvider
 import com.example.zhttaskflow.R
+import com.example.zhttaskflow.core.observability.TaskFlowLocalLogStore
 import com.example.zhttaskflow.nav.theme.TaskFlowTheme
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext

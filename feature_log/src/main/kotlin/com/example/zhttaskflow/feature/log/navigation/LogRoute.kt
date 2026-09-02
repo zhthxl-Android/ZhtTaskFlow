@@ -2,6 +2,7 @@ package com.example.zhttaskflow.feature.log.navigation
 
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
+import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.zhttaskflow.feature.log.presentation.LogScreen
 import com.example.zhttaskflow.feature.log.presentation.LogViewModel
@@ -31,7 +32,8 @@ fun registerLogRoutes(
 
 @Composable
 private fun LogRouteHost() {
-    val factory = remember { LogViewModelFactory() }
+    val appContext = LocalContext.current.applicationContext
+    val factory = remember(appContext) { LogViewModelFactory(appContext) }
     val viewModel: LogViewModel = viewModel(factory = factory)
     LogScreen(viewModel = viewModel)
 }

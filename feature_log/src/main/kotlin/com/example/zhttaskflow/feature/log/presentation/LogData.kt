@@ -1,6 +1,33 @@
 package com.example.zhttaskflow.feature.log.presentation
 
 /**
- * 日志查看页业务数据占位；后续任务接入本地日志列表后扩展字段。
+ * 日志查看页成功态数据。
  */
-data object LogData
+data class LogData(
+    val filter: LogTypeFilter,
+    val entries: List<LogEntryUi>,
+    val expandedEntryIds: Set<String>,
+)
+
+/**
+ * 顶部类型筛选（与 [com.example.zhttaskflow.core.observability.TaskFlowLocalLogStore.LogType] 对应）。
+ */
+enum class LogTypeFilter {
+    ALL,
+    ANALYTICS,
+    PERFORMANCE,
+    CRASH,
+}
+
+/**
+ * 单条日志列表项 UI 模型。
+ */
+data class LogEntryUi(
+    val id: String,
+    val timestampText: String,
+    val typeLabel: String,
+    val pageId: String,
+    val actionId: String,
+    val summary: String,
+    val detailText: String,
+)
