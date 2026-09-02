@@ -51,6 +51,16 @@ internal object ReleaseTaskFlowObservabilityContract {
             Channel.CRASH -> Log.e(LOG_TAG, payload, throwable)
             else -> Log.i(LOG_TAG, payload)
         }
+        val stackTrace = throwable?.let { stackTraceOf(it) }
+        TaskFlowLocalLogStore.recordFromObservabilityEmit(
+            channel = channel,
+            eventOrMetric = eventOrMetric,
+            pageId = pageId,
+            actionId = actionId,
+            params = params,
+            stackTrace = stackTrace,
+            anomaly = params?.get("anomaly") == "true",
+        )
         dispatchToCompanyPlatform(
             channel = channel,
             payload = payload,
@@ -90,6 +100,16 @@ internal object ReleaseTaskFlowObservabilityContract {
             ?.mapNotNull { (key, value) -> value?.let { safe -> "$key=$safe" } }
             ?.joinToString(separator = ",")
             .orEmpty()
+    }
+
+    private fun stackTraceOf(throwable: Throwable): String {
+        return buildString {
+            append(throwable::class.java.name)
+            append(": ")
+            append(throwable.message.orEmpty())
+            append('\n')
+            append(throwable.stackTraceToString())
+        }
     }
 
     /**

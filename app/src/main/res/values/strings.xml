@@ -4,4 +4,9 @@
     <string name="app_tab_home">首页</string>
     <string name="app_tab_article">资讯</string>
     <string name="app_tab_task">任务</string>
+    <string name="app_str_observability_debug_title">本地可观测日志</string>
+    <string name="app_str_observability_export">导出并分享日志</string>
+    <string name="app_str_observability_close">关闭</string>
+    <string name="app_str_observability_share_title">分享可观测日志</string>
+    <string name="app_str_observability_last_crash_format">上次崩溃：%1$s @ %2$s</string>
 </resources>

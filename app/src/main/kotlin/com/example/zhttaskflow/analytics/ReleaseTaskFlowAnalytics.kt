@@ -4,6 +4,7 @@ import com.example.zhttaskflow.base.analytics.TaskFlowAnalytics
 import com.example.zhttaskflow.base.analytics.TaskFlowPageViewEvent
 import com.example.zhttaskflow.observability.ReleaseTaskFlowObservabilityContract
 import com.example.zhttaskflow.observability.ReleaseTaskFlowObservabilityContract.Channel
+import com.example.zhttaskflow.observability.TaskFlowLocalLogStore
 
 /**
  * 生产环境 [TaskFlowAnalytics]：页面曝光 / 离开 / 交互点击经 [ReleaseTaskFlowObservabilityContract] 统一字段上报。
@@ -15,6 +16,9 @@ object ReleaseTaskFlowAnalytics : TaskFlowAnalytics {
         pageArgs: String?,
         event: TaskFlowPageViewEvent,
     ) {
+        if (event == TaskFlowPageViewEvent.Enter || event == TaskFlowPageViewEvent.ArgsChange) {
+            TaskFlowLocalLogStore.updateLastKnownPageId(pageId)
+        }
         val actionId = when (event) {
             TaskFlowPageViewEvent.Enter -> ReleaseTaskFlowObservabilityContract.ACTION_PAGE_ENTER
             TaskFlowPageViewEvent.ArgsChange -> ReleaseTaskFlowObservabilityContract.ACTION_PAGE_ARGS_CHANGE
@@ -52,6 +56,9 @@ object ReleaseTaskFlowAnalytics : TaskFlowAnalytics {
         detail: String?,
         logTag: String?,
     ) {
+        if (!pageId.isNullOrBlank()) {
+            TaskFlowLocalLogStore.updateLastKnownPageId(pageId)
+        }
         val mergedParams = buildMap {
             put("uiAction", action)
             if (!logTag.isNullOrBlank()) {

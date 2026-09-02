@@ -5,11 +5,16 @@ import com.example.zhttaskflow.observability.ReleaseTaskFlowObservabilityContrac
 import com.example.zhttaskflow.observability.ReleaseTaskFlowObservabilityContract.Channel
 
 /**
- * 生产环境 [TaskFlowPerformanceReporter]：首帧 / 滚动 FPS / 停留时长经统一契约对接 APM。
+ * 生产环境 [TaskFlowPerformanceReporter]：指标写入本地 [com.example.zhttaskflow.observability.TaskFlowLocalLogStore]，
+ * 慢首帧 / 低帧率自动标记 `anomaly=true`。
  */
 object ReleaseTaskFlowPerformanceReporter : TaskFlowPerformanceReporter {
 
+    private const val FIRST_FRAME_SLOW_THRESHOLD_MS: Long = 700L
+    private const val SCROLL_FPS_MIN_THRESHOLD: Float = 45f
+
     override fun onFirstFrameRendered(pageId: String, durationMs: Long) {
+        val anomaly = durationMs > FIRST_FRAME_SLOW_THRESHOLD_MS
         ReleaseTaskFlowObservabilityContract.emit(
             channel = Channel.PERFORMANCE,
             eventOrMetric = ReleaseTaskFlowObservabilityContract.METRIC_FIRST_FRAME,
@@ -17,11 +22,14 @@ object ReleaseTaskFlowPerformanceReporter : TaskFlowPerformanceReporter {
             actionId = ReleaseTaskFlowObservabilityContract.METRIC_FIRST_FRAME,
             params = mapOf(
                 "durationMs" to durationMs.toString(),
+                "thresholdMs" to FIRST_FRAME_SLOW_THRESHOLD_MS.toString(),
+                "anomaly" to anomaly.toString(),
             ),
         )
     }
 
     override fun onScrollFpsSample(pageId: String, fps: Float, frameCount: Int) {
+        val anomaly = fps > 0f && fps < SCROLL_FPS_MIN_THRESHOLD
         ReleaseTaskFlowObservabilityContract.emit(
             channel = Channel.PERFORMANCE,
             eventOrMetric = ReleaseTaskFlowObservabilityContract.METRIC_SCROLL_FPS,
@@ -30,6 +38,8 @@ object ReleaseTaskFlowPerformanceReporter : TaskFlowPerformanceReporter {
             params = mapOf(
                 "fps" to "%.1f".format(fps),
                 "frameCount" to frameCount.toString(),
+                "fpsThreshold" to SCROLL_FPS_MIN_THRESHOLD.toString(),
+                "anomaly" to anomaly.toString(),
             ),
         )
     }
@@ -42,6 +52,7 @@ object ReleaseTaskFlowPerformanceReporter : TaskFlowPerformanceReporter {
             actionId = ReleaseTaskFlowObservabilityContract.METRIC_PAGE_DWELL,
             params = mapOf(
                 "dwellMs" to dwellMs.toString(),
+                "anomaly" to "false",
             ),
         )
     }
