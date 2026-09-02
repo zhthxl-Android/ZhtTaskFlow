@@ -15,7 +15,6 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.unit.dp
 import com.example.zhttaskflow.base.ext.SnackbarType
 import com.example.zhttaskflow.base.ext.TaskFlowSnackbarDispatcher
 import com.example.zhttaskflow.base.ext.rememberTaskFlowSnackbarDispatcher
@@ -189,7 +188,7 @@ private fun ArticleListItem(
     ) {
         Column(
             modifier = Modifier.padding(TaskFlowUiConstants.PageHorizontalPadding),
-            verticalArrangement = Arrangement.spacedBy(6.dp),
+            verticalArrangement = Arrangement.spacedBy(TaskFlowUiConstants.ListItemCardInnerSpacing),
         ) {
             Text(
                 text = article.title,

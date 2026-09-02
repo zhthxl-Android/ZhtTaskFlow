@@ -24,7 +24,6 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.unit.dp
 import com.example.zhttaskflow.base.ext.SnackbarType
 import com.example.zhttaskflow.base.ext.rememberTaskFlowSnackbarDispatcher
 import com.example.zhttaskflow.base.ext.showSnackbar
@@ -316,8 +315,8 @@ private fun TaskDetailStatusSection(
 ) {
     DetailSectionCard(title = stringResource(id = R.string.task_str_detail_section_status)) {
         FlowRow(
-            horizontalArrangement = Arrangement.spacedBy(8.dp),
-            verticalArrangement = Arrangement.spacedBy(8.dp),
+            horizontalArrangement = Arrangement.spacedBy(TaskFlowUiConstants.DetailContentBlockSpacing),
+            verticalArrangement = Arrangement.spacedBy(TaskFlowUiConstants.DetailContentBlockSpacing),
         ) {
             TaskStatus.entries.forEach { status ->
                 FilterChip(
@@ -345,7 +344,7 @@ private fun TaskDetailAttachmentSection(
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
         } else {
-            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+            Column(verticalArrangement = Arrangement.spacedBy(TaskFlowUiConstants.DetailContentBlockSpacing)) {
                 attachments.forEach { attachment ->
                     Card(
                         modifier = Modifier
@@ -363,7 +362,9 @@ private fun TaskDetailAttachmentSection(
                     ) {
                         Column(
                             modifier = Modifier.padding(TaskFlowUiConstants.PageHorizontalPadding),
-                            verticalArrangement = Arrangement.spacedBy(4.dp),
+                            verticalArrangement = Arrangement.spacedBy(
+                                TaskFlowUiConstants.ListItemCompactVerticalSpacing,
+                            ),
                         ) {
                             Text(
                                 text = attachment.displayName,

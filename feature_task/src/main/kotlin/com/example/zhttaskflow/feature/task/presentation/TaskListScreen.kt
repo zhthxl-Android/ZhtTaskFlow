@@ -24,7 +24,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.unit.dp
 import com.example.zhttaskflow.base.ext.SnackbarType
 import com.example.zhttaskflow.base.ext.TaskFlowSnackbarDispatcher
 import com.example.zhttaskflow.base.ext.rememberTaskFlowDialogController
@@ -320,7 +319,7 @@ private fun TaskListItem(
     ) {
         Column(
             modifier = Modifier.padding(TaskFlowUiConstants.PageHorizontalPadding),
-            verticalArrangement = Arrangement.spacedBy(4.dp),
+            verticalArrangement = Arrangement.spacedBy(TaskFlowUiConstants.ListItemCompactVerticalSpacing),
         ) {
             Text(
                 text = task.title,

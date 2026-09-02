@@ -20,6 +20,15 @@ object TaskFlowUiConstants {
     /** 顶栏插槽间距、列表项垂直间距等。 */
     val ListVerticalSpacing = 8.dp
 
+    /** 列表卡片内（标题/摘要/元信息）紧凑垂直间距。 */
+    val ListItemCardInnerSpacing = 6.dp
+
+    /** 列表项内更紧凑的垂直间距（如任务列表元信息行、附件行）。 */
+    val ListItemCompactVerticalSpacing = 4.dp
+
+    /** 详情页区块内表单项/附件网格等水平与垂直间距（与 [ListVerticalSpacing] 同值时可复用本常量语义）。 */
+    val DetailContentBlockSpacing = 8.dp
+
     /** 任务列表 FAB 下方额外滚动留白（叠加 Scaffold 底距）。 */
     val FabContentExtraBottom = 72.dp
 
