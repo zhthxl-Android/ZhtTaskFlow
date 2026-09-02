@@ -7,6 +7,9 @@ cd "$ROOT"
 
 chmod +x gradlew 2>/dev/null || true
 
+echo "==> checkDependencyRules"
+./gradlew checkDependencyRules --no-daemon
+
 echo "==> clean :app:compileDebugKotlin"
 ./gradlew clean :app:compileDebugKotlin --no-daemon
 

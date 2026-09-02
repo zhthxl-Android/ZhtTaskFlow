@@ -17,35 +17,89 @@ plugins {
 }
 
 // =============================================================================
-// 依赖红线辅助校验（指引型）：打印各模块 dependencies 命令，不嵌套启动 Gradle
-// 避免 Windows 路径空格、Gradle 进程嵌套等跨平台问题
+// 依赖红线自动校验：解析各模块 project() 依赖，违规则失败构建
 // =============================================================================
+
+import org.gradle.api.artifacts.ProjectDependency
 
 tasks.register("checkDependencyRules") {
     group = "verification"
-    description = "打印依赖红线校验命令与说明（不自动执行子 Gradle 进程）"
+    description = "校验模块间 project 依赖是否符合组件化红线（feature 不互依、底层不依赖业务等）"
     doLast {
-        val modulePaths = listOf(
-            ":app",
+        val violations = mutableListOf<String>()
+        val featureModulePaths = rootProject.subprojects
+            .map { it.path }
+            .filter { path -> path.startsWith(":feature_") }
+            .toSet()
+        val infrastructurePaths = setOf(
+            ":component_base",
             ":component_core",
             ":component_nav",
-            ":feature_log",
-            ":feature_task",
-            ":feature_article",
+            ":component_lint",
         )
-        logger.lifecycle("")
-        logger.lifecycle("=== TaskFlowTaskFlow 依赖红线辅助校验（请在本工程根目录手动执行）===")
-        logger.lifecycle("规则摘要：")
-        logger.lifecycle("  - app 仅 implementation :component_nav（base 经 nav 的 api 传递）")
-        logger.lifecycle("  - feature 仅 implementation :component_core、:component_nav")
-        logger.lifecycle("  - core 不得出现 Compose；feature 不得互依")
-        logger.lifecycle("")
-        modulePaths.forEach { modulePath ->
-            val coord = modulePath.removePrefix(":")
-            logger.lifecycle("./gradlew :$coord:dependencies --configuration debugCompileClasspath")
+        val upwardForbiddenTargets = featureModulePaths + setOf(":app")
+        val dependencyConfigurationNames = listOf(
+            "implementation",
+            "api",
+            "compileOnly",
+            "runtimeOnly",
+            "lintChecks",
+            "testImplementation",
+            "androidTestImplementation",
+        )
+
+        fun collectProjectDependencies(projectPath: String): List<Pair<String, String>> {
+            val project = rootProject.project(projectPath)
+            val edges = mutableListOf<Pair<String, String>>()
+            dependencyConfigurationNames.forEach { configurationName ->
+                val configuration = project.configurations.findByName(configurationName) ?: return@forEach
+                configuration.dependencies.withType(ProjectDependency::class.java).forEach { dependency ->
+                    val targetPath = dependency.dependencyProject.path
+                    edges += configurationName to targetPath
+                }
+            }
+            return edges
         }
-        logger.lifecycle("")
-        logger.lifecycle("可选：./gradlew lintDebug")
-        logger.lifecycle("=== 结束 ===")
+
+        rootProject.subprojects.forEach { subproject ->
+            val projectPath = subproject.path
+            collectProjectDependencies(projectPath).forEach { (configurationName, targetPath) ->
+                when {
+                    projectPath in infrastructurePaths && targetPath in upwardForbiddenTargets -> {
+                        violations += "$projectPath 禁止依赖业务/壳模块 $targetPath（$configurationName）"
+                    }
+                    projectPath == ":component_core" && targetPath in (setOf(":component_nav") + upwardForbiddenTargets) -> {
+                        violations += "$projectPath 禁止依赖 $targetPath（$configurationName）"
+                    }
+                    projectPath == ":component_nav" && targetPath != ":component_base" -> {
+                        if (targetPath in upwardForbiddenTargets || targetPath == ":component_core") {
+                            violations += "$projectPath 仅允许 api 传递 component_base，禁止 $targetPath（$configurationName）"
+                        }
+                    }
+                    projectPath == ":component_base" && targetPath != ":component_core" -> {
+                        violations += "$projectPath 仅允许依赖 :component_core，禁止 $targetPath（$configurationName）"
+                    }
+                    projectPath.startsWith(":feature_") -> {
+                        val allowed = setOf(":component_core", ":component_nav", ":component_lint")
+                        if (targetPath !in allowed) {
+                            violations += "$projectPath 仅允许依赖 core/nav/lintChecks，禁止 $targetPath（$configurationName）"
+                        }
+                        if (targetPath in featureModulePaths && targetPath != projectPath) {
+                            violations += "$projectPath 禁止依赖其他 Feature 模块 $targetPath（$configurationName）"
+                        }
+                    }
+                }
+            }
+        }
+
+        if (violations.isNotEmpty()) {
+            logger.error("")
+            logger.error("=== TaskFlow 依赖红线校验失败（${violations.size} 项）===")
+            violations.forEach { message -> logger.error("  - $message") }
+            logger.error("")
+            error("checkDependencyRules failed")
+        } else {
+            logger.lifecycle("checkDependencyRules: 全部模块 project 依赖符合红线。")
+        }
     }
 }

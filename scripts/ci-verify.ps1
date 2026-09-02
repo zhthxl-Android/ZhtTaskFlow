@@ -9,6 +9,9 @@ function Invoke-Gradle {
     if ($LASTEXITCODE -ne 0) { throw "Gradle failed: gradlew.bat $($Args -join ' ')" }
 }
 
+Write-Host "==> checkDependencyRules"
+Invoke-Gradle @("checkDependencyRules", "--no-daemon")
+
 Write-Host "==> clean :app:compileDebugKotlin"
 Invoke-Gradle @("clean", ":app:compileDebugKotlin", "--no-daemon")
 
