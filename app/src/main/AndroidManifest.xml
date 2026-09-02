@@ -28,10 +28,6 @@
                     android:scheme="taskflow" />
             </intent-filter>
         </activity>
-        <activity
-            android:name=".observability.TaskFlowObservabilityDebugActivity"
-            android:exported="false"
-            android:theme="@style/app_Theme.TaskFlow" />
         <provider
             android:name="androidx.core.content.FileProvider"
             android:authorities="${applicationId}.observability.fileprovider"

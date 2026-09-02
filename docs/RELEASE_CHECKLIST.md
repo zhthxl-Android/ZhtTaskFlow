@@ -48,16 +48,10 @@ Release 产物校验会检查 APK 的 `classes.dex` 是否包含：`ReleaseTaskF
 
 1. 安装 **Release** APK（`app/build/outputs/apk/release/`）。
 2. 冷启动后按底部 Tab 顺序浏览：**资讯列表 → 任务列表 → 日志**，并进入任务/资讯详情，产生埋点与性能样本。
-3. **主路径（与线上用户一致）**：底部 **日志** Tab → 确认列表有 **埋点 / 性能 / 崩溃** 条目；顶栏 **导出分享** 出现系统分享面板与 `.jsonl` 文件。
-4. **可选调试页**（与 Tab 日志能力并存，用于崩溃摘要快查）：
+3. **主路径（与线上用户一致）**：底部 **日志** Tab → 确认列表有 **埋点 / 性能 / 崩溃** 条目；顶栏 **导出分享** 可选择「当前筛选」或「全部」并出现系统分享面板与 `.jsonl` 文件。
+4. Logcat 过滤 `TaskFlow/Observability`（Release 契约日志，与本地 `files/taskflow_observability/logs/` JSONL 并存）。
 
-   ```bat
-   adb shell am start -n com.example.zhttaskflow/.observability.TaskFlowObservabilityDebugActivity
-   ```
-
-5. Logcat 过滤 `TaskFlow/Observability`（Release 契约日志，与本地 `files/taskflow_observability/logs/` JSONL 并存）。
-
-> Release 包在 `isTaskFlowDebugLoggingEnabled() == false` 时，`AppMainShell` 默认注入 `Release*` 实现；Debug 安装包仍走 `TaskFlowDebug*` 实现。**日志 Tab 在 Debug / Release 均可见，无环境开关。**
+> Release 包在 `isTaskFlowDebugLoggingEnabled() == false` 时，`AppMainShell` 默认注入 `Release*` 实现；Debug 安装包仍走 `TaskFlowDebug*` 实现。**日志 Tab 在 Debug / Release 均可见，无环境开关。** 历史上独立的 `TaskFlowObservabilityDebugActivity` 已移除，请勿再使用 adb 启动该 Activity。
 
 ---
 
@@ -121,8 +115,8 @@ adb shell am start -a android.intent.action.VIEW -d "taskflow://nav/route?target
 
 | # | 场景 | 预期 | 通过 |
 |---|------|------|------|
-| 20 | 触发崩溃或调试页模拟 | 产生 `logType=crash` 记录 | **日志 Tab** 或 `TaskFlowObservabilityDebugActivity` 可见崩溃类条目 / 上次崩溃摘要 | ☐ |
-| 21 | 重启 App 后查崩溃 | 打开日志 Tab 或调试页 | `last_crash.jsonl` 摘要仍可读（若曾写入崩溃） | ☐ |
+| 20 | 触发崩溃或模拟 | 产生 `logType=crash` 记录 | **日志 Tab** 筛选「崩溃」可见条目；详情含 `stackTrace` | ☐ |
+| 21 | 重启 App 后查崩溃 | 打开日志 Tab | `last_crash.jsonl` 对应记录仍可通过列表/导出查看（若曾写入崩溃） | ☐ |
 | 22 | 导出崩溃日志 | 日志 Tab「导出分享」 | `.jsonl` 含 `logType=crash` 与 `stackTrace` 字段 | ☐ |
 
 > 切勿在产线用户包常驻 ANR Watchdog 高压测试；仅验证一次即可。

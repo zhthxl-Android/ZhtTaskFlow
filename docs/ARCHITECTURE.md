@@ -16,7 +16,7 @@
 | component_base | com.example.zhttaskflow.base | MVI 基类、Compose 脚手架、Snackbar/Loading/Dialog/BottomSheet、Inset/IME、埋点抽象、页面性能 |
 | component_core | com.example.zhttaskflow.core | 网络、Room、**本地可观测日志仓**（`TaskFlowLocalLogStore`）、NetworkChecker |
 | component_nav | com.example.zhttaskflow.nav | Navigation 封装、路由常量、拦截器链 |
-| feature_log | com.example.zhttaskflow.feature.log | **日志查看**（`app/log` Tab）：本地可观测 JSONL 列表、筛选、导出、清空；MVI + `registerLogRoutes` |
+| feature_log | com.example.zhttaskflow.feature.log | **日志查看**（`app/log` Tab，**本地可观测唯一 UI 入口**）：列表、筛选、导出、清空；MVI + `registerLogRoutes` |
 | feature_task | com.example.zhttaskflow.feature.task | 任务列表/详情（Clean 三层 + MVI） |
 | feature_article | com.example.zhttaskflow.feature.article | 资讯列表/WebView 详情（Clean 三层 + MVI） |
 
@@ -215,6 +215,17 @@ SDK 接入：修改 `app` 模块 `ReleaseTaskFlowObservabilityContract.dispatchT
 | 网络恢复 | 横幅自动隐藏 | 否 |
 
 崩溃上报经 **`LocalTaskFlowCrashReporter`** / **`TaskFlowCrashReporterRegistry`** 与壳层 `crashReporterImpl` 对齐；调试默认同时写 `TaskFlowLogger` 与 Analytics outcome。
+
+### 8.4 本地可观测日志查看（唯一用户入口）
+
+本地 JSONL 由 **`TaskFlowLocalLogStore`**（`component_core`）写入，保留 7 天；**查看、筛选、分页、导出、清空** 全部在集成壳 **底部「日志」Tab**（`feature_log`，路由 `app/log`，`pageId=LogViewer`）完成，Debug / Release 均展示，无独立环境开关。
+
+| 入口 | 状态 | 职责 |
+|------|------|------|
+| **日志 Tab**（`feature_log`） | **唯一正式入口** | 面向日常联调与 Release 自检：类型筛选、下拉刷新、展开详情、按筛选或全量导出分享、清空 |
+| ~~`TaskFlowObservabilityDebugActivity`~~ | **已移除** | 曾与 Tab 能力重复（简易列表 + 导出）；无「可观测配置 / 日志注入 / 性能模拟」等进阶能力，故删除，避免双轨误解 |
+
+深度调试（模拟注入、改 Reporter 实现、SDK 契约验证）在 **壳层 `Release*` / `TaskFlowDebug*` 实现** 与 Logcat（`TaskFlow/Observability`、`PageLifecycle` 等）完成，不另开平行 UI。若未来需要开发者专用面板，应新增独立能力（而非恢复旧 Activity 的重复列表）。
 
 ## 9. 全局组件使用约定（component_base）
 
