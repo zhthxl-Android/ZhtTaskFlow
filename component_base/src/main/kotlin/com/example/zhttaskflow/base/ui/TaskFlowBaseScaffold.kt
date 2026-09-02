@@ -19,6 +19,8 @@ import androidx.compose.ui.Modifier
 import com.example.zhttaskflow.base.analytics.TaskFlowAnalytics
 import com.example.zhttaskflow.base.analytics.TaskFlowAnalyticsCompositionRoot
 import com.example.zhttaskflow.base.analytics.rememberTaskFlowDebugAnalytics
+import com.example.zhttaskflow.base.exception.TaskFlowCrashReporter
+import com.example.zhttaskflow.base.exception.TaskFlowExceptionMonitoringRoot
 import com.example.zhttaskflow.base.performance.TaskFlowDebugPerformanceReporter
 import com.example.zhttaskflow.base.performance.TaskFlowPerformanceCompositionRoot
 import com.example.zhttaskflow.base.performance.TaskFlowPerformanceReporter
@@ -76,6 +78,7 @@ internal fun taskFlowParentGlobalHostsOrNull(): TaskFlowScaffoldGlobalHosts? {
  *
  * @param analytics 壳层注入的埋点实现；为 `null` 时使用 [com.example.zhttaskflow.base.analytics.rememberTaskFlowDebugAnalytics]。
  * @param performanceImpl 壳层注入的 APM 实现；为 `null` 时使用 [TaskFlowDebugPerformanceReporter] 经 [com.example.zhttaskflow.base.performance.rememberTaskFlowDebugPerformance] 装配。
+ * @param crashReporter 壳层注入的崩溃上报；为 `null` 时使用 [com.example.zhttaskflow.base.exception.TaskFlowDebugCrashReporter]。
  * 页面性能（首帧 / 滚动 FPS / 停留）由 [com.example.zhttaskflow.base.performance.TaskFlowPerformanceCompositionRoot] 注入，
  * 并与 [com.example.zhttaskflow.base.ui.extension.PageLifecycleLog] 的 `pageName` 关联。
  * @see com.example.zhttaskflow.base.doc.TaskFlowBaseArchitecture
@@ -86,6 +89,7 @@ fun TaskFlowBaseScaffold(
     consumeStatusBarsInContent: Boolean,
     analytics: TaskFlowAnalytics? = null,
     performanceImpl: TaskFlowPerformanceReporter? = null,
+    crashReporter: TaskFlowCrashReporter? = null,
     bottomBar: @Composable () -> Unit = {},
     floatingActionButton: @Composable () -> Unit = {},
     header: @Composable () -> Unit = {},
@@ -151,17 +155,22 @@ fun TaskFlowBaseScaffold(
     ) {
         TaskFlowPerformanceCompositionRoot(performance = performance) {
             TaskFlowAnalyticsCompositionRoot(analytics = resolvedAnalytics) {
-                TaskFlowBaseScaffoldContent(
-                    modifier = modifier,
-                    consumeStatusBarsInContent = consumeStatusBarsInContent,
-                    bottomBar = bottomBar,
-                    floatingActionButton = floatingActionButton,
-                    header = header,
-                    contentModifier = contentModifier,
-                    hosts = localHosts,
-                    ownsGlobalHosts = true,
-                    content = content,
-                )
+                TaskFlowExceptionMonitoringRoot(
+                    snackbarDispatcher = snackbarDispatcher,
+                    crashReporter = crashReporter,
+                ) {
+                    TaskFlowBaseScaffoldContent(
+                        modifier = modifier,
+                        consumeStatusBarsInContent = consumeStatusBarsInContent,
+                        bottomBar = bottomBar,
+                        floatingActionButton = floatingActionButton,
+                        header = header,
+                        contentModifier = contentModifier,
+                        hosts = localHosts,
+                        ownsGlobalHosts = true,
+                        content = content,
+                    )
+                }
             }
         }
     }

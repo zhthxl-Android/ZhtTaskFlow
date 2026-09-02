@@ -12,4 +12,5 @@
     <string name="base_str_list_load_more_hint">上拉加载更多</string>
     <string name="base_str_list_load_more_retry">加载失败，点击重试</string>
     <string name="base_str_list_no_more">没有更多了</string>
+    <string name="base_str_network_offline_banner">网络已断开，请检查网络连接</string>
 </resources>
