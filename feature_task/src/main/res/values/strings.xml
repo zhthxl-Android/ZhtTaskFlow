@@ -20,6 +20,14 @@
     <string name="task_str_detail_title_format">详情 %1$s</string>
     <string name="task_str_detail_placeholder">任务 ID：%1$s</string>
     <string name="task_str_detail_empty">任务不存在或参数无效</string>
+    <string name="task_str_detail_edit">编辑</string>
+    <string name="task_str_detail_section_info">任务信息</string>
+    <string name="task_str_detail_section_status">状态流转</string>
+    <string name="task_str_detail_section_attachments">附件</string>
+    <string name="task_str_detail_content_empty">暂无描述</string>
+    <string name="task_str_detail_created_at">创建时间：%1$s</string>
+    <string name="task_str_detail_attachments_empty">暂无附件</string>
+    <string name="task_str_detail_attachment_meta">%1$s · %2$s</string>
     <string name="task_str_network_unavailable">网络不可用，请检查网络连接后重试</string>
     <string name="task_str_back">返回</string>
     <string name="task_str_more">更多</string>

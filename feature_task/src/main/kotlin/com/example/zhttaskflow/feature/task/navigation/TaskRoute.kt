@@ -8,9 +8,12 @@ import com.example.zhttaskflow.feature.task.data.TaskMockDataSource
 import com.example.zhttaskflow.feature.task.data.TaskRepositoryImpl
 import com.example.zhttaskflow.feature.task.domain.usecase.AddTaskUseCase
 import com.example.zhttaskflow.feature.task.domain.usecase.DeleteTaskUseCase
+import com.example.zhttaskflow.feature.task.domain.usecase.GetTaskByIdUseCase
 import com.example.zhttaskflow.feature.task.domain.usecase.GetTaskListUseCase
 import com.example.zhttaskflow.feature.task.domain.usecase.UpdateTaskUseCase
 import com.example.zhttaskflow.feature.task.presentation.TaskDetailPlaceholderScreen
+import com.example.zhttaskflow.feature.task.presentation.TaskDetailViewModel
+import com.example.zhttaskflow.feature.task.presentation.TaskDetailViewModelFactory
 import com.example.zhttaskflow.feature.task.presentation.TaskListScreen
 import com.example.zhttaskflow.feature.task.presentation.TaskUiEffect
 import com.example.zhttaskflow.base.ext.TaskFlowUiEffectConsumption
@@ -93,10 +96,8 @@ fun registerTaskRoutes(
             route = TaskFlowTaskNavRoutes.TASK_DETAIL,
             argumentName = TaskFlowTaskNavRoutes.ARG_TASK_ID,
             content = { taskId ->
-                val navigator = LocalTaskFlowNavigator.current
-                TaskDetailPlaceholderScreen(
+                TaskDetailRouteHost(
                     taskId = taskId,
-                    onNavigateUp = { navigator.navigateUp() },
                 )
             },
         ),
@@ -135,6 +136,37 @@ private fun TaskListRouteHost() {
     TaskListScreen(viewModel = viewModel)
 }
 
+@Composable
+private fun TaskDetailRouteHost(taskId: String) {
+    val navigator = LocalTaskFlowNavigator.current
+    val factory = rememberTaskDetailViewModelFactory(taskId = taskId)
+    val viewModel: TaskDetailViewModel = viewModel(factory = factory)
+    TaskDetailPlaceholderScreen(
+        viewModel = viewModel,
+        taskId = taskId,
+        onNavigateUp = { navigator.navigateUp() },
+    )
+}
+
+@Composable
+private fun rememberTaskRepository(): TaskRepositoryImpl {
+    return remember {
+        TaskRepositoryImpl(TaskMockDataSource.shared)
+    }
+}
+
+@Composable
+private fun rememberTaskDetailViewModelFactory(taskId: String): TaskDetailViewModelFactory {
+    val repository = rememberTaskRepository()
+    return remember(repository, taskId) {
+        TaskDetailViewModelFactory(
+            taskId = taskId,
+            getTaskByIdUseCase = GetTaskByIdUseCase(repository),
+            updateTaskUseCase = UpdateTaskUseCase(repository),
+        )
+    }
+}
+
 /**
  * 依赖组装层：Mock 仓库 → UseCase → [TaskViewModelFactory]。
  *
@@ -142,9 +174,7 @@ private fun TaskListRouteHost() {
  */
 @Composable
 private fun rememberTaskViewModelFactory(): TaskViewModelFactory {
-    val repository = remember {
-        TaskRepositoryImpl(TaskMockDataSource())
-    }
+    val repository = rememberTaskRepository()
     return remember(repository) {
         TaskViewModelFactory(
             getTaskListUseCase = GetTaskListUseCase(repository),

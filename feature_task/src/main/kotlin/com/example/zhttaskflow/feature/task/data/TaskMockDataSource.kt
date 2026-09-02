@@ -3,6 +3,7 @@ package com.example.zhttaskflow.feature.task.data
 import com.example.zhttaskflow.core.foundation.TaskFlowIllegalStateException
 import com.example.zhttaskflow.core.log.TaskFlowLogger
 import com.example.zhttaskflow.feature.task.domain.Task
+import com.example.zhttaskflow.feature.task.domain.TaskAttachment
 import com.example.zhttaskflow.feature.task.domain.TaskStatus
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
@@ -17,6 +18,11 @@ private const val TASK_DATA_SOURCE_LOG_TAG = "TaskMockDataSource"
  * 扩展入口：后续可引入 Room，将实现迁移至 `TaskLocalDataSource` 并在此类或工厂处切换数据源。
  */
 class TaskMockDataSource {
+
+    companion object {
+        /** 进程内单例数据源，保证列表与详情路由宿主共享同一份任务数据。 */
+        val shared: TaskMockDataSource by lazy { TaskMockDataSource() }
+    }
 
     private val mutex = Mutex()
     private val taskStore = mutableMapOf<String, Task>()
@@ -80,9 +86,23 @@ class TaskMockDataSource {
         taskStore["demo-1"] = Task(
             id = "demo-1",
             title = "示例任务",
-            content = "这是一条内存模拟任务",
+            content = "这是一条内存模拟任务，支持状态流转、编辑与附件示范。",
             createdAt = now,
             status = TaskStatus.PENDING,
+            attachments = listOf(
+                TaskAttachment(
+                    id = "att-demo-spec",
+                    displayName = "需求说明.pdf",
+                    sizeBytes = 256_000L,
+                    mimeType = "application/pdf",
+                ),
+                TaskAttachment(
+                    id = "att-demo-shot",
+                    displayName = "界面截图.png",
+                    sizeBytes = 128_000L,
+                    mimeType = "image/png",
+                ),
+            ),
         )
         logTaskDataDebug("写入演示种子数据")
     }

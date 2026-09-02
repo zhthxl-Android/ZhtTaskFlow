@@ -8,6 +8,7 @@ package com.example.zhttaskflow.feature.task.domain
  * @param content 任务内容描述
  * @param createdAt 创建时间（毫秒时间戳，UTC 由调用方约定）
  * @param status 任务状态
+ * @param attachments 任务关联附件列表（可为空）
  */
 data class Task(
     val id: String,
@@ -15,4 +16,5 @@ data class Task(
     val content: String,
     val createdAt: Long,
     val status: TaskStatus,
+    val attachments: List<TaskAttachment> = emptyList(),
 )

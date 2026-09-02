@@ -15,11 +15,17 @@ class TaskRepositoryImpl(
 ) : TaskRepository {
 
     override suspend fun getTaskById(id: String): Task? {
-        return unwrapOrThrow(safeApiCall { dataSource.getById(id) })
+        return unwrapOrThrow(safeApiCall {
+            dataSource.seedDemoTasksIfEmpty()
+            dataSource.getById(id)
+        })
     }
 
     override suspend fun getAllTasks(): List<Task> {
-        return unwrapOrThrow(safeApiCall { dataSource.getAll() })
+        return unwrapOrThrow(safeApiCall {
+            dataSource.seedDemoTasksIfEmpty()
+            dataSource.getAll()
+        })
     }
 
     override suspend fun addTask(task: Task) {
