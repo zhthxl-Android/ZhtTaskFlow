@@ -26,4 +26,23 @@
     <string name="log_str_entry_summary">摘要：%1$s</string>
     <string name="log_str_entry_detail">详情</string>
     <string name="log_str_detail_loading">加载详情…</string>
+    <string name="log_str_debug_entry">调试</string>
+    <string name="log_str_debug_title">深度调试</string>
+    <string name="log_str_debug_back">返回日志</string>
+    <string name="log_str_debug_observability_section">可观测实现</string>
+    <string name="log_str_debug_observability_shell">壳层默认（Debug/Release 自动）</string>
+    <string name="log_str_debug_observability_release_local">Release 风格本地落盘</string>
+    <string name="log_str_debug_inject_section">日志注入</string>
+    <string name="log_str_debug_inject_count_label">条数（1–5000）</string>
+    <string name="log_str_debug_inject_button">写入测试日志</string>
+    <string name="log_str_debug_inject_done">已注入 %1$d 条，返回日志页下拉刷新</string>
+    <string name="log_str_debug_perf_section">性能 / 崩溃模拟</string>
+    <string name="log_str_debug_simulate_anr">模拟 ANR 上报</string>
+    <string name="log_str_debug_simulate_crash">模拟非致命崩溃</string>
+    <string name="log_str_debug_simulate_slow">慢函数（主线程阻塞 2s）</string>
+    <string name="log_str_debug_simulate_slow_confirm">将阻塞主线程约 2 秒，用于验证卡顿监控，是否继续？</string>
+    <string name="log_str_debug_network_section">网络模拟</string>
+    <string name="log_str_debug_network_offline">强制显示离线横幅</string>
+    <string name="log_str_debug_network_hint">关闭后恢复为系统真实网络状态</string>
+    <string name="log_str_debug_done_generic">操作已执行</string>
 </resources>

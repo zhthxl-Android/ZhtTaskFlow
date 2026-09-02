@@ -24,6 +24,7 @@ import com.example.zhttaskflow.base.exception.TaskFlowExceptionMonitoringRoot
 import com.example.zhttaskflow.base.exception.LocalTaskFlowCrashReporter
 import com.example.zhttaskflow.base.exception.TaskFlowDebugCrashReporter
 import com.example.zhttaskflow.base.exception.rememberTaskFlowCrashReporter
+import com.example.zhttaskflow.base.observability.TaskFlowDeveloperObservability
 import com.example.zhttaskflow.base.performance.TaskFlowDebugPerformanceReporter
 import com.example.zhttaskflow.base.performance.TaskFlowPerformanceCompositionRoot
 import com.example.zhttaskflow.base.performance.TaskFlowPerformanceReporter
@@ -146,10 +147,19 @@ fun TaskFlowBaseScaffold(
         onDispose { dialogController.dismissAll() }
     }
 
-    val resolvedAnalytics = analytics ?: rememberTaskFlowDebugAnalytics()
-    val resolvedPerformanceReporter = performanceImpl ?: TaskFlowDebugPerformanceReporter
+    val shellAnalytics = analytics ?: rememberTaskFlowDebugAnalytics()
+    val resolvedAnalytics = remember(shellAnalytics) {
+        TaskFlowDeveloperObservability.wrapAnalytics(shellAnalytics)
+    }
+    val shellPerformanceReporter = performanceImpl ?: TaskFlowDebugPerformanceReporter
+    val resolvedPerformanceReporter = remember(shellPerformanceReporter) {
+        TaskFlowDeveloperObservability.wrapPerformanceReporter(shellPerformanceReporter)
+    }
     val performance = rememberTaskFlowDebugPerformance(reporter = resolvedPerformanceReporter)
-    val resolvedCrashReporter = rememberTaskFlowCrashReporter(override = crashReporter)
+    val shellCrashReporter = rememberTaskFlowCrashReporter(override = crashReporter)
+    val resolvedCrashReporter = remember(shellCrashReporter) {
+        TaskFlowDeveloperObservability.wrapCrashReporter(shellCrashReporter)
+    }
 
     CompositionLocalProvider(
         LocalTaskFlowSnackbarHostState provides snackbarHostState,

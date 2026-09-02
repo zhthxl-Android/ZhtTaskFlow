@@ -34,10 +34,16 @@ import com.example.zhttaskflow.base.ext.TaskFlowSnackbarDispatcher
 import com.example.zhttaskflow.base.mvi.BaseViewModel
 import com.example.zhttaskflow.base.ui.TaskFlowUiConstants
 import com.example.zhttaskflow.core.foundation.userDisplayMessage
+import com.example.zhttaskflow.core.debug.TaskFlowDeveloperTools
 import com.example.zhttaskflow.core.log.TaskFlowLogger
 import com.example.zhttaskflow.core.network.NetworkChecker
+import com.example.zhttaskflow.core.util.isTaskFlowDebugLoggingEnabled
 import com.example.zhttaskflow.core.util.nullIfBlank
 import kotlinx.coroutines.CoroutineExceptionHandler
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.isActive
+import kotlinx.coroutines.launch
+import androidx.compose.runtime.rememberCoroutineScope
 import kotlin.coroutines.cancellation.CancellationException
 
 private const val BUSINESS_ACTION_ID = "app_business_exception"
@@ -179,42 +185,54 @@ private fun TaskFlowNetworkConnectivityMonitor(
 ) {
     val disconnectedState = rememberUpdatedState(onDisconnected)
     val connectedState = rememberUpdatedState(onConnected)
+    val scope = rememberCoroutineScope()
     DisposableEffect(context) {
         val connectivityManager = ContextCompat.getSystemService(context, ConnectivityManager::class.java)
             ?: return@DisposableEffect onDispose { }
-        val initialConnected = NetworkChecker.isNetworkAvailable(context)
-        if (!initialConnected) {
-            disconnectedState.value()
-        } else {
-            connectedState.value()
+
+        fun applyBannerFromNetworkState() {
+            if (TaskFlowDeveloperTools.shouldForceOfflineBanner()) {
+                disconnectedState.value()
+                return
+            }
+            if (NetworkChecker.isNetworkAvailable(context)) {
+                connectedState.value()
+            } else {
+                disconnectedState.value()
+            }
         }
+
+        applyBannerFromNetworkState()
         val callback = object : ConnectivityManager.NetworkCallback() {
             override fun onAvailable(network: Network) {
-                connectedState.value()
+                applyBannerFromNetworkState()
             }
 
             override fun onLost(network: Network) {
-                if (!NetworkChecker.isNetworkAvailable(context)) {
-                    disconnectedState.value()
-                }
+                applyBannerFromNetworkState()
             }
 
             override fun onCapabilitiesChanged(
                 network: Network,
                 capabilities: NetworkCapabilities,
             ) {
-                if (NetworkChecker.isNetworkAvailable(context)) {
-                    connectedState.value()
-                } else {
-                    disconnectedState.value()
-                }
+                applyBannerFromNetworkState()
             }
         }
         val request = NetworkRequest.Builder()
             .addCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET)
             .build()
         connectivityManager.registerNetworkCallback(request, callback)
+        val pollJob = scope.launch {
+            while (isActive) {
+                if (isTaskFlowDebugLoggingEnabled()) {
+                    applyBannerFromNetworkState()
+                }
+                delay(400L)
+            }
+        }
         onDispose {
+            pollJob.cancel()
             connectivityManager.unregisterNetworkCallback(callback)
         }
     }

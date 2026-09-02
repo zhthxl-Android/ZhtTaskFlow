@@ -5,6 +5,7 @@ import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.compositionLocalOf
 import androidx.compose.runtime.remember
+import com.example.zhttaskflow.base.observability.TaskFlowDeveloperObservability
 
 /**
  * 产品埋点抽象层：与具体 SDK / 日志实现解耦，由壳工程通过 [LocalTaskFlowAnalytics] 注入实现。
@@ -118,7 +119,8 @@ internal object TaskFlowAnalyticsRegistry {
     }
 
     fun current(): TaskFlowAnalytics {
-        return stack.lastOrNull() ?: TaskFlowAnalyticsFallback
+        val shell = stack.lastOrNull() ?: TaskFlowAnalyticsFallback
+        return TaskFlowDeveloperObservability.resolveAnalytics(shell)
     }
 }
 

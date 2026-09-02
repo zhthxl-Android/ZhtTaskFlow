@@ -7,6 +7,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.staticCompositionLocalOf
 import com.example.zhttaskflow.base.analytics.TaskFlowAnalyticsRegistry
 import com.example.zhttaskflow.base.analytics.trackUiOutcome
+import com.example.zhttaskflow.base.observability.TaskFlowDeveloperObservability
 import com.example.zhttaskflow.core.log.TaskFlowLogger
 import com.example.zhttaskflow.core.util.nullIfBlank
 
@@ -116,6 +117,7 @@ internal object TaskFlowCrashReporterRegistry {
     }
 
     fun current(): TaskFlowCrashReporter {
-        return stack.lastOrNull() ?: TaskFlowCrashReporterFallback
+        val shell = stack.lastOrNull() ?: TaskFlowCrashReporterFallback
+        return TaskFlowDeveloperObservability.resolveCrashReporter(shell)
     }
 }

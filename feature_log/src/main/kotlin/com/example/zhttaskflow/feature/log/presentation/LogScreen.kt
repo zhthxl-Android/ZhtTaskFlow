@@ -17,10 +17,14 @@ import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.core.content.FileProvider
+import com.example.zhttaskflow.core.util.isTaskFlowDebugLoggingEnabled
 import com.example.zhttaskflow.base.ext.SnackbarType
 import com.example.zhttaskflow.base.ext.TaskFlowDialogController
 import com.example.zhttaskflow.base.ext.rememberTaskFlowDialogController
@@ -54,6 +58,19 @@ internal fun LogScreen(
     val dialogController = rememberTaskFlowDialogController()
     val snackbarDispatcher = rememberTaskFlowSnackbarDispatcher()
     val context = LocalContext.current
+    var showDebugPanel by remember { mutableStateOf(false) }
+    val showDebugEntry = remember(context) { isTaskFlowDebugLoggingEnabled() }
+
+    if (showDebugPanel && showDebugEntry) {
+        DebugSettingsScreen(
+            onBack = {
+                showDebugPanel = false
+                viewModel.onEvent(LogUiEvent.Refresh)
+            },
+            modifier = modifier,
+        )
+        return
+    }
 
     val lifecycleArgs = when (uiState) {
         is BaseUiState.Empty -> "empty;filter=${viewModel.currentFilterForUi().name}"
@@ -105,6 +122,20 @@ internal fun LogScreen(
         title = stringResource(id = R.string.log_str_viewer_title),
         interceptTabRootBackToDesktop = false,
         actions = {
+            if (showDebugEntry) {
+                TextButton(
+                    onClick = {
+                        logUiInteraction(
+                            action = "click",
+                            identifier = "log_debug_panel",
+                            pageId = LOG_PAGE_ID,
+                        )
+                        showDebugPanel = true
+                    },
+                ) {
+                    Text(text = stringResource(id = R.string.log_str_debug_entry))
+                }
+            }
             TextButton(
                 onClick = {
                     logUiInteraction(
