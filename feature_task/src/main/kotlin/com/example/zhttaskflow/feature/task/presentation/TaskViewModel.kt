@@ -2,6 +2,7 @@ package com.example.zhttaskflow.feature.task.presentation
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.viewModelScope
 import com.example.zhttaskflow.base.ext.SnackbarType
 import com.example.zhttaskflow.base.mvi.BaseUiState
 import com.example.zhttaskflow.base.mvi.BaseViewModel
@@ -11,8 +12,10 @@ import com.example.zhttaskflow.feature.task.domain.TaskStatus
 import com.example.zhttaskflow.feature.task.domain.usecase.AddTaskUseCase
 import com.example.zhttaskflow.feature.task.domain.usecase.DeleteTaskUseCase
 import com.example.zhttaskflow.feature.task.domain.usecase.GetTaskListUseCase
+import com.example.zhttaskflow.feature.task.domain.usecase.ObserveTaskDataChangesUseCase
 import com.example.zhttaskflow.feature.task.domain.usecase.UpdateTaskUseCase
 import com.example.zhttaskflow.nav.route.TaskFlowTaskNavRoutes
+import kotlinx.coroutines.launch
 
 /**
  * 任务列表 ViewModel：MVI 单向数据流，通过领域用例调度任务数据与 UI 状态/副作用。
@@ -23,6 +26,7 @@ import com.example.zhttaskflow.nav.route.TaskFlowTaskNavRoutes
  */
 class TaskViewModel(
     private val getTaskListUseCase: GetTaskListUseCase,
+    private val observeTaskDataChangesUseCase: ObserveTaskDataChangesUseCase,
     private val addTaskUseCase: AddTaskUseCase,
     /** 预留：任务编辑能力接入后使用，工厂保持完整注入避免后续改签名。 */
     @Suppress("UnusedPrivateProperty")
@@ -38,6 +42,7 @@ class TaskViewModel(
 
     init {
         loadTasks(isRefresh = false)
+        observeTaskDataChanges()
     }
 
     // endregion
@@ -49,6 +54,36 @@ class TaskViewModel(
             TaskUiEvent.Refresh -> loadTasks(isRefresh = true)
             is TaskUiEvent.AddTask -> addTask(event.title, event.content)
             is TaskUiEvent.TaskItemClicked -> navigateToTaskDetail(event.taskId)
+        }
+    }
+
+    // endregion
+
+    // region 列表-详情数据同步
+
+    private fun observeTaskDataChanges() {
+        viewModelScope.launch {
+            observeTaskDataChangesUseCase().collect {
+                syncTasksFromRepository()
+            }
+        }
+    }
+
+    /**
+     * 响应仓库变更事件：静默拉取最新列表，不展示下拉刷新指示与「刷新成功」提示。
+     */
+    private fun syncTasksFromRepository() {
+        if (currentState is BaseUiState.Loading) {
+            return
+        }
+        launchTask(
+            tag = logTag,
+            scene = "syncTasksFromRepository",
+            userMessageFallback = "同步任务列表失败",
+            onError = { _, message -> applyLoadError(userMessage = message) },
+        ) {
+            val tasks = getTaskListUseCase()
+            applyLoadSuccess(tasks)
         }
     }
 
@@ -105,9 +140,6 @@ class TaskViewModel(
                     type = SnackbarType.Success,
                 ),
             )
-            applyLoadingState(isRefresh = false)
-            val tasks = getTaskListUseCase()
-            applyLoadSuccess(tasks)
         }
     }
 
@@ -218,6 +250,7 @@ private fun TaskListData.withRefreshEnded(): TaskListData = copy(isRefreshing = 
  */
 class TaskViewModelFactory(
     private val getTaskListUseCase: GetTaskListUseCase,
+    private val observeTaskDataChangesUseCase: ObserveTaskDataChangesUseCase,
     private val addTaskUseCase: AddTaskUseCase,
     private val updateTaskUseCase: UpdateTaskUseCase,
     private val deleteTaskUseCase: DeleteTaskUseCase,
@@ -228,6 +261,7 @@ class TaskViewModelFactory(
         if (modelClass.isAssignableFrom(TaskViewModel::class.java)) {
             return TaskViewModel(
                 getTaskListUseCase = getTaskListUseCase,
+                observeTaskDataChangesUseCase = observeTaskDataChangesUseCase,
                 addTaskUseCase = addTaskUseCase,
                 updateTaskUseCase = updateTaskUseCase,
                 deleteTaskUseCase = deleteTaskUseCase,

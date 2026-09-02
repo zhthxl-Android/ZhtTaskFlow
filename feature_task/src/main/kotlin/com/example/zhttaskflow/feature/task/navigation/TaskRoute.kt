@@ -10,6 +10,7 @@ import com.example.zhttaskflow.feature.task.domain.usecase.AddTaskUseCase
 import com.example.zhttaskflow.feature.task.domain.usecase.DeleteTaskUseCase
 import com.example.zhttaskflow.feature.task.domain.usecase.GetTaskByIdUseCase
 import com.example.zhttaskflow.feature.task.domain.usecase.GetTaskListUseCase
+import com.example.zhttaskflow.feature.task.domain.usecase.ObserveTaskDataChangesUseCase
 import com.example.zhttaskflow.feature.task.domain.usecase.UpdateTaskUseCase
 import com.example.zhttaskflow.feature.task.presentation.TaskDetailPlaceholderScreen
 import com.example.zhttaskflow.feature.task.presentation.TaskDetailViewModel
@@ -178,6 +179,7 @@ private fun rememberTaskViewModelFactory(): TaskViewModelFactory {
     return remember(repository) {
         TaskViewModelFactory(
             getTaskListUseCase = GetTaskListUseCase(repository),
+            observeTaskDataChangesUseCase = ObserveTaskDataChangesUseCase(repository),
             addTaskUseCase = AddTaskUseCase(repository),
             updateTaskUseCase = UpdateTaskUseCase(repository),
             deleteTaskUseCase = DeleteTaskUseCase(repository),

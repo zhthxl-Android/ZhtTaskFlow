@@ -3,7 +3,12 @@ package com.example.zhttaskflow.feature.task.data
 import com.example.zhttaskflow.core.network.ApiResult
 import com.example.zhttaskflow.core.network.safeApiCall
 import com.example.zhttaskflow.feature.task.domain.Task
+import com.example.zhttaskflow.feature.task.domain.TaskDataChanged
 import com.example.zhttaskflow.feature.task.domain.TaskRepository
+import kotlinx.coroutines.channels.BufferOverflow
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.asSharedFlow
 
 /**
  * [TaskRepository] 实现：委托 [TaskMockDataSource] 完成持久化，内部统一走 [safeApiCall] 与 [ApiResult] 范式。
@@ -13,6 +18,13 @@ import com.example.zhttaskflow.feature.task.domain.TaskRepository
 class TaskRepositoryImpl(
     private val dataSource: TaskMockDataSource,
 ) : TaskRepository {
+
+    private val taskDataChanges = MutableSharedFlow<TaskDataChanged>(
+        extraBufferCapacity = 1,
+        onBufferOverflow = BufferOverflow.DROP_OLDEST,
+    )
+
+    override fun observeTaskDataChanges(): Flow<TaskDataChanged> = taskDataChanges.asSharedFlow()
 
     override suspend fun getTaskById(id: String): Task? {
         return unwrapOrThrow(safeApiCall {
@@ -30,14 +42,21 @@ class TaskRepositoryImpl(
 
     override suspend fun addTask(task: Task) {
         unwrapOrThrow(safeApiCall { dataSource.insert(task) })
+        emitTaskDataChanged()
     }
 
     override suspend fun updateTask(task: Task) {
         unwrapOrThrow(safeApiCall { dataSource.update(task) })
+        emitTaskDataChanged()
     }
 
     override suspend fun deleteTask(id: String) {
         unwrapOrThrow(safeApiCall { dataSource.delete(id) })
+        emitTaskDataChanged()
+    }
+
+    private suspend fun emitTaskDataChanged() {
+        taskDataChanges.emit(TaskDataChanged)
     }
 
     /**
