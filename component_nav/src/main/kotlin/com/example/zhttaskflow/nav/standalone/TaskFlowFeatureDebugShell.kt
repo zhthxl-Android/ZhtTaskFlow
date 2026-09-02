@@ -25,6 +25,11 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.example.zhttaskflow.base.analytics.TaskFlowAnalytics
 import com.example.zhttaskflow.base.analytics.rememberTaskFlowDebugAnalytics
+import com.example.zhttaskflow.base.exception.TaskFlowCrashReporter
+import com.example.zhttaskflow.base.exception.TaskFlowDebugCrashReporter
+import com.example.zhttaskflow.base.exception.rememberTaskFlowCrashReporter
+import com.example.zhttaskflow.base.performance.TaskFlowDebugPerformanceReporter
+import com.example.zhttaskflow.base.performance.TaskFlowPerformanceReporter
 import com.example.zhttaskflow.base.ui.TaskFlowBaseScaffold
 import com.example.zhttaskflow.nav.R
 import com.example.zhttaskflow.nav.TaskFlowNavHost
@@ -88,6 +93,18 @@ fun rememberTaskFlowFeatureDebugDeepLinkState(): TaskFlowFeatureDebugDeepLinkSta
  * @param routerInterceptorChain 默认 `null` 时使用 [rememberTaskFlowAppRouterInterceptorChain]（深链 / 权限 / 登录，与 App 一致）。
  * 传入 [TaskFlowRouterInterceptorChain.Empty] 可关闭拦截。
  *
+ * ## 壳层可观测注入（与 [com.example.zhttaskflow.navigation.AppMainShell] 对齐）
+ *
+ * | 参数 | 默认（不传参） | 说明 |
+ * |------|----------------|------|
+ * | [analyticsImpl] | [rememberTaskFlowDebugAnalytics] | 可注入 `app` 模块 [com.example.zhttaskflow.analytics.ReleaseTaskFlowAnalytics] 模拟 Release |
+ * | [performanceImpl] | [TaskFlowDebugPerformanceReporter] | 可注入 [com.example.zhttaskflow.performance.ReleaseTaskFlowPerformanceReporter] |
+ * | [crashReporterImpl] | [TaskFlowDebugCrashReporter] | 可注入 [com.example.zhttaskflow.exception.ReleaseTaskFlowCrashReporter] |
+ * | [loginSessionImpl] | 内存 [TaskFlowLoginSession] | 拦截链登录态 |
+ * | [deepLinkMapperImpl] | 样板深链映射 | 拦截链深链解析 |
+ *
+ * 不传参时行为与改造前完全一致（均为调试版可观测实现）。
+ *
  * @param mainTabRootRoute 一级 Tab 根路由；当前 destination 与之相等时展示底部导航占位（详情等子页自动隐藏）。
  */
 @Composable
@@ -101,6 +118,8 @@ fun TaskFlowFeatureDebugShell(
     routerInterceptorChain: TaskFlowRouterInterceptorChain? = null,
     deepLinkState: TaskFlowFeatureDebugDeepLinkState? = null,
     analyticsImpl: TaskFlowAnalytics? = null,
+    performanceImpl: TaskFlowPerformanceReporter? = null,
+    crashReporterImpl: TaskFlowCrashReporter? = null,
     loginSessionImpl: TaskFlowLoginSession? = null,
     deepLinkMapperImpl: TaskFlowDeepLinkRouteMapper? = null,
 ) {
@@ -108,7 +127,9 @@ fun TaskFlowFeatureDebugShell(
     val currentRoute = navBackStackEntry?.destination?.route
     val showMainTabBottomBar = mainTabRootRoute != null && currentRoute == mainTabRootRoute
 
-    val analytics = analyticsImpl ?: rememberTaskFlowDebugAnalytics()
+    val analytics = analyticsImpl ?: rememberTaskFlowFeatureDebugShellAnalytics()
+    val performanceReporter = performanceImpl ?: rememberTaskFlowFeatureDebugShellPerformanceReporter()
+    val crashReporter = crashReporterImpl ?: rememberTaskFlowFeatureDebugShellCrashReporter()
     val loginSession = loginSessionImpl ?: remember { TaskFlowLoginSession() }
     val deepLinkMapper = deepLinkMapperImpl ?: rememberTaskFlowDeepLinkRouteMapper()
 
@@ -123,6 +144,8 @@ fun TaskFlowFeatureDebugShell(
             modifier = modifier.fillMaxSize(),
             consumeStatusBarsInContent = false,
             analytics = analytics,
+            performanceImpl = performanceReporter,
+            crashReporter = crashReporter,
             bottomBar = {
                 if (showMainTabBottomBar) {
                     TaskFlowStandaloneMainTabBottomBarPlaceholder()
@@ -145,6 +168,30 @@ fun TaskFlowFeatureDebugShell(
             }
         }
     }
+}
+
+/**
+ * 独立调试壳默认埋点（调试实现）；与集成壳 Debug 包行为一致。
+ */
+@Composable
+private fun rememberTaskFlowFeatureDebugShellAnalytics(): TaskFlowAnalytics {
+    return rememberTaskFlowDebugAnalytics()
+}
+
+/**
+ * 独立调试壳默认 APM（调试实现）；可通过 [TaskFlowFeatureDebugShell] 的 [performanceImpl] 覆盖为 Release 实现。
+ */
+@Composable
+private fun rememberTaskFlowFeatureDebugShellPerformanceReporter(): TaskFlowPerformanceReporter {
+    return remember { TaskFlowDebugPerformanceReporter }
+}
+
+/**
+ * 独立调试壳默认崩溃上报（调试实现）；可通过 [crashReporterImpl] 覆盖为 Release 实现。
+ */
+@Composable
+private fun rememberTaskFlowFeatureDebugShellCrashReporter(): TaskFlowCrashReporter {
+    return rememberTaskFlowCrashReporter(override = TaskFlowDebugCrashReporter)
 }
 
 /**
