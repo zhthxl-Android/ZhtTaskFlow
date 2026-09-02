@@ -95,5 +95,9 @@ private fun Project.applySharedAndroidSettings(
         disable.add("HardcodedText")
         //不检查依赖库内部的 lint 问题，只检查本模块源码，加快 lint 速度。
         checkDependencies = false
+        TaskFlowCustomLintFatalIssueIds.forEach { issueId ->
+            fatal.add(issueId)
+        }
     }
+    configureTaskFlowCustomLint()
 }
