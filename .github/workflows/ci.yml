@@ -38,8 +38,14 @@ jobs:
       - name: Lint Vital Release
         run: ./gradlew :app:lintVitalRelease --no-daemon
 
-      - name: Navigation unit tests
-        run: ./gradlew :component_nav:testDebugUnitTest --no-daemon
+      - name: Navigation and Feature unit tests
+        run: |
+          ./gradlew \
+            :component_nav:testDebugUnitTest \
+            :feature_article:testDebugUnitTest \
+            :feature_task:testDebugUnitTest \
+            :feature_log:testDebugUnitTest \
+            --no-daemon --parallel
 
       - name: Release assemble and observability artifact check
         run: |

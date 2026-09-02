@@ -13,8 +13,13 @@ echo "==> clean :app:compileDebugKotlin"
 echo "==> :app:lintVitalRelease"
 ./gradlew :app:lintVitalRelease --no-daemon
 
-echo "==> :component_nav:testDebugUnitTest"
-./gradlew :component_nav:testDebugUnitTest --no-daemon
+echo "==> navigation + feature unit tests"
+./gradlew \
+  :component_nav:testDebugUnitTest \
+  :feature_article:testDebugUnitTest \
+  :feature_task:testDebugUnitTest \
+  :feature_log:testDebugUnitTest \
+  --no-daemon --parallel
 
 echo "==> Release assemble + observability artifact check"
 ./gradlew :app:assembleRelease --no-daemon
