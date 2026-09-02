@@ -20,6 +20,7 @@ import com.example.zhttaskflow.feature.article.presentation.ArticleViewModel
 import com.example.zhttaskflow.feature.article.presentation.ArticleViewModelFactory
 import com.example.zhttaskflow.nav.LocalTaskFlowNavigator
 import com.example.zhttaskflow.nav.TaskFlowNavigator
+import com.example.zhttaskflow.nav.interceptor.TaskFlowRouteGatePolicy
 import com.example.zhttaskflow.nav.route.TaskFlowArticleNavRoutes
 import com.example.zhttaskflow.nav.route.TaskFlowRoute
 import com.example.zhttaskflow.nav.route.TaskFlowRouteRegistry
@@ -28,6 +29,8 @@ import com.example.zhttaskflow.nav.route.twoStringArgsRouteEntry
 
 /**
  * 资讯模块路由注册入口（路由常量统一引用 [TaskFlowArticleNavRoutes]）。
+ *
+ * 门禁：列表无标记；详情见 [TaskFlowRouteGatePolicy] / `docs/TASKFLOW_ROUTE_GATES.md`。
  */
 sealed interface ArticleRoute : TaskFlowRoute {
 
@@ -102,7 +105,9 @@ private fun ArticleListRouteHost(
         viewModel.uiEffect.collect { effect ->
             when (effect) {
                 is ArticleUiEffect.NavigateToDetail -> {
-                    navigator.navigate(effect.url)
+                    navigator.navigate(
+                        TaskFlowRouteGatePolicy.enrichNavigationPath(effect.url),
+                    )
                 }
                 else -> {
                     // TaskFlowPresentationUiEffect：由 ArticleListScreen 消费

@@ -18,8 +18,7 @@ import com.example.zhttaskflow.feature.task.presentation.TaskViewModel
 import com.example.zhttaskflow.feature.task.presentation.TaskViewModelFactory
 import com.example.zhttaskflow.nav.LocalTaskFlowNavigator
 import com.example.zhttaskflow.nav.TaskFlowNavigator
-import com.example.zhttaskflow.nav.interceptor.TaskFlowRouteAuthMarker
-import com.example.zhttaskflow.nav.interceptor.TaskFlowRoutePermissionMarker
+import com.example.zhttaskflow.nav.interceptor.TaskFlowRouteGatePolicy
 import com.example.zhttaskflow.nav.route.TaskFlowRoute
 import com.example.zhttaskflow.nav.route.TaskFlowRouteRegistry
 import com.example.zhttaskflow.nav.route.TaskFlowTaskNavRoutes
@@ -43,40 +42,36 @@ sealed interface TaskRoute : TaskFlowRoute {
 }
 
 /**
- * **登录 + 权限拦截业务接入模板（示范：任务详情）**
+ * **登录 + 权限拦截**：策略见 [TaskFlowRouteGatePolicy] 与 `docs/TASKFLOW_ROUTE_GATES.md`。
  *
  * 1. ViewModel 仍下发「纯净」Navigation path（不含 query），见 [TaskUiEffect.NavigateToEdit]。
- * 2. RouteHost 在 [TaskFlowNavigator.navigate] 前按需叠加标记：
- *    - 登录：[TaskFlowRouteAuthMarker.withNeedLogin]（或 [navigationPathRequireLogin]）
- *    - 存储权限：[TaskFlowRoutePermissionMarker.withStoragePermission]（或 [navigationPathRequireStoragePermission]）
+ * 2. RouteHost 在 [TaskFlowNavigator.navigate] 前调用 [TaskFlowRouteGatePolicy.enrichNavigationPath]。
  * 3. 壳工程已装配 [com.example.zhttaskflow.nav.interceptor.rememberTaskFlowAppRouterInterceptorChain]；
- *    权限先于登录执行，剥离 `permissionGroup` 后登录链继续；未标记路由不受影响。
- *
- * 复制到其他 Feature：替换 path 与权限组即可。
+ *    权限先于登录执行；未列入策略表的路由不受影响。
  */
 internal fun taskDetailPathRequireLogin(taskId: String): String {
-    return TaskFlowRouteAuthMarker.withNeedLogin(TaskFlowTaskNavRoutes.detailPath(taskId))
+    return TaskFlowRouteGatePolicy.enrichNavigationPath(TaskFlowTaskNavRoutes.detailPath(taskId))
 }
 
 /**
- * 任务详情示范 path：登录 + 存储权限（模拟授权弹窗，见 [TaskFlowPermissionInterceptor]）。
+ * 任务详情 path：登录 + 存储权限（与 [TaskFlowRouteGatePolicy] 一致）。
  */
 internal fun taskDetailPathRequireLoginAndStorage(taskId: String): String {
-    return TaskFlowRoutePermissionMarker.withStoragePermission(taskDetailPathRequireLogin(taskId))
+    return taskDetailPathRequireLogin(taskId)
 }
 
 /**
- * RouteHost 侧：对任意目标 path 施加登录标记（与 [taskDetailPathRequireLogin] 等价写法）。
+ * RouteHost 侧：对目标 path 施加策略表中的门禁标记。
  */
 internal fun navigationPathRequireLogin(targetRoute: String): String {
-    return TaskFlowRouteAuthMarker.withNeedLogin(targetRoute)
+    return TaskFlowRouteGatePolicy.enrichNavigationPath(targetRoute)
 }
 
 /**
- * RouteHost 侧：对任意目标 path 施加存储权限组标记（示范模板）。
+ * @deprecated 与 [navigationPathRequireLogin] 等价，保留命名以兼容调用方。
  */
 internal fun navigationPathRequireStoragePermission(targetRoute: String): String {
-    return TaskFlowRoutePermissionMarker.withStoragePermission(targetRoute)
+    return TaskFlowRouteGatePolicy.enrichNavigationPath(targetRoute)
 }
 
 /**
@@ -126,11 +121,8 @@ private fun TaskListRouteHost() {
         viewModel.uiEffect.collect { effect ->
             when (effect) {
                 is TaskUiEffect.NavigateToEdit -> {
-                    // 示范：详情叠加登录 + 存储权限标记；列表等未标记路由不受影响
                     navigator.navigate(
-                        navigationPathRequireStoragePermission(
-                            navigationPathRequireLogin(effect.url),
-                        ),
+                        navigationPathRequireLogin(effect.url),
                     )
                 }
                 else -> {

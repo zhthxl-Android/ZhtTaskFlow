@@ -23,6 +23,8 @@ import com.example.zhttaskflow.nav.route.TaskFlowRouteRegistry
 /**
  * 在 [TaskFlowRouteRegistry] 中注册首页路由（与 `registerTaskRoutes` / `registerArticleRoutes` 范式一致）。
  *
+ * 门禁：`app/home` 及入口跳转的 **列表** path 无标记，见 `docs/TASKFLOW_ROUTE_GATES.md`。
+ *
  * 模块对外唯一入口；路由常量统一使用 [TaskFlowHomeNavRoutes.HOME_ROUTE]。
  *
  * @param taskListRoute 任务列表路由 path；standalone 或未装配任务模块时可传 null

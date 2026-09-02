@@ -260,9 +260,10 @@ navigator.navigate(TaskFlowDeepLinkNavigation.prepareNavigationRoute(uri))
 
 Manifest 声明 `taskflow` scheme；`launchMode=singleTop` + `onNewIntent`。桌面 `MAIN`/`LAUNCHER` 无 `data`，不受影响。
 
-**壳层门禁 `applyShellRouteGatePolicy`**（与 RouteHost 标记对齐，新增页面在此扩展）：
+**壳层门禁 `applyShellRouteGatePolicy`**（委托 [TaskFlowRouteGatePolicy]；与 RouteHost 标记对齐）：
 
-- 对匹配 `feature_task/detail/{taskId}` 的 `target`，在进入拦截链前自动叠加与内链等价的 **登录 + 存储权限** 标记（`TaskFlowRouteAuthMarker` / `TaskFlowRoutePermissionMarker`）。
+- 任务详情、资讯详情等策略表内 path 自动叠加与内链等价的登录 / 权限标记。
+- 完整清单见 **`docs/TASKFLOW_ROUTE_GATES.md`**。
 - 其它 path 不改动；运营也可在 `target` 中直接编码已带 `needLogin` / `permissionGroup` query 的 path。
 
 **与内链一致**：`navigate` 后仍走 **深链 200 → 权限 150 → 登录 100**；映射得到的纯净 path 若未带标记，行为与未标记的内链相同。
@@ -291,10 +292,9 @@ navigator.navigate(
 
 ```kotlin
 navigator.navigate(
-    navigationPathRequireStoragePermission(
-        navigationPathRequireLogin(effect.url),
-    ),
+    TaskFlowRouteGatePolicy.enrichNavigationPath(effect.url),
 )
+// 或 feature_task 封装：navigationPathRequireLogin(effect.url)
 ```
 
 - 标记：`TaskFlowRoutePermissionMarker.withStoragePermission(route)` 或 `withPermissionGroup(route, groupId)`
@@ -310,7 +310,7 @@ navigator.navigate(
 |------|------|----------|
 | 组件化与 Clean 分层 | L4 | Feature 垂直三层 + 路由注册；无 feature 互依；domain 无 Android |
 | MVI 与 Effect 规范 | L4 | 双 Collector；`ShowSnackbar` + `SnackbarType`；无 Toast |
-| 路由与拦截 | L4 | 深链 API 统一；门禁 `applyShellRouteGatePolicy`；权限 150 → 登录 100 |
+| 路由与拦截 | L4 | 深链 API 统一；门禁 [TaskFlowRouteGatePolicy] + `TASKFLOW_ROUTE_GATES.md`；权限 150 → 登录 100 |
 | UI 平台与脚手架 | L4 | 单宿主；列表双范式；骨架常量收敛 |
 | 可观测性（日志/埋点/性能） | L4− | 三类埋点 + `actionId` 规范；`TaskFlowPerformance` 首帧/FPS/停留；产品 SDK 壳层可换 |
 | 工程化与构建 | L3+ | Version Catalog、build-logic、双模式 Feature；`checkDependencyRules` |

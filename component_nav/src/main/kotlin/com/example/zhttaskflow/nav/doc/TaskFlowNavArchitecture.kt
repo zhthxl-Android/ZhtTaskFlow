@@ -36,7 +36,7 @@ package com.example.zhttaskflow.nav.doc
  * ## 与 MVI 导航 Effect 的配合
  *
  * - ViewModel 下发 **纯净** path（不含 `needLogin` / `permissionGroup` query）。
- * - RouteHost 在 `navigator.navigate(...)` 前按需包裹 Auth / Permission 标记（见 `feature_task` 任务详情示范）。
+ * - RouteHost 在 `navigator.navigate(...)` 前调用 [com.example.zhttaskflow.nav.interceptor.TaskFlowRouteGatePolicy.enrichNavigationPath]（见 `docs/TASKFLOW_ROUTE_GATES.md`）。
  * - 深链入口在 Activity / 壳层将 URI 转为 [com.example.zhttaskflow.nav.interceptor.TaskFlowRouteDeepLinkMarker] 再 `navigate`。
  *
  * ## 深链门禁策略

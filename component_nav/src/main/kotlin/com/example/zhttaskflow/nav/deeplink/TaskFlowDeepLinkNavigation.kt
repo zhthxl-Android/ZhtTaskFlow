@@ -2,9 +2,8 @@ package com.example.zhttaskflow.nav.deeplink
 
 import android.content.Intent
 import android.net.Uri
-import com.example.zhttaskflow.nav.interceptor.TaskFlowRouteAuthMarker
 import com.example.zhttaskflow.nav.interceptor.TaskFlowRouteDeepLinkMarker
-import com.example.zhttaskflow.nav.interceptor.TaskFlowRoutePermissionMarker
+import com.example.zhttaskflow.nav.interceptor.TaskFlowRouteGatePolicy
 
 /**
  * 外部深链 URI → 拦截链导航 path（与集成壳 [com.example.zhttaskflow.MainActivity]、独立调试壳共用）。
@@ -75,21 +74,6 @@ object TaskFlowDeepLinkNavigation {
      * 与 Feature RouteHost 在 `navigate` 前的门禁标记对齐（新增页面在此扩展）。
      */
     fun applyShellRouteGatePolicy(mappedRoute: String): String {
-        val pathOnly = mappedRoute.substringBefore('?')
-        if (!isTaskDetailNavigationPath(pathOnly)) {
-            return mappedRoute
-        }
-        return TaskFlowRoutePermissionMarker.withStoragePermission(
-            TaskFlowRouteAuthMarker.withNeedLogin(pathOnly),
-        )
-    }
-
-    private fun isTaskDetailNavigationPath(pathWithoutQuery: String): Boolean {
-        val expectedPrefix = "feature_task/detail/"
-        if (!pathWithoutQuery.startsWith(expectedPrefix)) {
-            return false
-        }
-        val taskId = pathWithoutQuery.removePrefix(expectedPrefix)
-        return taskId.isNotBlank() && !taskId.contains('/')
+        return TaskFlowRouteGatePolicy.enrichNavigationPath(mappedRoute)
     }
 }
