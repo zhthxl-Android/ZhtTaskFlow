@@ -27,7 +27,7 @@ import com.example.zhttaskflow.nav.transition.taskFlowPopExitTransition
 /**
  * 统一 Navigation Compose 宿主：根据 [TaskFlowRouteRegistry] 装配导航图，并应用全局转场规范。
  *
- * - 绑定 [TaskFlowNavigator] 与拦截链协程作用域；非空 [routerInterceptorChain] 时跳转走深链/登录/权限链。
+ * - 绑定 [TaskFlowNavigator] 与拦截链协程作用域；非空 [routerInterceptorChain] 时跳转走深链（200）→ 权限（150）→ 登录（100）链。
  * - 拦截失败提示经 [com.example.zhttaskflow.nav.router.rememberTaskFlowRouterInterceptUiBridge] 注入 Snackbar。
  * - 业务 Composable 通过 [LocalTaskFlowNavigator] 获取 Navigator，禁止直接使用 [NavHostController]。
  *

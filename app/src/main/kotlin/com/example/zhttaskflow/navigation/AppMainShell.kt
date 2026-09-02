@@ -15,6 +15,9 @@ import com.example.zhttaskflow.nav.route.TaskFlowRouteRegistry
  * 应用主界面骨架：底部 Tab + NavHost；全局 Snackbar / Loading / 弹窗由 [TaskFlowBaseScaffold] 托管，
  * 路由拦截链与导航宿主同层装配，保障拦截过程 UI 与全站交互规范一致。
  *
+ * 默认使用 [rememberTaskFlowAppRouterInterceptorChain]；产品壳可透传 `loginSession` / `deepLinkRouteMapper` /
+ * `permissionGrantChecker` 替换默认实现（见 [com.example.zhttaskflow.nav.doc.TaskFlowNavArchitecture]）。
+ *
  * ## 登录拦截示范链路
  *
  * - 拦截链：[rememberTaskFlowAppRouterInterceptorChain]（含 [com.example.zhttaskflow.nav.interceptor.TaskFlowLoginInterceptor]）。

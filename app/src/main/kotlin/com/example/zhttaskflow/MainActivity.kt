@@ -46,7 +46,7 @@ import com.example.zhttaskflow.nav.theme.TaskFlowTheme
  * 2. [onCreate] / [onNewIntent] 提取 `Intent.data`，写入待处理队列，**不**在 Activity 内直接 `NavController.navigate`。
  * 3. [MainActivityDeepLinkEffect] 在 [AppMainShell]（含 [com.example.zhttaskflow.nav.TaskFlowNavHost]）完成组合后，
  *    调用 [com.example.zhttaskflow.nav.TaskFlowNavigator.navigate] + [TaskFlowRouteDeepLinkMarker.wrap]，
- *    走默认拦截链（深链 → 登录 → 权限）；失败由全局 Snackbar 提示。
+ *    走默认拦截链（深链 `200` → 权限 `150` → 登录 `100`）；`target` 与 RouteHost 标记一致时可自动继承登录 / 权限门禁；失败由全局 Snackbar 提示。
  * 4. 桌面图标 `MAIN` / `LAUNCHER` 启动无 `data`，保持原首页逻辑；应用内路由不受影响。
  *
  * ## 本地验证（adb）

@@ -42,6 +42,18 @@ package com.example.zhttaskflow.base.doc
  * - Scaffold 内容区不消费 IME；键盘避让由 [com.example.zhttaskflow.base.ui.rememberTaskFlowImePadding] 在表单/弹窗按需调用。
  * - 详情见 [com.example.zhttaskflow.base.ui.TaskFlowInsetsPolicy] 与 `TaskFlowContentInsets.kt`。
  *
+ * ## CompositionLocal 与壳层替换（无 DI）
+ *
+ * 横切能力由 Compose [androidx.compose.runtime.CompositionLocal] 向下传递；**扩展**时实现对应接口或在壳层包一层
+ * [androidx.compose.runtime.CompositionLocalProvider]，业务仍通过 `remember*` / `Local*` 访问，避免第二套宿主。
+ *
+ * | Local / API | 提供方 | 壳层替换方式 |
+ * |-------------|--------|----------------|
+ * | [com.example.zhttaskflow.base.analytics.LocalTaskFlowAnalytics] | [com.example.zhttaskflow.base.analytics.TaskFlowAnalyticsCompositionRoot]（[com.example.zhttaskflow.base.ui.TaskFlowBaseScaffold] 内） | 实现 [com.example.zhttaskflow.base.analytics.TaskFlowAnalytics] 并传入 `analytics =` |
+ * | Snackbar / Loading / Dialog | [com.example.zhttaskflow.base.ui.TaskFlowBaseScaffold] | 一般无需替换；内层列表/详情 Scaffold 继承父级 [com.example.zhttaskflow.base.ui.taskFlowParentGlobalHostsOrNull] |
+ * | [com.example.zhttaskflow.nav.LocalTaskFlowNavigator] | [com.example.zhttaskflow.nav.TaskFlowNavHost] | 由 NavHost 注入，业务禁止持有 NavController |
+ * | 路由拦截链 | [com.example.zhttaskflow.nav.interceptor.rememberTaskFlowAppRouterInterceptorChain] | 应用壳传入 [com.example.zhttaskflow.nav.TaskFlowNavHost] 的 `routerInterceptorChain`（见 [com.example.zhttaskflow.nav.doc.TaskFlowNavArchitecture]） |
+ *
  * @see com.example.zhttaskflow.nav.doc.TaskFlowNavArchitecture
  */
 object TaskFlowBaseArchitecture

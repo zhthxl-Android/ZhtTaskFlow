@@ -10,8 +10,10 @@ package com.example.zhttaskflow.nav.router
  *
  * 1. App / 调试壳：`rememberTaskFlowAppRouterInterceptorChain()` 传入 [TaskFlowNavHost] 的 `routerInterceptorChain`。
  * 2. 业务 path 保持纯净；RouteHost 在 `navigate` 前按需调用 `TaskFlowRouteAuthMarker` / `TaskFlowRoutePermissionMarker`。
- * 3. 深链：`TaskFlowRouteDeepLinkMarker.wrap(uri)` 后 `navigator.navigate(...)`。
+ * 3. 深链：`TaskFlowRouteDeepLinkMarker.wrap(uri)` 后 `navigator.navigate(...)`；映射 `Redirect` 后继续走权限 / 登录链（`target` 需与 RouteHost 标记策略一致）。
  * 4. 扩展自定义拦截器：实现 [TaskFlowRouterInterceptor]，`TaskFlowRouterInterceptorChain.build { add(...) }`，注意 [priority] 排序。
+ *
+ * **默认 priority**：深链 `200` → 权限 `150`（`LOGIN + 50`）→ 登录 `100`（见 [com.example.zhttaskflow.nav.interceptor.TaskFlowRouterInterceptorPriorities]）。
  *
  * 失败与取消：链返回 `Cancelled` 时经 [TaskFlowRouterInterceptUiBridge] 展示 Snackbar（Error），不走 Toast。
  *

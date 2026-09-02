@@ -72,8 +72,11 @@
 | Dialog / BottomSheet | `rememberTaskFlowDialogController()` + `showConfirmDialog` / `showBottomSheet` | 同上 |
 | 埋点 | `rememberTaskFlowAnalytics()` / `LocalTaskFlowAnalytics` | `TaskFlowAnalyticsCompositionRoot`（`TaskFlowBaseScaffold` 外层宿主） |
 | ViewModel | 各 Feature `ViewModelProvider.Factory` 手动组装 UseCase | RouteHost |
+| 登录会话 / 深链映射 / 权限校验 | `rememberTaskFlowAppRouterInterceptorChain(...)` 构造参数 | 应用壳装配 `TaskFlowNavHost` 时传入自定义链（默认 `AppMainShell` 使用默认 `remember`） |
 
 **约定**：业务 Screen **禁止**直接持有 `NavHostController`；横切 UI **禁止**自建第二套 SnackbarHost/Dialog。内层 `TaskFlowListScaffold` 通过 `taskFlowParentGlobalHostsOrNull()` 继承父级宿主。
+
+**CompositionLocal 扩展**：新增横切能力时优先增加 `compositionLocalOf` + 在 `TaskFlowBaseScaffold`（或壳层单一根节点）`CompositionLocalProvider` 注入；业务通过 `rememberXxx()` / `LocalXxx.current` 消费，避免在 Screen 传递长参数列表。主题等可选能力见 `LocalTaskFlowThemeController`。
 
 替换产品埋点：实现 `TaskFlowAnalytics`，在壳层 `TaskFlowAnalyticsCompositionRoot(analytics = …)` 注入，业务仍调用 `logUiInteraction` / `PageLifecycleLog`，零改动。
 
@@ -89,7 +92,7 @@
 | 列表状态 | `StateBox` + `TaskFlowStateRefreshableListContent` 等 | contentPadding 用 `rememberTaskFlowStateBoxContentPadding` |
 | 表单键盘 | `rememberTaskFlowImePadding` | 弹窗内 `taskFlowImePadding` |
 
-已删除废弃的 `TaskFlowPageTitleBar`；顶栏统一 `TaskFlowTopBar` / `TaskFlowListScaffold`。
+`TaskFlowPageTitleBar` 状态 **待清理**（历史顶栏兼容封装，禁止新引用；工程内已移除独立源码时以 `TaskFlowTopBar` / `TaskFlowListScaffold` 为准；尺寸常量仍见 `TaskFlowUiConstants.PageTitleBarHeight`，后续可重命名）。
 
 ## 10. 二级页返回规范
 
@@ -168,6 +171,8 @@ navigator.navigate(TaskFlowRouteDeepLinkMarker.wrap(uriString))
 ```
 
 Manifest 声明 `taskflow` scheme；`launchMode=singleTop` + `onNewIntent`。桌面启动无 `data`，不受影响。
+
+**门禁与内链一致**：深链解析后仍走同一套 `TaskFlowNavigator.navigate` 拦截链；`Redirect` 为内部 path 后继续执行权限（150）与登录（100）。`target` 应 URL 编码与 RouteHost 等价的 path——可含 `needLogin` / `permissionGroup` query（或映射规则产出已包裹的 path），从而自动继承目标页登录 / 权限标记；纯净 path 与未标记的内链一样不做额外门禁。
 
 **adb 验证**：
 

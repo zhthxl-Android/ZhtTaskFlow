@@ -8,15 +8,6 @@ import com.example.zhttaskflow.nav.router.TaskFlowRouteInterceptContext
 import com.example.zhttaskflow.nav.router.TaskFlowRouteInterceptResult
 
 /**
- * 拦截器执行优先级（数值越大越先执行）。深链解析应早于登录、权限校验。
- */
-object TaskFlowRouterInterceptorPriorities {
-    const val DEEP_LINK: Int = 200
-    const val LOGIN: Int = 100
-    const val PERMISSION: Int = 80
-}
-
-/**
  * 深链导航标记：将外部 URI 包装为拦截链可识别的「虚拟路由」，由 [TaskFlowDeepLinkInterceptor] 解析并重定向为内部 path。
  *
  * 业务侧从 `Intent.data` 等入口调用 [wrap] 后交给 [com.example.zhttaskflow.nav.TaskFlowNavigator.navigate]。
@@ -128,7 +119,8 @@ fun rememberTaskFlowDeepLinkRouteMapper(
 
 /**
  * 深链拦截器：解析 [TaskFlowRouteDeepLinkMarker]、写入 [com.example.zhttaskflow.nav.router.TaskFlowRouteInterceptExtras.deepLinkUri]、
- * 重定向至业务路由；失败时 [TaskFlowRouteInterceptResult.Abort] 并由拦截链 UI 桥展示错误。
+ * 重定向至业务路由；[com.example.zhttaskflow.nav.router.TaskFlowRouteInterceptResult.Redirect] 后拦截链 **继续** 执行（权限 / 登录等），
+ * 与 App 内 `navigate` 一致。失败时 [TaskFlowRouteInterceptResult.Abort] 并由拦截链 UI 桥展示错误。
  */
 class TaskFlowDeepLinkInterceptor(
     private val routeMapper: TaskFlowDeepLinkRouteMapper,

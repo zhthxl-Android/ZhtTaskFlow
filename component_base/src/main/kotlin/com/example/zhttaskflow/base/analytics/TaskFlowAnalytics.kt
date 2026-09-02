@@ -12,7 +12,8 @@ import androidx.compose.runtime.remember
  * 业务侧优先使用 [rememberTaskFlowAnalytics] 或 [com.example.zhttaskflow.base.ui.extension.logUiInteraction] 等封装，
  * 禁止直接依赖 [TaskFlowDebugAnalytics]（调试默认实现）。
  *
- * 后续接入友盟 / 自研 SDK 时，实现本接口并在 [com.example.zhttaskflow.base.ui.TaskFlowBaseScaffold] 替换注入即可。
+ * 后续接入友盟 / 自研 SDK 时，实现本接口并在壳层通过 [TaskFlowAnalyticsCompositionRoot] 注入
+ * （[com.example.zhttaskflow.base.ui.TaskFlowBaseScaffold] 已包裹默认 [TaskFlowDebugAnalytics]；可在外层再包一层替换 [LocalTaskFlowAnalytics]）。
  */
 interface TaskFlowAnalytics {
 

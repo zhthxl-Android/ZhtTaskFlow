@@ -96,7 +96,12 @@ fun interface TaskFlowLoginInterceptUi {
 }
 
 /**
- * 默认应用级拦截链：深链 → 登录 → 权限（按 [TaskFlowRouterInterceptorPriorities] 降序执行）。
+ * 默认应用级拦截链：**深链 `200` → 权限 `150` → 登录 `100`**（按 [TaskFlowRouterInterceptorPriorities] 与各类 [priority] **降序**执行）。
+ *
+ * 壳层可替换默认依赖而无需改 Feature：
+ * - [loginSession]：登录态与模拟登录会话
+ * - [deepLinkRouteMapper]：运营 URL → 内部 path（含带门禁 query 的 `target`）
+ * - [permissionGrantChecker]：权限组是否已授权（可接系统 Permission API）
  *
  * @see com.example.zhttaskflow.nav.doc.TaskFlowNavArchitecture
  */

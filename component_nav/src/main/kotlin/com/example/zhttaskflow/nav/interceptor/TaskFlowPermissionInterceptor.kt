@@ -28,7 +28,7 @@ import kotlin.coroutines.resume
  * 路由权限组标记：在 path 后追加 `permissionGroup={id}`，拦截器申请对应权限组后剥离 query 再导航。
  *
  * 与 [TaskFlowRouteAuthMarker] 类似，避免 Navigation 无法识别带 query 的 route 时，应在拦截链通过后得到「干净 path」。
- * 可与 `needLogin` 等其它 query 共存（建议权限拦截器优先级高于登录，先剥离本标记）。
+ * 可与 `needLogin` 等其它 query 共存；默认链中本拦截器 priority 为 `LOGIN + 50`（150），**先于**登录拦截器（100）执行。
  */
 object TaskFlowRoutePermissionMarker {
     const val QUERY_PERMISSION_GROUP: String = "permissionGroup"
