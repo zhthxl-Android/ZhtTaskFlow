@@ -12,8 +12,10 @@ import androidx.compose.runtime.remember
  * 业务侧优先使用 [rememberTaskFlowAnalytics] 或 [com.example.zhttaskflow.base.ui.extension.logUiInteraction] 等封装，
  * 禁止直接依赖 [TaskFlowDebugAnalytics]（调试默认实现）。
  *
- * 后续接入友盟 / 自研 SDK 时，实现本接口并在应用壳 `AppMainShell` 传入 `analyticsImpl`，
+ * 后续接入友盟 / 自研 SDK 时，实现本接口并在应用壳 [com.example.zhttaskflow.navigation.AppMainShell] 传入 `analyticsImpl`，
  * 或经 [TaskFlowAnalyticsCompositionRoot] / [com.example.zhttaskflow.base.ui.TaskFlowBaseScaffold] 的 `analytics` 参数注入。
+ *
+ * Release 默认实现见 `app` 模块 `ReleaseTaskFlowAnalytics`；日志与上报契约字段统一为 `pageId`、`actionId`（入参 `operationId` 映射为 `actionId`）。
  */
 interface TaskFlowAnalytics {
 
@@ -34,7 +36,7 @@ interface TaskFlowAnalytics {
     /**
      * 交互类埋点：点击、下拉刷新、操作成功/失败等。
      *
-     * @param operationId 操作 ID（opId），如 `home_entrance_card`
+     * @param operationId 操作 ID，对应日志与监控契约中的 **actionId**（如 `home_entrance_card`）
      * @param logTag 调试实现写入 Logcat 的子 Tag；产品实现可忽略
      */
     fun trackInteraction(

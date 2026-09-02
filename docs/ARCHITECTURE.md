@@ -72,6 +72,7 @@
 | Dialog / BottomSheet | `rememberTaskFlowDialogController()` + `showConfirmDialog` / `showBottomSheet` | 同上 |
 | 埋点 | `rememberTaskFlowAnalytics()` / `LocalTaskFlowAnalytics` | `TaskFlowAnalyticsCompositionRoot`（`TaskFlowBaseScaffold` 外层宿主） |
 | 页面性能 | `rememberTaskFlowPerformance()` / `LocalTaskFlowPerformance` | `TaskFlowPerformanceCompositionRoot`（`TaskFlowBaseScaffold` 外层宿主） |
+| 崩溃上报 | `LocalTaskFlowCrashReporter` / `TaskFlowCrashReporterRegistry` | `TaskFlowExceptionMonitoringRoot`（`TaskFlowBaseScaffold` 拥有全局宿主时） |
 | ViewModel | 各 Feature `ViewModelProvider.Factory` 手动组装 UseCase | RouteHost |
 | 登录会话 / 深链映射 / 权限校验 | `rememberTaskFlowAppRouterInterceptorChain(...)` 构造参数 + `AppMainShell` 的 CompositionLocal | 应用壳装配 `TaskFlowNavHost` 时传入自定义链（默认 `AppMainShell` 使用默认 `remember`） |
 
@@ -79,18 +80,36 @@
 
 **CompositionLocal 扩展**：新增横切能力时优先增加 `compositionLocalOf` + 在 `TaskFlowBaseScaffold`（或壳层单一根节点）`CompositionLocalProvider` 注入；业务通过 `rememberXxx()` / `LocalXxx.current` 消费，避免在 Screen 传递长参数列表。主题等可选能力见 `LocalTaskFlowThemeController`。
 
-### 8.1 壳层四类可配置注入（无 Hilt，开闭原则）
+### 8.1 壳层五类可配置注入（无 Hilt，开闭原则）
 
-业务 Feature **不修改**即可切换产品实现；替换点在 **app 壳**或 **拥有全局宿主的 `TaskFlowBaseScaffold`**。
+业务 Feature **不修改**即可切换产品实现；替换点在 **app 壳 `AppMainShell`**（推荐）或直接向 **`TaskFlowBaseScaffold`** 传入对应参数。
 
-| 能力 | 抽象 / Local | 默认实现 | 壳层替换方式 | 业务消费方式 |
-|------|----------------|----------|--------------|--------------|
-| **埋点 Analytics** | `TaskFlowAnalytics`、`LocalTaskFlowAnalytics` | `TaskFlowDebugAnalytics` | `AppMainShell(analyticsImpl = …)` → 传入 `TaskFlowBaseScaffold(analytics = …)` | `PageLifecycleLog`、`logUiInteraction`、`rememberTaskFlowAnalytics()` |
-| **登录会话** | `TaskFlowLoginSession`、`LocalTaskFlowLoginSession` | 内存会话 | `AppMainShell(loginSessionImpl = …)`，`CompositionLocalProvider` 注入；拦截链 `rememberTaskFlowAppRouterInterceptorChain(loginSession = …)` | 仅拦截器 / 登录弹窗，业务无感 |
-| **深链映射** | `TaskFlowDeepLinkRouteMapper`、`LocalTaskFlowDeepLinkRouteMapper` | `TaskFlowDeepLinkRouteMapperImpl` | `AppMainShell(deepLinkMapperImpl = …)` + 拦截链 `deepLinkRouteMapper = …` | 外部 URI → 内部 path，由 `TaskFlowDeepLinkInterceptor` 消费 |
-| **页面性能** | `TaskFlowPerformanceReporter`、`LocalTaskFlowPerformance` | `TaskFlowDebugPerformanceReporter` | 实现 `TaskFlowPerformanceReporter`，在 **`TaskFlowBaseScaffold` 外层宿主**将 `rememberTaskFlowDebugPerformance(reporter = custom)` 传入 `TaskFlowPerformanceCompositionRoot(performance = …)`（与 `analytics` 参数对称；当前 `TaskFlowBaseScaffold` 内固定调试 Reporter，产品环境改该处一行或使用后续壳层可选参数） | 通常 **无需**业务代码；`PageLifecycleLog` 已 `beginPage`/`endPage` |
+| 能力 | 抽象 / Local | Debug 默认 | Release 默认（`AppMainShell` 未传参时） | 壳层替换参数 | 传递链 |
+|------|----------------|------------|----------------------------------------|--------------|--------|
+| **埋点 Analytics** | `TaskFlowAnalytics`、`LocalTaskFlowAnalytics` | `TaskFlowDebugAnalytics` | `ReleaseTaskFlowAnalytics` | `analyticsImpl` | `AppMainShell` → `TaskFlowBaseScaffold(analytics)` → `TaskFlowAnalyticsCompositionRoot` |
+| **页面性能 APM** | `TaskFlowPerformanceReporter`、`LocalTaskFlowPerformance` | `TaskFlowDebugPerformanceReporter` | `ReleaseTaskFlowPerformanceReporter` | `performanceImpl` | `AppMainShell` → `TaskFlowBaseScaffold(performanceImpl)` → `TaskFlowPerformanceCompositionRoot` |
+| **崩溃上报** | `TaskFlowCrashReporter`、`LocalTaskFlowCrashReporter` | `TaskFlowDebugCrashReporter` | `ReleaseTaskFlowCrashReporter` | `crashReporterImpl` | `AppMainShell` → `TaskFlowBaseScaffold(crashReporter)` → `TaskFlowExceptionMonitoringRoot` → `TaskFlowCrashReporterCompositionRoot` |
+| **登录会话** | `TaskFlowLoginSession`、`LocalTaskFlowLoginSession` | 内存会话 | 同左 | `loginSessionImpl` | `CompositionLocalProvider` → `rememberTaskFlowAppRouterInterceptorChain(loginSession)` |
+| **深链映射** | `TaskFlowDeepLinkRouteMapper`、`LocalTaskFlowDeepLinkRouteMapper` | `TaskFlowDeepLinkRouteMapperImpl` | 同左 | `deepLinkMapperImpl` | `CompositionLocalProvider` → 拦截链 `deepLinkRouteMapper` |
 
-**Analytics 替换示例（app 壳）**：
+环境切换依据 **`isTaskFlowDebugLoggingEnabled()`**（与 `BuildConfig.DEBUG` 解耦）：Debug 安装包走调试实现三联；否则走 `app` 模块 `Release*` 实现（见 §8.2）。
+
+**五类注入一键示例（app 壳）**：
+
+```kotlin
+AppMainShell(
+    registry = routeRegistry,
+    startDestination = TaskFlowHomeNavRoutes.HOME_ROUTE,
+    navigator = navigator,
+    analyticsImpl = MyProductAnalytics(),           // 可选；默认 ReleaseTaskFlowAnalytics
+    performanceImpl = MyApmPerformanceReporter(),   // 可选；默认 ReleaseTaskFlowPerformanceReporter
+    crashReporterImpl = MyBuglyCrashReporter(),     // 可选；默认 ReleaseTaskFlowCrashReporter
+    loginSessionImpl = mySession,                   // 可选
+    deepLinkMapperImpl = myMapper,                  // 可选
+)
+```
+
+**Analytics 单独替换**（与上表等价的最小写法）：
 
 ```kotlin
 AppMainShell(
@@ -100,6 +119,34 @@ AppMainShell(
     analyticsImpl = MyProductAnalytics(), // 实现 TaskFlowAnalytics
 )
 ```
+
+**性能 Reporter 替换**（推荐经 `AppMainShell`，与 Analytics 对称）：
+
+```kotlin
+AppMainShell(
+    registry = routeRegistry,
+    startDestination = TaskFlowHomeNavRoutes.HOME_ROUTE,
+    navigator = navigator,
+    performanceImpl = MyApmPerformanceReporter(), // 实现 TaskFlowPerformanceReporter
+)
+```
+
+**崩溃 Reporter 替换**：
+
+```kotlin
+AppMainShell(
+    registry = routeRegistry,
+    startDestination = TaskFlowHomeNavRoutes.HOME_ROUTE,
+    navigator = navigator,
+    crashReporterImpl = object : TaskFlowCrashReporter {
+        override fun reportCrash(throwable: Throwable, fatal: Boolean) {
+            // Bugly / Crashlytics …
+        }
+    },
+)
+```
+
+Release 包另在 `TaskFlowApplication.onCreate` 调用 `ReleaseTaskFlowCrashMonitoring.install(this)`，用于 ANR 探测与第三方 SDK 初始化占位（见 §8.2）。
 
 **拦截链替换登录 / 深链 / 权限校验示例**：
 
@@ -117,20 +164,45 @@ CompositionLocalProvider(
 }
 ```
 
-**性能 Reporter 替换示例（概念与 Analytics 一致）**：
-
-```kotlin
-val performance = remember {
-    TaskFlowPerformance(reporter = MyApmPerformanceReporter())
-}
-TaskFlowPerformanceCompositionRoot(performance = performance) {
-    // 其下 TaskFlowAnalyticsCompositionRoot + 页面内容
-}
-```
-
-集成宿主已在 `TaskFlowBaseScaffold` 内按上述顺序装配性能 + 埋点根节点；独立调试壳 `TaskFlowFeatureDebugShell` 经同一 `TaskFlowBaseScaffold` 继承行为。
+集成宿主在 `TaskFlowBaseScaffold` 内按顺序装配：**性能 → 埋点 → 异常监控（含崩溃 Local + 网络横幅）**；独立调试壳 `TaskFlowFeatureDebugShell` 经同一 `TaskFlowBaseScaffold` 继承行为（Release 三联需集成 `app` 壳才自动切换）。
 
 替换产品埋点：实现 `TaskFlowAnalytics`，在壳层传入 `analyticsImpl`，业务仍调用 `logUiInteraction` / `PageLifecycleLog`，零改动。
+
+### 8.2 生产可观测三联（Analytics / Performance / Crash）
+
+**实现位置（app 模块）**：
+
+| 能力 | Debug 实现（component_base） | Release 实现（app） | 统一落盘 / SDK 契约 |
+|------|------------------------------|---------------------|---------------------|
+| 埋点 | `TaskFlowDebugAnalytics` | `ReleaseTaskFlowAnalytics` | `ReleaseTaskFlowObservabilityContract`，Tag `TaskFlow/Observability` |
+| APM | `TaskFlowDebugPerformanceReporter` | `ReleaseTaskFlowPerformanceReporter` | 同上，`channel=performance` |
+| 崩溃 | `TaskFlowDebugCrashReporter` | `ReleaseTaskFlowCrashReporter` + `ReleaseTaskFlowCrashMonitoring` | 同上，`channel=crash`；含未捕获异常与 ANR |
+
+**数据契约（单行日志，便于 ELK / 自研平台解析）**：
+
+```text
+channel=<analytics|performance|crash> event=<事件或指标名> pageId=<页面ID> actionId=<操作ID> params=k=v,...
+```
+
+- **Analytics**：`page_enter` / `page_leave` / `page_args_change` / `ui_interaction`（交互的 `actionId` 与 `logUiInteraction` 的 `identifier`、以及 `trackInteraction` 的 `operationId` 一致）。
+- **Performance**：`first_frame`、`scroll_fps`、`page_dwell`（`pageId` 与 `PageLifecycleLog.pageName` 对齐）。
+- **Crash**：`crash`（`actionId=app_uncaught_crash`）、`anr`（`actionId=app_anr`）；壳级 `pageId=AppShell`。
+
+SDK 接入：修改 `app` 模块 `ReleaseTaskFlowObservabilityContract.dispatchToCompanyPlatform` 与各 `Release*` 实现中的 TODO，**无需改 component_base 或 Feature**。
+
+### 8.3 全局异常监控与网络离线横幅
+
+由 **`TaskFlowExceptionMonitoringRoot`** 装配（`TaskFlowBaseScaffold` 在**拥有全局宿主**时自动包裹，内层继承父级宿主时不再重复安装）。
+
+| 能力 | 行为 | 业务是否改动 |
+|------|------|--------------|
+| 未捕获异常 | `TaskFlowExceptionHandler.installUncaughtExceptionHandler` → `TaskFlowCrashReporter` → 交还系统默认处理器 | 否 |
+| 协程可选钩子 | `TaskFlowExceptionHandler.coroutineExceptionHandler`（不替代 `BaseViewModel.launchTask`） | 按需 |
+| 业务异常 Snackbar | `TaskFlowExceptionHandler.handleBusinessException`（Error 级走崩溃上报） | 按需 |
+| 网络断开 | `ConnectivityManager.NetworkCallback` + `NetworkChecker` → 顶部 `TaskFlowNetworkOfflineBanner` | 否 |
+| 网络恢复 | 横幅自动隐藏 | 否 |
+
+崩溃上报经 **`LocalTaskFlowCrashReporter`** / **`TaskFlowCrashReporterRegistry`** 与壳层 `crashReporterImpl` 对齐；调试默认同时写 `TaskFlowLogger` 与 Analytics outcome。
 
 ## 9. 全局组件使用约定（component_base）
 
@@ -185,13 +257,13 @@ onLeave page=TaskList
 ```kotlin
 val analytics = rememberTaskFlowAnalytics()
 analytics.trackUiClick(
-    operationId = "home_entrance_card",
+    operationId = "home_entrance_card", // 日志与 Release 契约中的 actionId
     pageId = "Home",
     params = mapOf("entranceId" to id),
 )
 ```
 
-`trackUiClick` / `trackInteraction` 写入日志时，`operationId` 与交互封装中的 `identifier` 均格式化为 **`actionId=`** 字段。
+`trackUiClick` / `trackInteraction` 的入参 **`operationId`** 在 Debug / Release 输出中统一格式化为 **`actionId=`** 字段（与 `logUiInteraction` 的 `identifier` 同义）。
 
 ### 11.3 页面性能监控（TaskFlowPerformance）
 
@@ -207,9 +279,9 @@ analytics.trackUiClick(
 
 1. 页面使用 `PageLifecycleLog(pageName = …)`（与埋点 `pageName` / `pageId` 一致）。
 2. 确保页面在 **`TaskFlowBaseScaffold` 子树**内（集成 `AppMainShell` 或独立 `TaskFlowFeatureDebugShell` 均已装配）。
-3. Logcat 过滤 Tag **`PagePerformance`**，示例：`metric=first_frame pageId=TaskList durationMs=42`。
+3. Logcat 过滤 Tag **`PagePerformance`**（Debug）或 **`TaskFlow/Observability`**（Release 契约），示例：`metric=first_frame pageId=TaskList durationMs=42`。
 
-**APM 扩展**：实现 `TaskFlowPerformanceReporter`，将 `TaskFlowDebugPerformanceReporter` 换为产品上报（见 §8.1）。未注入 `LocalTaskFlowPerformance` 时为 `TaskFlowPerformance.NoOp`，不影响功能。
+**APM 扩展**：实现 `TaskFlowPerformanceReporter`，经 `AppMainShell(performanceImpl = …)` 注入（§8.1、§8.2）。未注入 `LocalTaskFlowPerformance` 时为 `TaskFlowPerformance.NoOp`，不影响功能。
 
 ## 12. 路由与拦截链（component_nav）
 
@@ -312,10 +384,10 @@ navigator.navigate(
 | MVI 与 Effect 规范 | L4 | 双 Collector；`ShowSnackbar` + `SnackbarType`；无 Toast |
 | 路由与拦截 | L4 | 深链 API 统一；门禁 [TaskFlowRouteGatePolicy] + `TASKFLOW_ROUTE_GATES.md`；权限 150 → 登录 100 |
 | UI 平台与脚手架 | L4 | 单宿主；列表双范式；骨架常量收敛 |
-| 可观测性（日志/埋点/性能） | L4− | 三类埋点 + `actionId` 规范；`TaskFlowPerformance` 首帧/FPS/停留；产品 SDK 壳层可换 |
+| 可观测性（日志/埋点/性能/崩溃） | L4 | 生产三联 + `actionId` 规范；五类壳层注入；全局异常与离线横幅 |
 | 工程化与构建 | L3+ | Version Catalog、build-logic、双模式 Feature；`checkDependencyRules` |
 
-**L4 含义**：文档与实现一致、横切能力四类可注入、生产权限与深链闭环可演示；产品 APM/埋点 SDK 以壳层替换为主，无需改 Feature 业务代码。
+**L4 含义**：文档与实现一致、横切能力**五类**可注入、生产可观测三联与权限/深链闭环可演示；产品 SDK 以壳层 `Release*` / 自定义 `*Impl` 替换为主，无需改 Feature 业务代码。
 
 ## 14. Feature 双模式
 
@@ -345,8 +417,8 @@ app_、base_、core_、nav_、task_、article_、home_ 等；Lint `MissingPrefix
 4. 二级页：`TaskFlowScaffold` + 返回规范；WebView 用 `onBackIntercept`。
 5. 弹窗：优先 `showBottomSheet` / `showConfirmDialog`，不自建 `ModalBottomSheet`（除非基建扩展）。
 6. 深链：运营 URL → `TaskFlowDeepLinkNavigation.prepareNavigationRoute` → `navigator.navigate`（见 §12.1）。
-7. 性能：保持 `PageLifecycleLog` 即可；Logcat 查 `PagePerformance`；APM 实现 `TaskFlowPerformanceReporter`（§8.1、§11.3）。
-8. 读源码 KDoc：`TaskFlowBaseArchitecture`、`TaskFlowNavArchitecture`、`MainActivity`、`TaskFlowDeepLinkNavigation`、`TaskRoute.kt`、`ComposeInteractionLogging.kt`。
+7. 性能 / 崩溃：保持 `PageLifecycleLog`；Debug 查 `PagePerformance` / `Exception`；Release 查 `TaskFlow/Observability`；APM 与崩溃经 `AppMainShell` 的 `performanceImpl` / `crashReporterImpl`（§8.1–§8.3）。
+8. 读源码 KDoc：`TaskFlowBaseArchitecture`、`TaskFlowNavArchitecture`、`MainActivity`、`AppMainShell`、`TaskFlowDeepLinkNavigation`、`TaskFlowCrashReporter`、`ComposeInteractionLogging.kt`。
 
 [TaskFlowBaseArchitecture]: ../component_base/src/main/kotlin/com/example/zhttaskflow/base/doc/TaskFlowBaseArchitecture.kt
 [TaskFlowNavArchitecture]: ../component_nav/src/main/kotlin/com/example/zhttaskflow/nav/doc/TaskFlowNavArchitecture.kt

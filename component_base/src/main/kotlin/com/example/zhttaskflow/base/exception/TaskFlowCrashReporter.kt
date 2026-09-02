@@ -15,7 +15,16 @@ const val TASKFLOW_CRASH_PAGE_ID: String = "AppShell"
 const val TASKFLOW_CRASH_ACTION_ID: String = "app_uncaught_crash"
 
 /**
- * 崩溃 / 未捕获异常上报抽象：产品环境由壳工程注入友盟、Bugly 等实现。
+ * 崩溃 / 未捕获异常上报抽象：产品环境由壳工程注入 Bugly、Crashlytics 等实现。
+ *
+ * - 壳层注入：[com.example.zhttaskflow.navigation.AppMainShell] 的 `crashReporterImpl` →
+ *   [com.example.zhttaskflow.base.ui.TaskFlowBaseScaffold] → [com.example.zhttaskflow.base.exception.TaskFlowExceptionMonitoringRoot]。
+ * - CompositionLocal：[LocalTaskFlowCrashReporter]；非 Composable 场景经 [TaskFlowCrashReporterRegistry] 解析。
+ * - Release 默认：`app` 模块 `ReleaseTaskFlowCrashReporter`（契约 `actionId` 见 [TASKFLOW_CRASH_ACTION_ID] / `app_anr`）。
+ * - 调试默认：[TaskFlowDebugCrashReporter]（`TaskFlowLogger` + Analytics outcome，`actionId=[TASKFLOW_CRASH_ACTION_ID]`）。
+ *
+ * ANR：Release 在 [com.example.zhttaskflow.TaskFlowApplication] 调用 `ReleaseTaskFlowCrashMonitoring.install`；
+ * 产品 SDK 接入后可在同一初始化点替换轻量探测。
  */
 fun interface TaskFlowCrashReporter {
 
@@ -26,7 +35,7 @@ fun interface TaskFlowCrashReporter {
 }
 
 /**
- * 调试默认上报：[TaskFlowLogger.errorAlways] + [com.example.zhttaskflow.base.analytics.TaskFlowAnalytics] outcome。
+ * 调试默认上报：[TaskFlowLogger.errorAlways] + Analytics outcome（`pageId=[TASKFLOW_CRASH_PAGE_ID]`、`actionId=[TASKFLOW_CRASH_ACTION_ID]`）。
  */
 object TaskFlowDebugCrashReporter : TaskFlowCrashReporter {
 
@@ -67,9 +76,11 @@ fun rememberTaskFlowCrashReporter(
 }
 
 /**
- * 装配崩溃上报并与 [TaskFlowCrashReporterRegistry] 同步（供非 Composable 的 [TaskFlowExceptionHandler.reportCrash] 解析）。
+ * 装配崩溃上报并与 [TaskFlowCrashReporterRegistry] 同步（供非 Composable 的
+ * [com.example.zhttaskflow.base.exception.TaskFlowExceptionHandler.reportCrash] 解析）。
  *
- * 通常由 [TaskFlowExceptionMonitoringRoot] 或壳层在 [com.example.zhttaskflow.base.ui.TaskFlowBaseScaffold] 外层调用。
+ * 由 [com.example.zhttaskflow.base.exception.TaskFlowExceptionMonitoringRoot] 在拥有全局宿主时调用；
+ * 与网络离线横幅、未捕获异常钩子同层装配。
  */
 @Composable
 fun TaskFlowCrashReporterCompositionRoot(

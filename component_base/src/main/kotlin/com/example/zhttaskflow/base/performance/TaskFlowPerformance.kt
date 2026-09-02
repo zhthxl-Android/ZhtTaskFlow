@@ -37,6 +37,9 @@ private const val SCROLL_FPS_MIN_FRAMES: Int = 4
 
 /**
  * APM 上报抽象：对接监控平台时实现本接口并在壳层注入 [TaskFlowPerformance]。
+ *
+ * Release 默认实现见 `app` 模块 `ReleaseTaskFlowPerformanceReporter`；指标上报字段与埋点共用 `pageId`，
+ * 指标名作为契约中的 `actionId` / `event`（见 `docs/ARCHITECTURE.md` §8.2）。
  */
 interface TaskFlowPerformanceReporter {
 
@@ -85,8 +88,9 @@ object TaskFlowDebugPerformanceReporter : TaskFlowPerformanceReporter {
  * 由壳层 [LocalTaskFlowPerformance] 提供；业务通过 [PageLifecycleLog][com.example.zhttaskflow.base.ui.extension.PageLifecycleLog]
  * 或手动 [beginPage]/[endPage] 绑定 [pageId]。
  *
- * 产品 APM：实现 [TaskFlowPerformanceReporter]，在应用壳 [com.example.zhttaskflow.base.ui.TaskFlowBaseScaffold]
- * 的 `performanceImpl` 参数注入，与 [com.example.zhttaskflow.base.analytics.TaskFlowAnalytics] 对称。
+ * 产品 APM：实现 [TaskFlowPerformanceReporter]，在应用壳 [com.example.zhttaskflow.navigation.AppMainShell] 传入
+ * `performanceImpl`，或经 [com.example.zhttaskflow.base.ui.TaskFlowBaseScaffold] 的 `performanceImpl` 参数注入，
+ * 与 [com.example.zhttaskflow.base.analytics.TaskFlowAnalytics] 对称。
  */
 @Stable
 class TaskFlowPerformance internal constructor(
