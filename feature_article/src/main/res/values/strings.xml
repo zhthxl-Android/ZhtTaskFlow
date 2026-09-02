@@ -4,6 +4,7 @@
     <string name="article_str_list_title">资讯</string>
     <string name="article_str_empty_list">暂无资讯</string>
     <string name="article_str_detail_title">详情 %1$s</string>
+    <string name="article_str_detail_empty">资讯不存在或链接无效</string>
     <string name="article_str_back">返回</string>
     <string name="article_str_item_meta">%1$s · %2$s · %3$s</string>
     <string name="article_str_no_more">没有更多了</string>

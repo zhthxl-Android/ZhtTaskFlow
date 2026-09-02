@@ -9,65 +9,64 @@ import android.webkit.WebSettings
 import android.webkit.WebView
 import android.webkit.WebViewClient
 import androidx.compose.foundation.layout.fillMaxSize
-import com.example.zhttaskflow.base.ui.icon.TaskFlowIcons
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.key
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberUpdatedState
-import androidx.compose.runtime.setValue
 import androidx.compose.runtime.State
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.core.view.ViewCompat
 import com.example.zhttaskflow.base.ext.handleTaskFlowPageBack
+import com.example.zhttaskflow.base.extension.collectUiStateWithLifecycle
 import com.example.zhttaskflow.base.mvi.BaseUiState
 import com.example.zhttaskflow.base.ui.StateBox
 import com.example.zhttaskflow.base.ui.TaskFlowScaffold
+import com.example.zhttaskflow.base.ui.icon.TaskFlowIcons
 import com.example.zhttaskflow.base.ui.rememberTaskFlowStateBoxContentPadding
 import com.example.zhttaskflow.base.ui.extension.PageLifecycleLog
 import com.example.zhttaskflow.base.ui.extension.logUiInteraction
-import com.example.zhttaskflow.base.util.NetworkUtil
 import com.example.zhttaskflow.feature.article.R
 
-private const val ARTICLE_DETAIL_PAGE_ID: String = "ArticleDetail"
+/** 资讯详情页埋点 pageId（与全局 Analytics 约定一致）。 */
+internal const val ARTICLE_DETAIL_PAGE_ID: String = "ArticleDetail"
 
 /**
  * 文章详情页：WebView 加载 H5 链接；系统/顶栏返回经 [TaskFlowScaffold] 的 [onBackIntercept] 优先 WebView 历史栈。
  *
+ * @param viewModel MVI 状态源
  * @param articleId 文章标识（展示用）
- * @param detailUrl 详情链接
+ * @param detailUrl 路由传入的详情链接（加载由 ViewModel 校验后写入 Success 态）
  * @param onNavigateUp 页面级返回（导航栈回退）
  */
 @Composable
 fun ArticleDetailScreen(
+    viewModel: ArticleDetailViewModel,
     articleId: String,
     detailUrl: String,
     onNavigateUp: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    val context = LocalContext.current
-    val appContext = context.applicationContext
-    val networkErrorMessage = stringResource(id = R.string.article_str_network_unavailable)
-    var networkUiState by remember {
-        mutableStateOf<BaseUiState<Unit>>(BaseUiState.Loading)
+    val uiState by viewModel.uiState.collectUiStateWithLifecycle()
+    val emptyMessage = stringResource(id = R.string.article_str_detail_empty)
+    val scaffoldTitle = stringResource(id = R.string.article_str_detail_title, articleId)
+    val lifecycleArgs = when (val state = uiState) {
+        is BaseUiState.Success -> "articleId=${state.data.articleId};url=${state.data.detailUrl}"
+        is BaseUiState.Loading -> "loading"
+        is BaseUiState.Error -> "error"
+        is BaseUiState.Empty -> "empty"
     }
 
-    LaunchedEffect(detailUrl) {
-        networkUiState = resolveDetailNetworkUiState(
-            context = appContext,
-            networkErrorMessage = networkErrorMessage,
-        )
+    LaunchedEffect(articleId, detailUrl) {
+        viewModel.onEvent(ArticleDetailUiEvent.Load(articleId = articleId, detailUrl = detailUrl))
     }
 
     val webViewHolder = remember { ArticleDetailWebViewHolder() }
-    val currentDetailUrl = rememberUpdatedState(detailUrl)
     val webViewBackIntercept: () -> Boolean = {
         val webView = webViewHolder.webView
         if (webView != null && webView.canGoBack()) {
@@ -80,12 +79,12 @@ fun ArticleDetailScreen(
 
     PageLifecycleLog(
         pageName = ARTICLE_DETAIL_PAGE_ID,
-        pageArgs = "articleId=$articleId url=$detailUrl",
+        pageArgs = lifecycleArgs,
     )
 
     TaskFlowScaffold(
         modifier = modifier,
-        title = stringResource(id = R.string.article_str_detail_title, articleId),
+        title = scaffoldTitle,
         onNavigateUp = onNavigateUp,
         onBackIntercept = webViewBackIntercept,
         navigationIcon = {
@@ -110,23 +109,22 @@ fun ArticleDetailScreen(
         },
     ) { _ ->
         StateBox(
-            uiState = networkUiState,
+            uiState = uiState,
             onRetry = {
                 logUiInteraction(
                     action = "click",
                     identifier = "article_detail_network_retry",
                     pageId = ARTICLE_DETAIL_PAGE_ID,
                 )
-                networkUiState = resolveDetailNetworkUiState(
-                    context = appContext,
-                    networkErrorMessage = networkErrorMessage,
-                )
+                viewModel.onEvent(ArticleDetailUiEvent.Retry)
             },
+            emptyMessage = emptyMessage,
             contentPadding = rememberTaskFlowStateBoxContentPadding(),
             modifier = Modifier.fillMaxSize(),
-        ) {
+        ) { data ->
+            val currentDetailUrl = rememberUpdatedState(data.detailUrl)
             ArticleDetailWebView(
-                detailUrl = detailUrl,
+                detailUrl = data.detailUrl,
                 webViewHolder = webViewHolder,
                 currentDetailUrl = currentDetailUrl,
             )
@@ -169,17 +167,6 @@ private fun ArticleDetailWebView(
 
 private class ArticleDetailWebViewHolder {
     var webView: WebView? = null
-}
-
-private fun resolveDetailNetworkUiState(
-    context: Context,
-    networkErrorMessage: String,
-): BaseUiState<Unit> {
-    return if (NetworkUtil.isNetworkAvailable(context)) {
-        BaseUiState.Success(Unit)
-    } else {
-        BaseUiState.Error(networkErrorMessage)
-    }
 }
 
 /**

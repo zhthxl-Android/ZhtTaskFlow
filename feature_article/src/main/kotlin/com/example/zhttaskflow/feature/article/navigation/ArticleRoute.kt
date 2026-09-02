@@ -5,14 +5,19 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.remember
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.zhttaskflow.core.network.TaskFlowWanAndroidApiConfig
+import com.example.zhttaskflow.feature.article.R
 import com.example.zhttaskflow.feature.article.data.ArticleDataConfig
 import com.example.zhttaskflow.feature.article.data.ArticleRepositoryFactory
 import com.example.zhttaskflow.feature.article.domain.ArticleRepository
+import com.example.zhttaskflow.feature.article.domain.usecase.GetArticleDetailUseCase
 import com.example.zhttaskflow.feature.article.domain.usecase.GetArticlePageUseCase
 import com.example.zhttaskflow.feature.article.domain.usecase.RefreshArticlePageUseCase
 import com.example.zhttaskflow.feature.article.presentation.ArticleDetailScreen
+import com.example.zhttaskflow.feature.article.presentation.ArticleDetailViewModel
+import com.example.zhttaskflow.feature.article.presentation.ArticleDetailViewModelFactory
 import com.example.zhttaskflow.feature.article.presentation.ArticleListScreen
 import com.example.zhttaskflow.feature.article.presentation.ArticleUiEffect
 import com.example.zhttaskflow.base.ext.TaskFlowUiEffectConsumption
@@ -68,11 +73,9 @@ fun registerArticleRoutes(
             firstArgumentName = TaskFlowArticleNavRoutes.ARG_ARTICLE_ID,
             secondArgumentName = TaskFlowArticleNavRoutes.ARG_DETAIL_URL,
             content = { articleId, detailUrl ->
-                val navigator = LocalTaskFlowNavigator.current
-                ArticleDetailScreen(
+                ArticleDetailRouteHost(
                     articleId = Uri.decode(articleId),
                     detailUrl = Uri.decode(detailUrl),
-                    onNavigateUp = { navigator.navigateUp() },
                 )
             },
         ),
@@ -117,6 +120,49 @@ private fun ArticleListRouteHost(
     }
 
     ArticleListScreen(viewModel = viewModel)
+}
+
+/**
+ * 资讯详情路由宿主：组装 ViewModel 与 [ArticleDetailScreen]。
+ */
+@Composable
+private fun ArticleDetailRouteHost(
+    articleId: String,
+    detailUrl: String,
+) {
+    val navigator = LocalTaskFlowNavigator.current
+    val networkUnavailableMessage = stringResource(id = R.string.article_str_network_unavailable)
+    val factory = rememberArticleDetailViewModelFactory(
+        articleId = articleId,
+        detailUrl = detailUrl,
+        networkUnavailableMessage = networkUnavailableMessage,
+    )
+    val viewModel: ArticleDetailViewModel = viewModel(
+        key = "article_detail_$articleId",
+        factory = factory,
+    )
+    ArticleDetailScreen(
+        viewModel = viewModel,
+        articleId = articleId,
+        detailUrl = detailUrl,
+        onNavigateUp = { navigator.navigateUp() },
+    )
+}
+
+@Composable
+private fun rememberArticleDetailViewModelFactory(
+    articleId: String,
+    detailUrl: String,
+    networkUnavailableMessage: String,
+): ArticleDetailViewModelFactory {
+    return remember(articleId, detailUrl, networkUnavailableMessage) {
+        ArticleDetailViewModelFactory(
+            articleId = articleId,
+            detailUrl = detailUrl,
+            getArticleDetailUseCase = GetArticleDetailUseCase(),
+            networkUnavailableMessage = networkUnavailableMessage,
+        )
+    }
 }
 
 /**
