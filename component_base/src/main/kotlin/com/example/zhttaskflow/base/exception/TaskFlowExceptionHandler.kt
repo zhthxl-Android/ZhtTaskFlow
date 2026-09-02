@@ -14,14 +14,12 @@ import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
-import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
@@ -42,57 +40,17 @@ import com.example.zhttaskflow.core.util.nullIfBlank
 import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlin.coroutines.cancellation.CancellationException
 
-private const val EXCEPTION_LOG_TAG = "Exception"
-private const val GLOBAL_EXCEPTION_PAGE_ID = "AppShell"
-private const val CRASH_ACTION_ID = "app_uncaught_crash"
 private const val BUSINESS_ACTION_ID = "app_business_exception"
-
-/**
- * 崩溃 / 未捕获异常上报抽象：产品环境由壳工程注入友盟、Bugly 等实现。
- */
-fun interface TaskFlowCrashReporter {
-
-    /**
-     * @param fatal `true` 表示进程级未捕获崩溃；`false` 表示协程等可恢复未捕获异常。
-     */
-    fun reportCrash(throwable: Throwable, fatal: Boolean)
-}
-
-/**
- * 调试默认上报： [TaskFlowLogger.errorAlways] + [com.example.zhttaskflow.base.analytics.TaskFlowAnalytics] outcome。
- */
-object TaskFlowDebugCrashReporter : TaskFlowCrashReporter {
-
-    override fun reportCrash(throwable: Throwable, fatal: Boolean) {
-        val scene = if (fatal) "fatal" else "non_fatal"
-        TaskFlowLogger.errorAlways(EXCEPTION_LOG_TAG, {
-            "[$scene] ${throwable.message.nullIfBlank() ?: throwable::class.simpleName.orEmpty()}"
-        }, throwable)
-        TaskFlowAnalyticsRegistry.current().trackUiOutcome(
-            outcome = "failure",
-            operationId = CRASH_ACTION_ID,
-            pageId = GLOBAL_EXCEPTION_PAGE_ID,
-            params = mapOf(
-                "fatal" to fatal.toString(),
-                "type" to throwable::class.simpleName.orEmpty(),
-            ),
-        )
-    }
-}
-
-val LocalTaskFlowCrashReporter = staticCompositionLocalOf<TaskFlowCrashReporter> {
-    TaskFlowDebugCrashReporter
-}
 
 /**
  * 全局异常与网络离线监控入口（日志、Analytics、Snackbar、顶部横幅）。
  *
- * - **业务异常**（含 [TaskFlowException] 及普通 [Exception]）：友好文案走全局 Snackbar，不替代 ViewModel 既有 `onError`。
+ * - **业务异常**（含 [com.example.zhttaskflow.core.foundation.TaskFlowException] 及普通 [Exception]）：友好文案走全局 Snackbar，不替代 ViewModel 既有 `onError`。
  * - **崩溃级**（[Error] 及线程未捕获）：仅上报 + 日志，交还系统默认处理器。
  */
 object TaskFlowExceptionHandler {
 
-    private const val LOG_TAG = EXCEPTION_LOG_TAG
+    private const val LOG_TAG = TASKFLOW_CRASH_LOG_TAG
 
     /**
      * 已捕获的业务向异常：展示 Error Snackbar 并写日志（不触发进程退出）。
@@ -114,7 +72,7 @@ object TaskFlowExceptionHandler {
         TaskFlowAnalyticsRegistry.current().trackUiOutcome(
             outcome = "failure",
             operationId = BUSINESS_ACTION_ID,
-            pageId = GLOBAL_EXCEPTION_PAGE_ID,
+            pageId = TASKFLOW_CRASH_PAGE_ID,
             params = mapOf("type" to throwable::class.simpleName.orEmpty()),
         )
         snackbarDispatcher?.showSnackbar(
@@ -129,7 +87,7 @@ object TaskFlowExceptionHandler {
     fun coroutineExceptionHandler(
         snackbarDispatcher: TaskFlowSnackbarDispatcher?,
         userMessageFallback: String = BaseViewModel.DEFAULT_USER_MESSAGE_FALLBACK,
-        crashReporter: TaskFlowCrashReporter = TaskFlowDebugCrashReporter,
+        crashReporter: TaskFlowCrashReporter = TaskFlowCrashReporterRegistry.current(),
     ): CoroutineExceptionHandler {
         return CoroutineExceptionHandler { _, throwable ->
             if (isCrashThrowable(throwable)) {
@@ -147,7 +105,7 @@ object TaskFlowExceptionHandler {
     fun reportCrash(
         throwable: Throwable,
         fatal: Boolean,
-        crashReporter: TaskFlowCrashReporter = TaskFlowDebugCrashReporter,
+        crashReporter: TaskFlowCrashReporter = TaskFlowCrashReporterRegistry.current(),
     ) {
         crashReporter.reportCrash(throwable, fatal)
     }
@@ -185,7 +143,7 @@ fun TaskFlowExceptionMonitoringRoot(
     modifier: Modifier = Modifier,
     content: @Composable () -> Unit,
 ) {
-    val resolvedReporter = crashReporter ?: remember { TaskFlowDebugCrashReporter }
+    val resolvedReporter = rememberTaskFlowCrashReporter(override = crashReporter)
     var offlineBannerVisible by remember { mutableStateOf(false) }
     val context = LocalContext.current.applicationContext
 
@@ -194,7 +152,7 @@ fun TaskFlowExceptionMonitoringRoot(
         onDispose { resetHandler() }
     }
 
-    CompositionLocalProvider(LocalTaskFlowCrashReporter provides resolvedReporter) {
+    TaskFlowCrashReporterCompositionRoot(crashReporter = resolvedReporter) {
         TaskFlowNetworkConnectivityMonitor(
             context = context,
             onDisconnected = { offlineBannerVisible = true },

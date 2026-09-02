@@ -9,8 +9,11 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import androidx.compose.ui.platform.LocalContext
 import com.example.zhttaskflow.analytics.ReleaseTaskFlowAnalytics
+import com.example.zhttaskflow.analytics.ReleaseTaskFlowCrashReporter
 import com.example.zhttaskflow.base.analytics.TaskFlowAnalytics
 import com.example.zhttaskflow.base.analytics.TaskFlowDebugAnalytics
+import com.example.zhttaskflow.base.exception.TaskFlowCrashReporter
+import com.example.zhttaskflow.base.exception.TaskFlowDebugCrashReporter
 import com.example.zhttaskflow.core.util.isTaskFlowDebugLoggingEnabled
 import com.example.zhttaskflow.base.performance.TaskFlowDebugPerformanceReporter
 import com.example.zhttaskflow.base.performance.TaskFlowPerformanceReporter
@@ -35,6 +38,7 @@ import com.example.zhttaskflow.nav.route.TaskFlowRouteRegistry
  * |------|------|----------|
  * | [analyticsImpl] | Debug：[TaskFlowDebugAnalytics]；Release：[ReleaseTaskFlowAnalytics] | [TaskFlowBaseScaffold] → [LocalTaskFlowAnalytics] |
  * | [performanceImpl] | [TaskFlowDebugPerformanceReporter] | [TaskFlowBaseScaffold] → [LocalTaskFlowPerformance] |
+ * | [crashReporterImpl] | Debug：[TaskFlowDebugCrashReporter]；Release：[ReleaseTaskFlowCrashReporter] | [TaskFlowBaseScaffold] → [LocalTaskFlowCrashReporter] |
  * | [loginSessionImpl] | 内存 [TaskFlowLoginSession] | [LocalTaskFlowLoginSession] → 拦截链 |
  * | [deepLinkMapperImpl] | [TaskFlowDeepLinkRouteMapperImpl] 样板规则 | [LocalTaskFlowDeepLinkRouteMapper] → 拦截链 |
  *
@@ -57,6 +61,7 @@ fun AppMainShell(
     performanceImpl: TaskFlowPerformanceReporter? = null,
     loginSessionImpl: TaskFlowLoginSession? = null,
     deepLinkMapperImpl: TaskFlowDeepLinkRouteMapper? = null,
+    crashReporterImpl: TaskFlowCrashReporter? = null,
 ) {
     val navController = rememberNavController()
     val navBackStackEntry = navController.currentBackStackEntryAsState().value
@@ -67,6 +72,7 @@ fun AppMainShell(
     val performanceReporter = performanceImpl ?: TaskFlowDebugPerformanceReporter
     val loginSession = loginSessionImpl ?: remember { TaskFlowLoginSession() }
     val deepLinkMapper = deepLinkMapperImpl ?: rememberTaskFlowDeepLinkRouteMapper()
+    val crashReporter = crashReporterImpl ?: rememberAppShellCrashReporter()
 
     CompositionLocalProvider(
         LocalTaskFlowLoginSession provides loginSession,
@@ -79,6 +85,7 @@ fun AppMainShell(
             consumeStatusBarsInContent = false,
             analytics = analytics,
             performanceImpl = performanceReporter,
+            crashReporter = crashReporter,
             bottomBar = {
                 selectedTab?.let { tab ->
                     MainBottomNavigationBar(
@@ -98,6 +105,21 @@ fun AppMainShell(
                 routerInterceptorChain = routerInterceptorChain,
                 modifier = Modifier.fillMaxSize(),
             )
+        }
+    }
+}
+
+/**
+ * 应用壳默认崩溃上报：Debug 安装包走调试实现；Release 走 [ReleaseTaskFlowCrashReporter]（可经 [crashReporterImpl] 覆盖）。
+ */
+@Composable
+private fun rememberAppShellCrashReporter(): TaskFlowCrashReporter {
+    val context = LocalContext.current.applicationContext
+    return remember(context) {
+        if (isTaskFlowDebugLoggingEnabled()) {
+            TaskFlowDebugCrashReporter
+        } else {
+            ReleaseTaskFlowCrashReporter
         }
     }
 }
