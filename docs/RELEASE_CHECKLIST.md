@@ -13,17 +13,20 @@
 .\scripts\ci-verify.ps1
 ```
 
-或分步执行（与 CI 相同任务名）：
+脚本依次执行：`checkDependencyRules` → `clean :app:compileDebugKotlin` → `:app:lintVitalRelease` → 四个模块 `testDebugUnitTest`（并行）→ `:app:assembleRelease` → `verify-release-observability.ps1`。
+
+或分步执行（与 `ci-verify.ps1` / CI `verify` Job 相同）：
 
 ```bat
-.\gradlew.bat clean :app:compileDebugKotlin
-.\gradlew.bat :app:lintVitalRelease
-.\gradlew.bat :component_nav:testDebugUnitTest
-.\gradlew.bat :app:assembleRelease
-.\scripts\verify-release-observability.ps1
+.\gradlew.bat checkDependencyRules --no-daemon
+.\gradlew.bat clean :app:compileDebugKotlin --no-daemon
+.\gradlew.bat :app:lintVitalRelease --no-daemon
+.\gradlew.bat :component_nav:testDebugUnitTest :feature_article:testDebugUnitTest :feature_task:testDebugUnitTest :feature_log:testDebugUnitTest --no-daemon --parallel
+.\gradlew.bat :app:assembleRelease --no-daemon
+powershell -ExecutionPolicy Bypass -File .\scripts\verify-release-observability.ps1
 ```
 
-（若策略限制脚本，可用 `powershell -ExecutionPolicy Bypass -File .\scripts\verify-release-observability.ps1`。）
+（若策略限制脚本，最后一行可改为在 PowerShell 中 `cd` 到仓库根后执行 `.\scripts\verify-release-observability.ps1`。）
 
 ### Linux / macOS / Git Bash
 
@@ -35,12 +38,29 @@ bash scripts/ci-verify.sh
 
 | 步骤 | 命令（Windows） | 目的 |
 |------|-----------------|------|
-| 1 | `.\gradlew.bat clean :app:compileDebugKotlin` | 全量编译，类型与依赖正确 |
-| 2 | `.\gradlew.bat :app:lintVitalRelease` | Release 关键 Lint，违规阻断 |
-| 3 | `.\gradlew.bat :component_nav:testDebugUnitTest` | 路由门禁与深链核心单测 |
-| 4 | `.\gradlew.bat :app:assembleRelease` + `verify-release-observability.*` | Release 包内含生产可观测实现类 |
+| 0 | `.\gradlew.bat checkDependencyRules --no-daemon` | 组件化模块依赖红线（CI 独立 Job，本地脚本首步已包含） |
+| 1 | `.\gradlew.bat clean :app:compileDebugKotlin --no-daemon` | 全量编译，类型与依赖正确 |
+| 2 | `.\gradlew.bat :app:lintVitalRelease --no-daemon` | Release 关键 Lint；自定义三条规则为 **ERROR**，违规阻断 |
+| 3 | `.\gradlew.bat :component_nav:testDebugUnitTest :feature_article:testDebugUnitTest :feature_task:testDebugUnitTest :feature_log:testDebugUnitTest --no-daemon --parallel` | 路由门禁、深链与 Feature 核心 JVM 单测 |
+| 4 | `.\gradlew.bat :app:assembleRelease --no-daemon` + `verify-release-observability.ps1` | Release 包内含生产可观测实现类 |
+
+**Windows 单测仅跑某一模块时**（排障用，不替代步骤 3 全量）：
+
+```bat
+.\gradlew.bat :feature_log:testDebugUnitTest --no-daemon
+```
 
 Release 产物校验会检查 APK 的 `classes.dex` 是否包含：`ReleaseTaskFlowAnalytics`、`ReleaseTaskFlowPerformanceReporter`、`ReleaseTaskFlowCrashReporter`、`TaskFlowLocalLogStore`。
+
+### 可选：仪表化 E2E（本地，未进 CI）
+
+连接真机或模拟器且允许安装测试 APK 后：
+
+```bat
+.\gradlew.bat :app:connectedDebugAndroidTest --no-daemon
+```
+
+覆盖 `app/src/androidTest` 中导航与日志 Tab 冒烟；失败时查看 `app\build\reports\androidTests\connected\debug\index.html`。
 
 ---
 
@@ -137,6 +157,21 @@ adb shell am start -a android.intent.action.VIEW -d "taskflow://nav/route?target
 | 27 | 离线浏览已缓存/内存任务数据 | 列表/详情不依赖外网；错误态可重试 | ☐ |
 | 28 | 可观测日志写入 | 全程无网络，本地 `taskflow_observability/logs/` 仍可追加；**日志 Tab** 可查看（Release） | ☐ |
 
+### 3.6 日志 Tab 压测与大数据量（建议，Release 或 Debug 均可）
+
+在 **非产线常驻** 前提下，用于验证分页、筛选与导出在条目较多时仍可用（与 `TaskFlowLocalLogStore` 索引分页、`ExportLogsUseCase` 默认 `maxEntries = 2000` 一致）。
+
+| # | 场景 | 操作步骤 | 预期 | 通过 |
+|---|------|----------|------|------|
+| 29 | 积累样本 | 连续切换三 Tab、进入详情、下拉刷新资讯/任务、重复 3～5 分钟 | 日志 Tab 条目数明显增加（建议 **≥ 50** 条） | ☐ |
+| 30 | 列表滚动与加载更多 | 在日志 Tab 快速上下滑动；若出现「加载更多」则触发至无更多 | 无 ANR、无崩溃；滚动流畅；`hasMore=false` 后不再重复请求 | ☐ |
+| 31 | 筛选切换压测 | 快速连续切换 全部 → 埋点 → 性能 → 崩溃 → 全部（每类至少 3 次） | 列表与 Chip 选中态一致；无错序或空列表闪屏 | ☐ |
+| 32 | 下拉刷新 | 日志 Tab 下拉刷新 | 列表重载成功；筛选条件保持不变 | ☐ |
+| 33 | 导出上限与格式 | 「导出分享」→「导出全部日志」 | 生成 UTF-8 `.jsonl`；行数 **≤ 2000**（领域默认上限）；每行可解析为 JSON；抽样字段含 `logType`、`event` | ☐ |
+| 34 | 清空后恢复 | 压测后执行「清空日志」并确认，再浏览 App 产生新埋点 | 列表从空态恢复；新条目可筛选、可展开详情 | ☐ |
+
+可选自动化：本地执行 `.\gradlew.bat :app:connectedDebugAndroidTest`（需设备），覆盖导航与日志核心路径；**不替代**上表大数据量手动压测。
+
 ---
 
 ## 四、发布签字（可选）
@@ -152,5 +187,6 @@ adb shell am start -a android.intent.action.VIEW -d "taskflow://nav/route?target
 ## 五、相关文档
 
 - [ARCHITECTURE.md](ARCHITECTURE.md) — §8 可观测三联与五类注入  
-- [DEVELOPMENT.md](DEVELOPMENT.md) — Windows 构建与 `clean` 文件锁  
+- [DEVELOPMENT.md](DEVELOPMENT.md) — Windows 构建、CI 命令与单元测试分步  
 - [TASKFLOW_ROUTE_GATES.md](TASKFLOW_ROUTE_GATES.md) — 门禁与深链  
+- [TASKFLOW_CUSTOM_LINT.md](TASKFLOW_CUSTOM_LINT.md) — 自定义 Lint **ERROR** 与本地校验  

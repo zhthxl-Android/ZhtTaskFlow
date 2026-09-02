@@ -21,8 +21,10 @@
 | 编译 Debug Kotlin（集成壳） | `./gradlew :app:compileDebugKotlin` | `.\gradlew.bat :app:compileDebugKotlin` |
 | 打 Debug 包 | `./gradlew :app:assembleDebug` | `.\gradlew.bat :app:assembleDebug` |
 | 全量 clean 后编译 | `./gradlew clean :app:compileDebugKotlin` | `.\gradlew.bat clean :app:compileDebugKotlin` |
+| 模块依赖红线 | `./gradlew checkDependencyRules` | `.\gradlew.bat checkDependencyRules` |
 | 单 Feature 独立调试 AAR | `./gradlew :feature_task:assembleDebug` | `.\gradlew.bat :feature_task:assembleDebug` |
-| 路由模块单元测试 | `./gradlew :component_nav:testDebugUnitTest` | `.\gradlew.bat :component_nav:testDebugUnitTest` |
+| 路由 + Feature 单元测试（并行） | 见下文「单元测试」 | 见下文「单元测试」 |
+| 仪表化 E2E（需真机/模拟器） | `./gradlew :app:connectedDebugAndroidTest` | `.\gradlew.bat :app:connectedDebugAndroidTest` |
 | 停止 Gradle 守护进程 | `./gradlew --stop` | `.\gradlew.bat --stop` |
 
 **PowerShell 提示**
@@ -36,6 +38,83 @@
 cd /d D:\path\to\ZhtTaskFlow
 gradlew.bat :app:assembleDebug
 ```
+
+---
+
+## CI 全量校验命令（与 `.github/workflows/ci.yml` 一致）
+
+GitHub Actions 分为两个 Job，本地可用 `scripts/ci-verify.ps1` / `ci-verify.sh` 一次跑齐 **verify** 侧步骤；依赖红线可单独或脚本首步执行。
+
+| 顺序 | Gradle / 脚本 | CI Job | 说明 |
+|------|----------------|--------|------|
+| 1 | `checkDependencyRules` | `check-dependency-rules` | 组件化 `project()` 依赖红线 |
+| 2 | `clean :app:compileDebugKotlin` | `verify` | 集成壳 Debug 全量编译 |
+| 3 | `:app:lintVitalRelease` | `verify` | Release 关键 Lint（含自定义三条 **ERROR**） |
+| 4 | `:component_nav:testDebugUnitTest` + `:feature_article:testDebugUnitTest` + `:feature_task:testDebugUnitTest` + `:feature_log:testDebugUnitTest`（`--parallel`） | `verify` | 路由与 Feature 核心单测 |
+| 5 | `:app:assembleRelease` + `scripts/verify-release-observability.*` | `verify` | Release APK 与生产可观测类存在性 |
+
+**Windows 一键（推荐）**
+
+```powershell
+.\scripts\ci-verify.ps1
+```
+
+**Linux / macOS 一键**
+
+```bash
+bash scripts/ci-verify.sh
+```
+
+> `connectedDebugAndroidTest`（`app` 下 Compose 导航/日志冒烟）**未纳入**当前 CI；需在连接设备后本地执行，见下文。
+
+---
+
+## 单元测试（JVM `testDebugUnitTest`）
+
+### 覆盖范围
+
+| 模块 | 典型用例（`src/test`） | 关注点 |
+|------|------------------------|--------|
+| `:component_nav` | 深链解析、路由门禁、登录/权限拦截优先级 | 导航与拦截链契约 |
+| `:feature_article` | `ArticleDetailViewModelTest`、`ArticleListViewModelTest` | 资讯列表分页/刷新/Effect |
+| `:feature_task` | `TaskDetailViewModelTest`、`TaskListViewModelTest` | 任务列表同步、详情 MVI |
+| `:feature_log` | `LogViewModelTest`、`LogRepositoryTest`、`ExportLogsUseCaseTest` | 日志筛选、导出、仓库委托 |
+
+单测使用 **JUnit4 + MockK + kotlinx-coroutines-test**，不依赖 Android 框架；在 JVM 上运行，速度快，与 CI `verify` Job 对齐。
+
+### Windows 分步执行（PowerShell 或 CMD，仓库根目录）
+
+```bat
+:: 1. 可选：先过依赖红线（与 CI 首 Job 一致）
+.\gradlew.bat checkDependencyRules --no-daemon
+
+:: 2. 路由模块
+.\gradlew.bat :component_nav:testDebugUnitTest --no-daemon
+
+:: 3. 各 Feature（可合并为一条并行命令）
+.\gradlew.bat :feature_article:testDebugUnitTest :feature_task:testDebugUnitTest :feature_log:testDebugUnitTest --no-daemon --parallel
+
+:: 4. 与 CI 完全相同的单测一步（推荐）
+.\gradlew.bat :component_nav:testDebugUnitTest :feature_article:testDebugUnitTest :feature_task:testDebugUnitTest :feature_log:testDebugUnitTest --no-daemon --parallel
+```
+
+单模块调试示例：
+
+```bat
+.\gradlew.bat :feature_log:testDebugUnitTest --no-daemon
+```
+
+失败时查看 HTML 报告：`feature_<name>\build\reports\tests\testDebugUnitTest\index.html`。
+
+### 仪表化 E2E（可选，本地）
+
+需 Android 设备或模拟器，且允许安装测试 APK（部分机型需开启「USB 安装」）：
+
+```bat
+.\gradlew.bat :app:connectedDebugAndroidTest --no-daemon
+```
+
+用例位于 `app/src/androidTest`（导航 Tab/深链/登录门禁、日志 Tab 操作等）。
 
 ---
 
@@ -126,8 +205,14 @@ Remove-Item -Recurse -Force ".\app\build" -ErrorAction SilentlyContinue
 :: 发布前 Lint（Release 关键路径）
 .\gradlew.bat :app:lintVitalRelease
 
+:: 模块依赖红线
+.\gradlew.bat checkDependencyRules
+
 :: 单模块独立调试（以 feature_task 为例）
 .\gradlew.bat :feature_task:assembleDebug
+
+:: CI 对齐的单测（并行）
+.\gradlew.bat :component_nav:testDebugUnitTest :feature_article:testDebugUnitTest :feature_task:testDebugUnitTest :feature_log:testDebugUnitTest --parallel
 
 :: 需要全量清缓存且未遇到文件锁时
 .\gradlew.bat clean :app:compileDebugKotlin
