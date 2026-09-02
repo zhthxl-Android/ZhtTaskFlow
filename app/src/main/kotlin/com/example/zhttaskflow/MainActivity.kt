@@ -1,7 +1,6 @@
 package com.example.zhttaskflow
 
 import android.content.Intent
-import android.net.Uri
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -12,9 +11,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import com.example.zhttaskflow.navigation.AppMainShell
 import com.example.zhttaskflow.navigation.registerAppRoutes
-import com.example.zhttaskflow.nav.interceptor.TaskFlowRouteAuthMarker
-import com.example.zhttaskflow.nav.interceptor.TaskFlowRouteDeepLinkMarker
-import com.example.zhttaskflow.nav.interceptor.TaskFlowRoutePermissionMarker
+import com.example.zhttaskflow.nav.deeplink.TaskFlowDeepLinkNavigation
 import com.example.zhttaskflow.nav.rememberTaskFlowNavigator
 import com.example.zhttaskflow.nav.TaskFlowNavigator
 import com.example.zhttaskflow.nav.route.TaskFlowHomeNavRoutes
@@ -40,9 +37,8 @@ import com.example.zhttaskflow.nav.theme.TaskFlowTheme
  *
  * ## 门禁与内链一致
  *
- * [prepareDeepLinkNavigationRoute] 在 `navigate` 前对 `target` 施加与 RouteHost 相同的登录 / 权限标记（如任务详情），
- * 再经 [TaskFlowRouteDeepLinkMarker.wrap] 进入拦截链：深链 `200` → 权限 `150` → 登录 `100`。
- * 解析失败、未映射或拦截中止时由链上 UI 桥统一 Snackbar（Error），与内部跳转一致。
+ * [TaskFlowDeepLinkNavigation.prepareNavigationRoute] 在 `navigate` 前对 `target` 施加与 RouteHost 相同的登录 / 权限标记，
+ * 再经深链拦截链：深链 `200` → 权限 `150` → 登录 `100`。
  *
  * ## 接入说明
  *
@@ -97,29 +93,12 @@ class MainActivity : ComponentActivity() {
         enqueueDeepLinkFromIntent(intent)
     }
 
-    /**
-     * 从启动 / 唤起 Intent 解析深链；普通桌面启动返回 `null`，不改变默认首页。
-     */
     private fun enqueueDeepLinkFromIntent(intent: Intent?) {
-        val uri = extractDeepLinkUri(intent) ?: return
+        val uri = TaskFlowDeepLinkNavigation.extractDeepLinkUri(intent) ?: return
         pendingDeepLinkUri.value = uri
-    }
-
-    private fun extractDeepLinkUri(intent: Intent?): String? {
-        if (intent == null) {
-            return null
-        }
-        if (intent.action != Intent.ACTION_VIEW) {
-            return null
-        }
-        return intent.data?.toString()?.takeIf { it.isNotBlank() }
     }
 }
 
-/**
- * 在 [AppMainShell] 子树完成组合（拦截链已 [androidx.compose.runtime.SideEffect] 注入）后分发深链，
- * 保证与内部跳转共用 [TaskFlowNavigator.navigate] 与拦截链校验。
- */
 @Composable
 private fun MainActivityDeepLinkEffect(
     navigator: TaskFlowNavigator,
@@ -128,84 +107,7 @@ private fun MainActivityDeepLinkEffect(
 ) {
     LaunchedEffect(pendingUri) {
         val uri = pendingUri ?: return@LaunchedEffect
-        val route = prepareDeepLinkNavigationRoute(uri)
-        navigator.navigate(route)
+        navigator.navigate(TaskFlowDeepLinkNavigation.prepareNavigationRoute(uri))
         onDeepLinkConsumed()
     }
-}
-
-/**
- * 构造进入拦截链的导航 path：先对标准 `target` 叠加壳层门禁策略，再 [TaskFlowRouteDeepLinkMarker.wrap]。
- */
-internal fun prepareDeepLinkNavigationRoute(externalUri: String): String {
-    val enrichedUri = enrichExternalDeepLinkUri(externalUri.trim())
-    return TaskFlowRouteDeepLinkMarker.wrap(enrichedUri)
-}
-
-/**
- * 对 `taskflow://nav/route?target=...` 的 target 施加与业务 RouteHost 一致的门禁 query，其它 URI 原样返回（由深链拦截器校验）。
- */
-internal fun enrichExternalDeepLinkUri(externalUri: String): String {
-    val uri = runCatching { Uri.parse(externalUri) }.getOrNull() ?: return externalUri
-    val rawTarget = extractStandardDeepLinkTarget(uri) ?: return externalUri
-    val gatedTarget = applyShellRouteGatePolicy(rawTarget)
-    if (gatedTarget == rawTarget) {
-        return externalUri
-    }
-    return buildStandardDeepLinkUri(gatedTarget)
-}
-
-private fun extractStandardDeepLinkTarget(uri: Uri): String? {
-    if (uri.scheme != MainActivityDeepLinkConstants.SCHEME) {
-        return null
-    }
-    if (uri.host != MainActivityDeepLinkConstants.HOST_NAV) {
-        return null
-    }
-    if (uri.path != MainActivityDeepLinkConstants.PATH_ROUTE) {
-        return null
-    }
-    return uri.getQueryParameter(MainActivityDeepLinkConstants.QUERY_TARGET)
-        ?.let { target -> Uri.decode(target).takeIf { it.isNotBlank() } }
-}
-
-private fun buildStandardDeepLinkUri(encodedTargetPath: String): String {
-    val builder = Uri.Builder()
-        .scheme(MainActivityDeepLinkConstants.SCHEME)
-        .authority(MainActivityDeepLinkConstants.HOST_NAV)
-        .appendPath(MainActivityDeepLinkConstants.PATH_ROUTE.trimStart('/'))
-        .appendQueryParameter(
-            MainActivityDeepLinkConstants.QUERY_TARGET,
-            encodedTargetPath,
-        )
-    return builder.build().toString()
-}
-
-/**
- * 壳层路由门禁表：与 Feature RouteHost 在 `navigate` 前的标记策略对齐（新增页面在此扩展）。
- */
-private fun applyShellRouteGatePolicy(mappedRoute: String): String {
-    val pathOnly = mappedRoute.substringBefore('?')
-    if (!isTaskDetailNavigationPath(pathOnly)) {
-        return mappedRoute
-    }
-    return TaskFlowRoutePermissionMarker.withStoragePermission(
-        TaskFlowRouteAuthMarker.withNeedLogin(pathOnly),
-    )
-}
-
-private fun isTaskDetailNavigationPath(pathWithoutQuery: String): Boolean {
-    val expectedPrefix = "feature_task/detail/"
-    if (!pathWithoutQuery.startsWith(expectedPrefix)) {
-        return false
-    }
-    val taskId = pathWithoutQuery.removePrefix(expectedPrefix)
-    return taskId.isNotBlank() && !taskId.contains('/')
-}
-
-private object MainActivityDeepLinkConstants {
-    const val SCHEME: String = "taskflow"
-    const val HOST_NAV: String = "nav"
-    const val PATH_ROUTE: String = "/route"
-    const val QUERY_TARGET: String = "target"
 }

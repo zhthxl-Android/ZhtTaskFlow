@@ -10,10 +10,20 @@
         <activity
             android:name=".standalone.FeatureTaskDebugActivity"
             android:exported="true"
+            android:launchMode="singleTop"
             android:theme="@style/task_Theme.Standalone">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data
+                    android:host="nav"
+                    android:pathPrefix="/route"
+                    android:scheme="taskflow" />
             </intent-filter>
         </activity>
     </application>
