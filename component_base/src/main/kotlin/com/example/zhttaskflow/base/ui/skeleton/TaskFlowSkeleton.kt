@@ -35,26 +35,7 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.unit.Dp
-import androidx.compose.ui.unit.dp
 import com.example.zhttaskflow.base.ui.TaskFlowUiConstants
-
-/** 骨架屏视觉与动画令牌（颜色随 [MaterialTheme.colorScheme] 自动适配浅/深色）。 */
-object TaskFlowSkeletonDefaults {
-    val LineCornerRadius = 6.dp
-    val CardCornerRadius = 12.dp
-    val DetailBlockCornerRadius = 8.dp
-
-    val LineHeight = 14.dp
-    val TitleLineHeight = 18.dp
-    val AvatarSize = 48.dp
-
-    val ListCardHeight = 96.dp
-    val DetailHeroHeight = 180.dp
-
-    const val ShimmerAnimationDurationMs: Int = 1_200
-    const val ShimmerGradientWidthFraction: Float = 0.35f
-    const val DefaultListItemCount: Int = 6
-}
 
 @Immutable
 private data class TaskFlowSkeletonColors(
@@ -74,11 +55,11 @@ fun TaskFlowSkeletonContainer(
 ) {
     val transition = rememberInfiniteTransition(label = "taskflow_skeleton_shimmer")
     val offset by transition.animateFloat(
-        initialValue = -1f,
-        targetValue = 2f,
+        initialValue = TaskFlowUiConstants.SkeletonShimmerOffsetInitial,
+        targetValue = TaskFlowUiConstants.SkeletonShimmerOffsetTarget,
         animationSpec = infiniteRepeatable(
             animation = tween(
-                durationMillis = TaskFlowSkeletonDefaults.ShimmerAnimationDurationMs,
+                durationMillis = TaskFlowUiConstants.SkeletonShimmerAnimationDurationMs,
                 easing = LinearEasing,
             ),
             repeatMode = RepeatMode.Restart,
@@ -107,14 +88,16 @@ private fun Modifier.taskFlowSkeletonBackground(
 ): Modifier {
     val colors = taskFlowSkeletonColors()
     val phase = LocalTaskFlowSkeletonShimmerOffset.current
+    val travel = TaskFlowUiConstants.SkeletonShimmerGradientTravelPx
+    val band = TaskFlowUiConstants.SkeletonShimmerGradientBandPx
     val brush = Brush.linearGradient(
         colorStops = arrayOf(
             0f to colors.base,
             0.5f to colors.highlight,
             1f to colors.base,
         ),
-        start = Offset(x = phase * 800f, y = 0f),
-        end = Offset(x = phase * 800f + 400f, y = 0f),
+        start = Offset(x = phase * travel, y = 0f),
+        end = Offset(x = phase * travel + band, y = 0f),
     )
     return clip(shape).background(brush = brush)
 }
@@ -124,8 +107,8 @@ private fun Modifier.taskFlowSkeletonBackground(
 fun TaskFlowSkeletonLine(
     modifier: Modifier = Modifier,
     width: Dp = Dp.Unspecified,
-    height: Dp = TaskFlowSkeletonDefaults.LineHeight,
-    cornerRadius: Dp = TaskFlowSkeletonDefaults.LineCornerRadius,
+    height: Dp = TaskFlowUiConstants.SkeletonLineHeight,
+    cornerRadius: Dp = TaskFlowUiConstants.SkeletonLineCornerRadius,
 ) {
     val shape = RoundedCornerShape(cornerRadius)
     val lineModifier = if (width != Dp.Unspecified) {
@@ -145,8 +128,8 @@ fun TaskFlowSkeletonLine(
 fun TaskFlowSkeletonMultiline(
     lineCount: Int,
     modifier: Modifier = Modifier,
-    lineHeight: Dp = TaskFlowSkeletonDefaults.LineHeight,
-    lastLineWidthFraction: Float = 0.65f,
+    lineHeight: Dp = TaskFlowUiConstants.SkeletonLineHeight,
+    lastLineWidthFraction: Float = TaskFlowUiConstants.SkeletonMultilineLastLineWidthFraction,
     verticalSpacing: Dp = TaskFlowUiConstants.ListVerticalSpacing,
 ) {
     Column(
@@ -185,7 +168,7 @@ fun TaskFlowSkeletonCircle(
 fun TaskFlowSkeletonRect(
     modifier: Modifier = Modifier,
     height: Dp,
-    cornerRadius: Dp = TaskFlowSkeletonDefaults.CardCornerRadius,
+    cornerRadius: Dp = TaskFlowUiConstants.SkeletonCardCornerRadius,
 ) {
     Box(
         modifier = modifier
@@ -199,8 +182,8 @@ fun TaskFlowSkeletonRect(
 @Composable
 fun TaskFlowSkeletonCardRow(
     modifier: Modifier = Modifier,
-    avatarSize: Dp = TaskFlowSkeletonDefaults.AvatarSize,
-    textLines: Int = 3,
+    avatarSize: Dp = TaskFlowUiConstants.SkeletonAvatarSize,
+    textLines: Int = TaskFlowUiConstants.SkeletonCardRowTextLineCount,
 ) {
     Row(
         modifier = modifier.fillMaxWidth(),
@@ -230,12 +213,12 @@ enum class TaskFlowSkeletonTemplate {
 @Composable
 fun TaskFlowSkeletonListCardItem(
     modifier: Modifier = Modifier,
-    height: Dp = TaskFlowSkeletonDefaults.ListCardHeight,
+    height: Dp = TaskFlowUiConstants.SkeletonListCardHeight,
 ) {
     TaskFlowSkeletonRect(
         modifier = modifier,
         height = height,
-        cornerRadius = TaskFlowSkeletonDefaults.CardCornerRadius,
+        cornerRadius = TaskFlowUiConstants.SkeletonCardCornerRadius,
     )
 }
 
@@ -244,7 +227,7 @@ fun TaskFlowSkeletonListCardItem(
 fun TaskFlowSkeletonListTemplate(
     contentPadding: PaddingValues,
     modifier: Modifier = Modifier,
-    itemCount: Int = TaskFlowSkeletonDefaults.DefaultListItemCount,
+    itemCount: Int = TaskFlowUiConstants.SkeletonDefaultListItemCount,
     template: TaskFlowSkeletonTemplate = TaskFlowSkeletonTemplate.List,
 ) {
     TaskFlowSkeletonContainer(modifier = modifier) {
@@ -274,16 +257,19 @@ fun TaskFlowSkeletonDetailTemplate(
         verticalArrangement = Arrangement.spacedBy(TaskFlowUiConstants.PageHorizontalPadding),
     ) {
         TaskFlowSkeletonRect(
-            height = TaskFlowSkeletonDefaults.DetailHeroHeight,
-            cornerRadius = TaskFlowSkeletonDefaults.DetailBlockCornerRadius,
+            height = TaskFlowUiConstants.SkeletonDetailHeroHeight,
+            cornerRadius = TaskFlowUiConstants.SkeletonDetailBlockCornerRadius,
         )
         TaskFlowSkeletonLine(
-            height = TaskFlowSkeletonDefaults.TitleLineHeight,
-            width = 240.dp,
+            height = TaskFlowUiConstants.SkeletonTitleLineHeight,
+            width = TaskFlowUiConstants.SkeletonDetailTitleLineWidth,
         )
-        TaskFlowSkeletonMultiline(lineCount = 5)
+        TaskFlowSkeletonMultiline(lineCount = TaskFlowUiConstants.SkeletonDetailPrimaryMultilineCount)
         Spacer(modifier = Modifier.height(TaskFlowUiConstants.ListVerticalSpacing))
-        TaskFlowSkeletonMultiline(lineCount = 4, lastLineWidthFraction = 0.5f)
+        TaskFlowSkeletonMultiline(
+            lineCount = TaskFlowUiConstants.SkeletonDetailSecondaryMultilineCount,
+            lastLineWidthFraction = TaskFlowUiConstants.SkeletonDetailSecondaryMultilineLastLineWidthFraction,
+        )
     }
 }
 

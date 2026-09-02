@@ -45,7 +45,7 @@ import androidx.compose.ui.unit.dp
 import com.example.zhttaskflow.base.R
 import com.example.zhttaskflow.base.mvi.BaseUiState
 import com.example.zhttaskflow.base.theme.TaskFlowColors
-import com.example.zhttaskflow.base.ui.skeleton.TaskFlowSkeletonDefaults
+import com.example.zhttaskflow.base.ui.TaskFlowUiConstants
 import com.example.zhttaskflow.base.ui.skeleton.TaskFlowSkeletonListTemplate
 import com.example.zhttaskflow.base.ui.skeleton.TaskFlowSkeletonTemplate
 
@@ -439,7 +439,7 @@ fun <T> TaskFlowRefreshableList(
 fun TaskFlowListSkeletonLoading(
     listContentPadding: PaddingValues,
     modifier: Modifier = Modifier,
-    itemCount: Int = TaskFlowSkeletonDefaults.DefaultListItemCount,
+    itemCount: Int = TaskFlowUiConstants.SkeletonDefaultListItemCount,
     template: TaskFlowSkeletonTemplate = TaskFlowSkeletonTemplate.List,
 ) {
     TaskFlowSkeletonListTemplate(
@@ -456,7 +456,7 @@ fun TaskFlowListSkeletonLoading(
 @Composable
 fun rememberTaskFlowListSkeletonLoading(
     listContentPadding: PaddingValues,
-    itemCount: Int = TaskFlowSkeletonDefaults.DefaultListItemCount,
+    itemCount: Int = TaskFlowUiConstants.SkeletonDefaultListItemCount,
     template: TaskFlowSkeletonTemplate = TaskFlowSkeletonTemplate.List,
 ): @Composable (Modifier) -> Unit {
     return remember(listContentPadding, itemCount, template) {
@@ -490,7 +490,7 @@ fun <T> TaskFlowStatePaginatedListContent(
     ),
     emptyMessage: String = stringResource(id = R.string.base_str_empty),
     skeletonTemplate: TaskFlowSkeletonTemplate = TaskFlowSkeletonTemplate.List,
-    skeletonItemCount: Int = TaskFlowSkeletonDefaults.DefaultListItemCount,
+    skeletonItemCount: Int = TaskFlowUiConstants.SkeletonDefaultListItemCount,
     loading: @Composable (Modifier) -> Unit = { loadingModifier ->
         TaskFlowListSkeletonLoading(
             listContentPadding = listContentPadding,
@@ -540,7 +540,7 @@ fun <T> TaskFlowStateRefreshableListContent(
     ),
     emptyMessage: String = stringResource(id = R.string.base_str_empty),
     skeletonTemplate: TaskFlowSkeletonTemplate = TaskFlowSkeletonTemplate.List,
-    skeletonItemCount: Int = TaskFlowSkeletonDefaults.DefaultListItemCount,
+    skeletonItemCount: Int = TaskFlowUiConstants.SkeletonDefaultListItemCount,
     loading: @Composable (Modifier) -> Unit = { loadingModifier ->
         TaskFlowListSkeletonLoading(
             listContentPadding = listContentPadding,
