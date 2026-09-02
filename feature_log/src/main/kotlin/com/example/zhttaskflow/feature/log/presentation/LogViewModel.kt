@@ -7,6 +7,7 @@ import com.example.zhttaskflow.base.mvi.BaseUiState
 import com.example.zhttaskflow.base.mvi.BaseViewModel
 import com.example.zhttaskflow.feature.log.R
 import com.example.zhttaskflow.feature.log.domain.LogCategory
+import com.example.zhttaskflow.feature.log.domain.LogExportScope
 import com.example.zhttaskflow.feature.log.domain.LogEntry
 import com.example.zhttaskflow.feature.log.domain.LogQueryFilter
 import com.example.zhttaskflow.feature.log.domain.usecase.ClearLogsUseCase
@@ -64,7 +65,7 @@ internal class LogViewModel(
             }
             is LogUiEvent.EntryToggled -> toggleExpanded(event.entryId)
             LogUiEvent.LoadMore -> loadNextPage()
-            LogUiEvent.ExportRequested -> exportLogs()
+            is LogUiEvent.ExportConfirmed -> exportLogs(event.scope)
             LogUiEvent.ClearRequested -> {
                 // 二次确认在 Screen 层完成
             }
@@ -192,7 +193,7 @@ internal class LogViewModel(
         }
     }
 
-    private fun exportLogs() {
+    private fun exportLogs(scope: LogExportScope) {
         launchTask(
             tag = "LogViewModel",
             scene = "exportLogs",
@@ -207,7 +208,8 @@ internal class LogViewModel(
             },
         ) {
             val exportFile = exportLogsUseCase(
-                filter = currentFilter.toQueryFilter(),
+                listFilter = currentFilter.toQueryFilter(),
+                scope = scope,
                 maxEntries = LOG_EXPORT_MAX_ENTRIES,
             )
             val chooserTitle = appContext.getString(R.string.log_str_export_share_title)

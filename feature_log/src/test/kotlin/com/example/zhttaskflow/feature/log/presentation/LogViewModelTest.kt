@@ -3,6 +3,7 @@ package com.example.zhttaskflow.feature.log.presentation
 import android.util.Log
 import com.example.zhttaskflow.base.mvi.BaseUiState
 import com.example.zhttaskflow.feature.log.domain.LogCategory
+import com.example.zhttaskflow.feature.log.domain.LogExportScope
 import com.example.zhttaskflow.feature.log.domain.LogEntry
 import com.example.zhttaskflow.feature.log.domain.LogPage
 import com.example.zhttaskflow.feature.log.domain.LogQueryFilter
@@ -77,7 +78,7 @@ class LogViewModelTest {
     }
 
     @Test
-    fun export_usesCurrentFilter() = viewModelTest {
+    fun export_currentFilter_usesListFilter() = viewModelTest {
         coEvery {
             logRepository.queryPaged(any(), any(), any())
         } returns LogPage(entries = emptyList(), hasMore = false)
@@ -89,10 +90,30 @@ class LogViewModelTest {
         advanceUntilIdle()
         viewModel.onEvent(LogUiEvent.FilterSelected(LogTypeFilter.CRASH))
         advanceUntilIdle()
-        viewModel.onEvent(LogUiEvent.ExportRequested)
+        viewModel.onEvent(LogUiEvent.ExportConfirmed(LogExportScope.CURRENT_FILTER))
         advanceUntilIdle()
         coVerify {
             logRepository.exportLogs(LogQueryFilter(logType = LogCategory.CRASH), 2_000)
+        }
+    }
+
+    @Test
+    fun export_all_ignoresTypeFilter() = viewModelTest {
+        coEvery {
+            logRepository.queryPaged(any(), any(), any())
+        } returns LogPage(entries = emptyList(), hasMore = false)
+        val exportFile = File.createTempFile("log_export", ".jsonl")
+        coEvery {
+            logRepository.exportLogs(LogQueryFilter(logType = null), 2_000)
+        } returns exportFile
+        val viewModel = createViewModel()
+        advanceUntilIdle()
+        viewModel.onEvent(LogUiEvent.FilterSelected(LogTypeFilter.CRASH))
+        advanceUntilIdle()
+        viewModel.onEvent(LogUiEvent.ExportConfirmed(LogExportScope.ALL_LOGS))
+        advanceUntilIdle()
+        coVerify {
+            logRepository.exportLogs(LogQueryFilter(logType = null), 2_000)
         }
     }
 

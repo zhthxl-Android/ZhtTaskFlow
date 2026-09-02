@@ -30,6 +30,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.core.content.FileProvider
 import com.example.zhttaskflow.base.ext.SnackbarType
+import com.example.zhttaskflow.base.ext.TaskFlowDialogController
 import com.example.zhttaskflow.base.ext.rememberTaskFlowDialogController
 import com.example.zhttaskflow.base.ext.rememberTaskFlowSnackbarDispatcher
 import com.example.zhttaskflow.base.ext.showSnackbar
@@ -42,6 +43,7 @@ import com.example.zhttaskflow.base.ui.extension.logUiInteraction
 import com.example.zhttaskflow.base.ui.extension.logUiOutcome
 import com.example.zhttaskflow.base.ui.rememberTaskFlowStateBoxContentPadding
 import com.example.zhttaskflow.base.ui.state.BaseEmptyScreen
+import com.example.zhttaskflow.feature.log.domain.LogExportScope
 import com.example.zhttaskflow.feature.log.R
 
 /**
@@ -77,6 +79,10 @@ internal fun LogScreen(
     val confirmText = stringResource(id = R.string.log_str_confirm)
     val dismissText = stringResource(id = R.string.log_str_cancel)
     val emptyMessage = stringResource(id = R.string.log_str_empty)
+    val exportDialogTitle = stringResource(id = R.string.log_str_export_dialog_title)
+    val exportDialogMessage = stringResource(id = R.string.log_str_export_dialog_message)
+    val exportScopeFiltered = stringResource(id = R.string.log_str_export_scope_filtered)
+    val exportScopeAll = stringResource(id = R.string.log_str_export_scope_all)
 
     LaunchedEffect(viewModel, snackbarDispatcher, context) {
         viewModel.uiEffect.collect { effect ->
@@ -100,7 +106,17 @@ internal fun LogScreen(
                         identifier = "log_export",
                         pageId = LOG_PAGE_ID,
                     )
-                    viewModel.onEvent(LogUiEvent.ExportRequested)
+                    showLogExportDialog(
+                        dialogController = dialogController,
+                        title = exportDialogTitle,
+                        message = exportDialogMessage,
+                        filteredLabel = exportScopeFiltered,
+                        allLabel = exportScopeAll,
+                        cancelLabel = dismissText,
+                        onScopeSelected = { scope ->
+                            viewModel.onEvent(LogUiEvent.ExportConfirmed(scope))
+                        },
+                    )
                 },
             ) {
                 Text(text = stringResource(id = R.string.log_str_export))
@@ -190,6 +206,61 @@ internal fun LogScreen(
                         viewModel.onEvent(LogUiEvent.EntryToggled(entryId))
                     },
                 )
+            }
+        }
+    }
+}
+
+/**
+ * 导出范围选择：默认推荐「当前筛选结果」（置于首位）。
+ */
+private fun showLogExportDialog(
+    dialogController: TaskFlowDialogController,
+    title: String,
+    message: String,
+    filteredLabel: String,
+    allLabel: String,
+    cancelLabel: String,
+    onScopeSelected: (LogExportScope) -> Unit,
+) {
+    dialogController.showBottomSheet {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 20.dp, vertical = 12.dp),
+        ) {
+            Text(
+                text = title,
+                style = MaterialTheme.typography.titleLarge,
+            )
+            Text(
+                text = message,
+                style = MaterialTheme.typography.bodyMedium,
+                modifier = Modifier.padding(top = 8.dp, bottom = 12.dp),
+            )
+            TextButton(
+                onClick = {
+                    dialogController.dismissAll()
+                    onScopeSelected(LogExportScope.CURRENT_FILTER)
+                },
+                modifier = Modifier.fillMaxWidth(),
+            ) {
+                Text(text = filteredLabel)
+            }
+            TextButton(
+                onClick = {
+                    dialogController.dismissAll()
+                    onScopeSelected(LogExportScope.ALL_LOGS)
+                },
+                modifier = Modifier.fillMaxWidth(),
+            ) {
+                Text(text = allLabel)
+            }
+            TextButton(
+                onClick = { dialogController.dismissAll() },
+                modifier = Modifier.fillMaxWidth(),
+            ) {
+                Text(text = cancelLabel)
             }
         }
     }

@@ -15,6 +15,10 @@
     <string name="log_str_empty">暂无日志</string>
     <string name="log_str_clear_success">已清空本地日志</string>
     <string name="log_str_export_share_title">分享 TaskFlow 可观测日志</string>
+    <string name="log_str_export_dialog_title">导出日志</string>
+    <string name="log_str_export_dialog_message">请选择要导出的日志范围。</string>
+    <string name="log_str_export_scope_filtered">导出当前筛选结果</string>
+    <string name="log_str_export_scope_all">导出全部日志</string>
     <string name="log_str_entry_page_id">页面：%1$s</string>
     <string name="log_str_entry_action_id">动作：%1$s</string>
     <string name="log_str_entry_type">类型：%1$s</string>
