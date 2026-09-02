@@ -12,7 +12,6 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -243,49 +242,6 @@ fun TaskFlowSkeletonListTemplate(
                     TaskFlowSkeletonTemplate.Detail -> TaskFlowSkeletonListCardItem()
                 }
             }
-        }
-    }
-}
-
-/** 详情页骨架：封面 + 标题行 + 多行正文。 */
-@Composable
-fun TaskFlowSkeletonDetailTemplate(
-    modifier: Modifier = Modifier,
-) {
-    Column(
-        modifier = modifier.fillMaxWidth(),
-        verticalArrangement = Arrangement.spacedBy(TaskFlowUiConstants.PageHorizontalPadding),
-    ) {
-        TaskFlowSkeletonRect(
-            height = TaskFlowUiConstants.SkeletonDetailHeroHeight,
-            cornerRadius = TaskFlowUiConstants.SkeletonDetailBlockCornerRadius,
-        )
-        TaskFlowSkeletonLine(
-            height = TaskFlowUiConstants.SkeletonTitleLineHeight,
-            width = TaskFlowUiConstants.SkeletonDetailTitleLineWidth,
-        )
-        TaskFlowSkeletonMultiline(lineCount = TaskFlowUiConstants.SkeletonDetailPrimaryMultilineCount)
-        Spacer(modifier = Modifier.height(TaskFlowUiConstants.ListVerticalSpacing))
-        TaskFlowSkeletonMultiline(
-            lineCount = TaskFlowUiConstants.SkeletonDetailSecondaryMultilineCount,
-            lastLineWidthFraction = TaskFlowUiConstants.SkeletonDetailSecondaryMultilineLastLineWidthFraction,
-        )
-    }
-}
-
-/** 详情页全屏骨架（含扫光容器）。 */
-@Composable
-fun TaskFlowSkeletonDetailScreen(
-    contentPadding: PaddingValues,
-    modifier: Modifier = Modifier,
-) {
-    TaskFlowSkeletonContainer(modifier = modifier) {
-        Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(contentPadding),
-        ) {
-            TaskFlowSkeletonDetailTemplate()
         }
     }
 }

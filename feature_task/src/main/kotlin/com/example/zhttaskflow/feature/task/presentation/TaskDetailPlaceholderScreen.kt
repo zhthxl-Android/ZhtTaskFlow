@@ -38,6 +38,7 @@ import com.example.zhttaskflow.base.ui.extension.logUiInteraction
 import com.example.zhttaskflow.base.ui.extension.logUiOutcome
 import com.example.zhttaskflow.base.ui.icon.TaskFlowIcons
 import com.example.zhttaskflow.base.ui.rememberTaskFlowStateBoxContentPadding
+import com.example.zhttaskflow.base.ui.skeleton.rememberTaskFlowDetailSkeletonLoading
 import com.example.zhttaskflow.feature.task.R
 import com.example.zhttaskflow.feature.task.domain.Task
 import com.example.zhttaskflow.feature.task.domain.TaskAttachment
@@ -77,6 +78,7 @@ fun TaskDetailPlaceholderScreen(
         is BaseUiState.Error -> "error"
         is BaseUiState.Empty -> "empty"
     }
+    val detailSkeletonLoading = rememberTaskFlowDetailSkeletonLoading()
 
     LaunchedEffect(taskId) {
         viewModel.onEvent(TaskDetailUiEvent.Load(taskId))
@@ -146,6 +148,7 @@ fun TaskDetailPlaceholderScreen(
                 viewModel.onEvent(TaskDetailUiEvent.Retry)
             },
             emptyMessage = emptyMessage,
+            loading = detailSkeletonLoading,
             contentPadding = rememberTaskFlowStateBoxContentPadding(),
             modifier = Modifier.fillMaxSize(),
         ) { data ->

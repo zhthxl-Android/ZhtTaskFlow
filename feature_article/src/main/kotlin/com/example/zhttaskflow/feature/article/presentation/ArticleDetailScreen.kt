@@ -29,6 +29,7 @@ import com.example.zhttaskflow.base.ui.StateBox
 import com.example.zhttaskflow.base.ui.TaskFlowScaffold
 import com.example.zhttaskflow.base.ui.icon.TaskFlowIcons
 import com.example.zhttaskflow.base.ui.rememberTaskFlowStateBoxContentPadding
+import com.example.zhttaskflow.base.ui.skeleton.rememberTaskFlowDetailSkeletonLoading
 import com.example.zhttaskflow.base.ui.extension.PageLifecycleLog
 import com.example.zhttaskflow.base.ui.extension.logUiInteraction
 import com.example.zhttaskflow.feature.article.R
@@ -61,6 +62,7 @@ fun ArticleDetailScreen(
         is BaseUiState.Error -> "error"
         is BaseUiState.Empty -> "empty"
     }
+    val detailSkeletonLoading = rememberTaskFlowDetailSkeletonLoading()
 
     LaunchedEffect(articleId, detailUrl) {
         viewModel.onEvent(ArticleDetailUiEvent.Load(articleId = articleId, detailUrl = detailUrl))
@@ -119,6 +121,7 @@ fun ArticleDetailScreen(
                 viewModel.onEvent(ArticleDetailUiEvent.Retry)
             },
             emptyMessage = emptyMessage,
+            loading = detailSkeletonLoading,
             contentPadding = rememberTaskFlowStateBoxContentPadding(),
             modifier = Modifier.fillMaxSize(),
         ) { data ->
