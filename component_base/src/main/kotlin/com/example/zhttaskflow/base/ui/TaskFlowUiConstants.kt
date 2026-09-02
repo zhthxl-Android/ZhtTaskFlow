@@ -9,8 +9,8 @@ import androidx.compose.ui.unit.dp
  * 业务与基础组件禁止硬编码相同语义的 `dp` 值，应引用本 object。
  */
 object TaskFlowUiConstants {
-    /** 顶栏内容区高度（一级 [TaskFlowListScaffold]、二级 [TaskFlowScaffold] 共用）。 */
-    val PageTitleBarHeight = 48.dp
+    /** 顶栏内容区高度（一级 [TaskFlowListScaffold]、二级 [TaskFlowScaffold] / [TaskFlowTopBar] 共用）。 */
+    val TopBarHeight = 48.dp
 
     /** 页面/列表水平内边距。 */
     val PageHorizontalPadding = 16.dp

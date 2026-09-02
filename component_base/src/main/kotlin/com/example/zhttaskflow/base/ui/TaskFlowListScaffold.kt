@@ -93,7 +93,7 @@ fun TaskFlowListScaffold(
     val collapseEnabled = collapsibleTopBarOnScroll
     val collapseIncludesStatusBar = collapseEnabled && !immersiveActive
     val topBarContentHeight = if (topBarShouldCompose) {
-        TaskFlowUiConstants.PageTitleBarHeight
+        TaskFlowUiConstants.TopBarHeight
     } else {
         0.dp
     }

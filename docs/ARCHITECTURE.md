@@ -92,7 +92,7 @@
 | 列表状态 | `StateBox` + `TaskFlowStateRefreshableListContent` 等 | contentPadding 用 `rememberTaskFlowStateBoxContentPadding` |
 | 表单键盘 | `rememberTaskFlowImePadding` | 弹窗内 `taskFlowImePadding` |
 
-`TaskFlowPageTitleBar` 状态 **待清理**（历史顶栏兼容封装，禁止新引用；工程内已移除独立源码时以 `TaskFlowTopBar` / `TaskFlowListScaffold` 为准；尺寸常量仍见 `TaskFlowUiConstants.PageTitleBarHeight`，后续可重命名）。
+顶栏统一使用 [TaskFlowTopBar](component_base/src/main/kotlin/com/example/zhttaskflow/base/ui/TaskFlowTopBar.kt) / `TaskFlowListScaffold`；历史 `TaskFlowPageTitleBar` 已自源码移除，尺寸见 `TaskFlowUiConstants.TopBarHeight`。
 
 ## 10. 二级页返回规范
 

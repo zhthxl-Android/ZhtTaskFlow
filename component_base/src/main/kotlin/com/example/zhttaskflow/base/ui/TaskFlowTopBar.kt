@@ -115,7 +115,7 @@ fun TaskFlowTopBar(
 
     trailing: (@Composable RowScope.() -> Unit)? = null,
 
-    barHeight: Dp = TaskFlowUiConstants.PageTitleBarHeight,
+    barHeight: Dp = TaskFlowUiConstants.TopBarHeight,
 
     titlePosition: TaskFlowTopBarTitlePosition = TaskFlowTopBarTitlePosition.Start,
 
