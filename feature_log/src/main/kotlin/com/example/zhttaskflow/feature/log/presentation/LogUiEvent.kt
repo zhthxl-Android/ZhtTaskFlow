@@ -14,6 +14,9 @@ sealed interface LogUiEvent : BaseUiEvent {
     /** StateBox 错误态重试。 */
     data object Retry : LogUiEvent
 
+    /** 下拉刷新当前筛选下的日志列表。 */
+    data object Refresh : LogUiEvent
+
     /** 切换顶部类型筛选。 */
     data class FilterSelected(val filter: LogTypeFilter) : LogUiEvent
 

@@ -9,6 +9,7 @@ data class LogData(
     val expandedEntryIds: Set<String>,
     val hasMore: Boolean = false,
     val isLoadingMore: Boolean = false,
+    val isRefreshing: Boolean = false,
 )
 
 /**

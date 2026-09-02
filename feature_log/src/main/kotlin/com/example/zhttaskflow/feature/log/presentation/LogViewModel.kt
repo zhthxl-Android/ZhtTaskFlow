@@ -56,6 +56,7 @@ internal class LogViewModel(
             LogUiEvent.Load,
             LogUiEvent.Retry,
             -> loadFirstPage()
+            LogUiEvent.Refresh -> loadFirstPage(showLoading = false, isRefresh = true)
             is LogUiEvent.FilterSelected -> {
                 if (currentFilter != event.filter) {
                     currentFilter = event.filter
@@ -73,17 +74,19 @@ internal class LogViewModel(
         }
     }
 
-    private fun loadFirstPage(showLoading: Boolean = true) {
+    private fun loadFirstPage(showLoading: Boolean = true, isRefresh: Boolean = false) {
         loadedPageCount = 0
         hasMorePages = false
-        if (showLoading) {
-            setState { BaseUiState.Loading }
+        when {
+            showLoading && !isRefresh -> setState { BaseUiState.Loading }
+            isRefresh -> applyRefreshingFlag(isRefreshing = true)
         }
         launchTask(
             tag = "LogViewModel",
             scene = "loadFirstPage",
             precheckNetwork = false,
             onError = { _, userMessage ->
+                applyRefreshingFlag(isRefreshing = false)
                 setState { BaseUiState.Error(userMessage) }
             },
         ) {
@@ -92,7 +95,13 @@ internal class LogViewModel(
                 page = 0,
                 pageSize = LOG_PAGE_SIZE,
             )
-            applyPageResult(pageResult.entries, pageResult.hasMore, append = false, showLoading = showLoading)
+            applyPageResult(
+                newEntries = pageResult.entries,
+                hasMore = pageResult.hasMore,
+                append = false,
+                showLoading = showLoading,
+                isRefresh = isRefresh,
+            )
         }
     }
 
@@ -123,7 +132,34 @@ internal class LogViewModel(
                 page = nextPage,
                 pageSize = LOG_PAGE_SIZE,
             )
-            applyPageResult(pageResult.entries, pageResult.hasMore, append = true, showLoading = false)
+            applyPageResult(
+                newEntries = pageResult.entries,
+                hasMore = pageResult.hasMore,
+                append = true,
+                showLoading = false,
+                isRefresh = false,
+            )
+        }
+    }
+
+    private fun applyRefreshingFlag(isRefreshing: Boolean) {
+        when (val state = currentState) {
+            is BaseUiState.Success -> {
+                setState { BaseUiState.Success(state.data.copy(isRefreshing = isRefreshing)) }
+            }
+            BaseUiState.Empty -> {
+                setState {
+                    BaseUiState.Success(
+                        LogData(
+                            filter = currentFilter,
+                            entries = emptyList(),
+                            expandedEntryIds = emptySet(),
+                            isRefreshing = isRefreshing,
+                        ),
+                    )
+                }
+            }
+            else -> Unit
         }
     }
 
@@ -132,6 +168,7 @@ internal class LogViewModel(
         hasMore: Boolean,
         append: Boolean,
         @Suppress("UNUSED_PARAMETER") showLoading: Boolean,
+        @Suppress("UNUSED_PARAMETER") isRefresh: Boolean,
     ) {
         isLoadingMore = false
         val previousIds = if (append) {
@@ -159,7 +196,7 @@ internal class LogViewModel(
         }
         hasMorePages = hasMore
         val entries = mergedRecords.map { record -> mapRecordToUi(record) }
-        val data = buildLogData(entries)
+        val data = buildLogData(entries).copy(isRefreshing = false)
         setState {
             when {
                 entries.isEmpty() && !append -> BaseUiState.Empty
