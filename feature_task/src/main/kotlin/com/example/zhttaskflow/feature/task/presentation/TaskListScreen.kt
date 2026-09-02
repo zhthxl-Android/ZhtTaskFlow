@@ -38,7 +38,6 @@ import com.example.zhttaskflow.base.ui.TaskFlowListScaffold
 import com.example.zhttaskflow.base.ui.TaskFlowRefreshableListPayload
 import com.example.zhttaskflow.base.ui.TaskFlowStateRefreshableListContent
 import com.example.zhttaskflow.base.ui.TaskFlowUiConstants
-import com.example.zhttaskflow.base.ui.dialog.TaskFlowConfirmDialog
 import com.example.zhttaskflow.base.ui.extension.PageLifecycleLog
 import com.example.zhttaskflow.base.ui.extension.logUiInteraction
 import com.example.zhttaskflow.base.ui.rememberTaskFlowImePadding
@@ -61,7 +60,7 @@ fun TaskListScreen(
     modifier: Modifier = Modifier,
 ) {
     val uiState by viewModel.uiState.collectUiStateWithLifecycle()
-    var showAddDialog by remember { mutableStateOf(false) }
+    val addTaskFormState = remember { AddTaskFormState() }
     val lifecycleArgs = when (val state = uiState) {
         is BaseUiState.Success -> "count=${state.data.tasks.size}"
         is BaseUiState.Loading -> "loading"
@@ -76,6 +75,9 @@ fun TaskListScreen(
 
     val dialogController = rememberTaskFlowDialogController()
     val snackbarDispatcher = rememberTaskFlowSnackbarDispatcher()
+    val addDialogTitle = stringResource(id = R.string.task_str_dialog_title)
+    val addDialogConfirmText = stringResource(id = R.string.task_str_confirm)
+    val addDialogDismissText = stringResource(id = R.string.task_str_cancel)
 
     TaskFlowListScaffold(
         modifier = modifier,
@@ -116,7 +118,24 @@ fun TaskListScreen(
             FloatingActionButton(
                 onClick = {
                     logUiInteraction(action = "click", identifier = "task_list_fab_add")
-                    showAddDialog = true
+                    addTaskFormState.reset()
+                    dialogController.showConfirmDialog(
+                        title = addDialogTitle,
+                        confirmText = addDialogConfirmText,
+                        dismissText = addDialogDismissText,
+                        onDismiss = { addTaskFormState.reset() },
+                        onConfirm = {
+                            viewModel.onEvent(
+                                TaskUiEvent.AddTask(
+                                    title = addTaskFormState.title,
+                                    content = addTaskFormState.content,
+                                ),
+                            )
+                            addTaskFormState.reset()
+                        },
+                    ) {
+                        AddTaskDialogFormContent(formState = addTaskFormState)
+                    }
                 },
             ) {
                 Text(text = "+")
@@ -151,15 +170,15 @@ fun TaskListScreen(
             },
         )
     }
+}
 
-    if (showAddDialog) {
-        AddTaskDialog(
-            onDismiss = { showAddDialog = false },
-            onConfirm = { title, content ->
-                showAddDialog = false
-                viewModel.onEvent(TaskUiEvent.AddTask(title = title, content = content))
-            },
-        )
+private class AddTaskFormState {
+    var title by mutableStateOf("")
+    var content by mutableStateOf("")
+
+    fun reset() {
+        title = ""
+        content = ""
     }
 }
 
@@ -289,45 +308,34 @@ private fun TaskListItem(
 }
 
 @Composable
-private fun AddTaskDialog(
-    onDismiss: () -> Unit,
-    onConfirm: (title: String, content: String) -> Unit,
+private fun AddTaskDialogFormContent(
+    formState: AddTaskFormState,
 ) {
-    var title by remember { mutableStateOf("") }
-    var content by remember { mutableStateOf("") }
     val imePadding = rememberTaskFlowImePadding(mode = TaskFlowImeAvoidanceMode.BringIntoView)
 
-    TaskFlowConfirmDialog(
-        title = stringResource(id = R.string.task_str_dialog_title),
-        onDismiss = onDismiss,
-        onConfirm = { onConfirm(title, content) },
-        confirmText = stringResource(id = R.string.task_str_confirm),
-        dismissText = stringResource(id = R.string.task_str_cancel),
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .taskFlowImePadding(imePadding),
+        verticalArrangement = Arrangement.spacedBy(TaskFlowUiConstants.ListVerticalSpacing),
     ) {
-        Column(
+        OutlinedTextField(
+            value = formState.title,
+            onValueChange = { formState.title = it },
+            label = { Text(text = stringResource(id = R.string.task_str_field_title)) },
+            singleLine = true,
             modifier = Modifier
                 .fillMaxWidth()
-                .taskFlowImePadding(imePadding),
-            verticalArrangement = Arrangement.spacedBy(TaskFlowUiConstants.ListVerticalSpacing),
-        ) {
-            OutlinedTextField(
-                value = title,
-                onValueChange = { title = it },
-                label = { Text(text = stringResource(id = R.string.task_str_field_title)) },
-                singleLine = true,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .taskFlowImeBringIntoViewOnFocus(),
-            )
-            OutlinedTextField(
-                value = content,
-                onValueChange = { content = it },
-                label = { Text(text = stringResource(id = R.string.task_str_field_content)) },
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .taskFlowImeBringIntoViewOnFocus(),
-            )
-        }
+                .taskFlowImeBringIntoViewOnFocus(),
+        )
+        OutlinedTextField(
+            value = formState.content,
+            onValueChange = { formState.content = it },
+            label = { Text(text = stringResource(id = R.string.task_str_field_content)) },
+            modifier = Modifier
+                .fillMaxWidth()
+                .taskFlowImeBringIntoViewOnFocus(),
+        )
     }
 }
 

@@ -28,6 +28,18 @@ sealed interface TaskFlowDialogPresentation {
         val onDismiss: () -> Unit = {},
     ) : TaskFlowDialogPresentation
 
+    /**
+     * 带自定义正文（如表单）的确认弹窗，由 [TaskFlowDialogHost] 渲染与纯文案 [Confirm] 一致的 [TaskFlowConfirmDialog] 样式。
+     */
+    data class ConfirmWithContent(
+        val title: String,
+        val confirmText: String? = null,
+        val dismissText: String? = null,
+        val onConfirm: () -> Unit = {},
+        val onDismiss: () -> Unit = {},
+        val content: @Composable () -> Unit,
+    ) : TaskFlowDialogPresentation
+
     data class BottomSheet(
         val onDismiss: () -> Unit = {},
         val content: @Composable ColumnScope.() -> Unit,
@@ -57,6 +69,27 @@ class TaskFlowDialogController internal constructor() {
             dismissText = dismissText,
             onConfirm = onConfirm,
             onDismiss = onDismiss,
+        )
+    }
+
+    /**
+     * 展示带自定义正文的确认弹窗（样式与 [showConfirmDialog] 一致，纳入同一全局队列）。
+     */
+    fun showConfirmDialog(
+        title: String,
+        confirmText: String? = null,
+        dismissText: String? = null,
+        onConfirm: () -> Unit = {},
+        onDismiss: () -> Unit = {},
+        content: @Composable () -> Unit,
+    ) {
+        presentation = TaskFlowDialogPresentation.ConfirmWithContent(
+            title = title,
+            confirmText = confirmText,
+            dismissText = dismissText,
+            onConfirm = onConfirm,
+            onDismiss = onDismiss,
+            content = content,
         )
     }
 

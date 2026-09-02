@@ -26,6 +26,22 @@ internal fun TaskFlowDialogHost(controller: TaskFlowDialogController) {
                 },
             )
         }
+        is TaskFlowDialogPresentation.ConfirmWithContent -> {
+            TaskFlowConfirmDialog(
+                title = presentation.title,
+                confirmText = presentation.confirmText,
+                dismissText = presentation.dismissText,
+                onConfirm = {
+                    presentation.onConfirm()
+                    controller.dismissAll()
+                },
+                onDismiss = {
+                    presentation.onDismiss()
+                    controller.dismissAll()
+                },
+                content = presentation.content,
+            )
+        }
         is TaskFlowDialogPresentation.BottomSheet -> {
             TaskFlowBottomSheet(
                 onDismissRequest = {
