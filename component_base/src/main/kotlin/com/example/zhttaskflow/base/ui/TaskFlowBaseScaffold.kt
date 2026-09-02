@@ -19,7 +19,9 @@ import androidx.compose.ui.Modifier
 import com.example.zhttaskflow.base.analytics.TaskFlowAnalytics
 import com.example.zhttaskflow.base.analytics.TaskFlowAnalyticsCompositionRoot
 import com.example.zhttaskflow.base.analytics.rememberTaskFlowDebugAnalytics
+import com.example.zhttaskflow.base.performance.TaskFlowDebugPerformanceReporter
 import com.example.zhttaskflow.base.performance.TaskFlowPerformanceCompositionRoot
+import com.example.zhttaskflow.base.performance.TaskFlowPerformanceReporter
 import com.example.zhttaskflow.base.performance.TaskFlowPerformanceScaffoldBindings
 import com.example.zhttaskflow.base.performance.rememberTaskFlowDebugPerformance
 import com.example.zhttaskflow.base.performance.rememberTaskFlowPerformance
@@ -73,6 +75,7 @@ internal fun taskFlowParentGlobalHostsOrNull(): TaskFlowScaffoldGlobalHosts? {
  * 独立调试等无外层宿主场景下，本组件自动降级为本地宿主创建模式。
  *
  * @param analytics 壳层注入的埋点实现；为 `null` 时使用 [com.example.zhttaskflow.base.analytics.rememberTaskFlowDebugAnalytics]。
+ * @param performanceImpl 壳层注入的 APM 实现；为 `null` 时使用 [TaskFlowDebugPerformanceReporter] 经 [com.example.zhttaskflow.base.performance.rememberTaskFlowDebugPerformance] 装配。
  * 页面性能（首帧 / 滚动 FPS / 停留）由 [com.example.zhttaskflow.base.performance.TaskFlowPerformanceCompositionRoot] 注入，
  * 并与 [com.example.zhttaskflow.base.ui.extension.PageLifecycleLog] 的 `pageName` 关联。
  * @see com.example.zhttaskflow.base.doc.TaskFlowBaseArchitecture
@@ -82,6 +85,7 @@ fun TaskFlowBaseScaffold(
     modifier: Modifier = Modifier,
     consumeStatusBarsInContent: Boolean,
     analytics: TaskFlowAnalytics? = null,
+    performanceImpl: TaskFlowPerformanceReporter? = null,
     bottomBar: @Composable () -> Unit = {},
     floatingActionButton: @Composable () -> Unit = {},
     header: @Composable () -> Unit = {},
@@ -136,7 +140,8 @@ fun TaskFlowBaseScaffold(
     }
 
     val resolvedAnalytics = analytics ?: rememberTaskFlowDebugAnalytics()
-    val performance = rememberTaskFlowDebugPerformance()
+    val resolvedPerformanceReporter = performanceImpl ?: TaskFlowDebugPerformanceReporter
+    val performance = rememberTaskFlowDebugPerformance(reporter = resolvedPerformanceReporter)
 
     CompositionLocalProvider(
         LocalTaskFlowSnackbarHostState provides snackbarHostState,

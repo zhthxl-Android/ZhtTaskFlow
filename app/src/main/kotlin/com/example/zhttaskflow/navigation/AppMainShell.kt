@@ -9,6 +9,8 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.example.zhttaskflow.base.analytics.TaskFlowAnalytics
 import com.example.zhttaskflow.base.analytics.rememberTaskFlowDebugAnalytics
+import com.example.zhttaskflow.base.performance.TaskFlowDebugPerformanceReporter
+import com.example.zhttaskflow.base.performance.TaskFlowPerformanceReporter
 import com.example.zhttaskflow.base.ui.TaskFlowBaseScaffold
 import com.example.zhttaskflow.nav.TaskFlowNavHost
 import com.example.zhttaskflow.nav.TaskFlowNavigator
@@ -29,6 +31,7 @@ import com.example.zhttaskflow.nav.route.TaskFlowRouteRegistry
  * | 参数 | 默认 | 传递方式 |
  * |------|------|----------|
  * | [analyticsImpl] | [rememberTaskFlowDebugAnalytics] | [TaskFlowBaseScaffold] → [LocalTaskFlowAnalytics] |
+ * | [performanceImpl] | [TaskFlowDebugPerformanceReporter] | [TaskFlowBaseScaffold] → [LocalTaskFlowPerformance] |
  * | [loginSessionImpl] | 内存 [TaskFlowLoginSession] | [LocalTaskFlowLoginSession] → 拦截链 |
  * | [deepLinkMapperImpl] | [TaskFlowDeepLinkRouteMapperImpl] 样板规则 | [LocalTaskFlowDeepLinkRouteMapper] → 拦截链 |
  *
@@ -48,6 +51,7 @@ fun AppMainShell(
     navigator: TaskFlowNavigator,
     modifier: Modifier = Modifier,
     analyticsImpl: TaskFlowAnalytics? = null,
+    performanceImpl: TaskFlowPerformanceReporter? = null,
     loginSessionImpl: TaskFlowLoginSession? = null,
     deepLinkMapperImpl: TaskFlowDeepLinkRouteMapper? = null,
 ) {
@@ -57,6 +61,7 @@ fun AppMainShell(
     val selectedTab = MainTab.fromRoute(currentRoute)
 
     val analytics = analyticsImpl ?: rememberTaskFlowDebugAnalytics()
+    val performanceReporter = performanceImpl ?: TaskFlowDebugPerformanceReporter
     val loginSession = loginSessionImpl ?: remember { TaskFlowLoginSession() }
     val deepLinkMapper = deepLinkMapperImpl ?: rememberTaskFlowDeepLinkRouteMapper()
 
@@ -70,6 +75,7 @@ fun AppMainShell(
             modifier = modifier.fillMaxSize(),
             consumeStatusBarsInContent = false,
             analytics = analytics,
+            performanceImpl = performanceReporter,
             bottomBar = {
                 selectedTab?.let { tab ->
                     MainBottomNavigationBar(

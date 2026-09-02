@@ -84,6 +84,9 @@ object TaskFlowDebugPerformanceReporter : TaskFlowPerformanceReporter {
  *
  * 由壳层 [LocalTaskFlowPerformance] 提供；业务通过 [PageLifecycleLog][com.example.zhttaskflow.base.ui.extension.PageLifecycleLog]
  * 或手动 [beginPage]/[endPage] 绑定 [pageId]。
+ *
+ * 产品 APM：实现 [TaskFlowPerformanceReporter]，在应用壳 [com.example.zhttaskflow.base.ui.TaskFlowBaseScaffold]
+ * 的 `performanceImpl` 参数注入，与 [com.example.zhttaskflow.base.analytics.TaskFlowAnalytics] 对称。
  */
 @Stable
 class TaskFlowPerformance internal constructor(
@@ -242,12 +245,22 @@ fun rememberTaskFlowPerformance(): TaskFlowPerformance {
     return LocalTaskFlowPerformance.current
 }
 
+/**
+ * 由壳层注入的 [reporter] 构造 [TaskFlowPerformance]（默认 [TaskFlowDebugPerformanceReporter]）。
+ */
 @Composable
 fun rememberTaskFlowDebugPerformance(
     reporter: TaskFlowPerformanceReporter = TaskFlowDebugPerformanceReporter,
 ): TaskFlowPerformance {
     return remember(reporter) { TaskFlowPerformance(reporter) }
 }
+
+/**
+ * 非 Composable 场景根据 [TaskFlowPerformanceReporter] 创建实例（与 [rememberTaskFlowDebugPerformance] 一致）。
+ */
+fun createTaskFlowPerformance(
+    reporter: TaskFlowPerformanceReporter = TaskFlowDebugPerformanceReporter,
+): TaskFlowPerformance = TaskFlowPerformance(reporter)
 
 /**
  * 壳层装配性能监控（与 [com.example.zhttaskflow.base.ui.TaskFlowBaseScaffold] 配合）。
