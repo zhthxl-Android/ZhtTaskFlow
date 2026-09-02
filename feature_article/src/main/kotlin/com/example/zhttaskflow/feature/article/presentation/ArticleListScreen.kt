@@ -30,12 +30,15 @@ import com.example.zhttaskflow.base.ui.TaskFlowUiConstants
 import com.example.zhttaskflow.base.ui.extension.PageLifecycleLog
 import com.example.zhttaskflow.base.ui.extension.listItemClickWithLog
 import com.example.zhttaskflow.base.ui.extension.logUiInteraction
+import com.example.zhttaskflow.base.ui.extension.logUiOutcome
 import com.example.zhttaskflow.base.ui.rememberTaskFlowListLazyContentPadding
 import com.example.zhttaskflow.feature.article.R
 import com.example.zhttaskflow.feature.article.domain.Article
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
+
+private const val ARTICLE_LIST_PAGE_ID: String = "ArticleList"
 
 /**
  * 资讯列表主页面：订阅状态并分发事件；消费全部页面内 UI 类 [ArticleUiEffect]（导航类由路由宿主处理）。
@@ -93,16 +96,35 @@ private fun ArticleListContent(
     TaskFlowStatePaginatedListContent(
         uiState = uiState.toPaginatedUiState(),
         onRetry = {
-            logUiInteraction(action = "click", identifier = "article_list_retry")
+            logUiInteraction(
+                action = "click",
+                identifier = "article_list_retry",
+                pageId = ARTICLE_LIST_PAGE_ID,
+            )
             onEvent(ArticleUiEvent.Refresh)
         },
         onRefresh = {
-            logUiInteraction(action = "pullRefresh", identifier = "article_list")
+            logUiInteraction(
+                action = "pullRefresh",
+                identifier = "article_list",
+                pageId = ARTICLE_LIST_PAGE_ID,
+            )
             onEvent(ArticleUiEvent.Refresh)
         },
-        onLoadMore = { onEvent(ArticleUiEvent.LoadMore) },
+        onLoadMore = {
+            logUiInteraction(
+                action = "loadMore",
+                identifier = "article_list_load_more",
+                pageId = ARTICLE_LIST_PAGE_ID,
+            )
+            onEvent(ArticleUiEvent.LoadMore)
+        },
         onRetryLoadMore = {
-            logUiInteraction(action = "click", identifier = "article_list_load_more_retry")
+            logUiInteraction(
+                action = "click",
+                identifier = "article_list_load_more_retry",
+                pageId = ARTICLE_LIST_PAGE_ID,
+            )
             onEvent(ArticleUiEvent.LoadMore)
         },
         listContentPadding = listContentPadding,
@@ -156,7 +178,8 @@ private fun ArticleListItem(
             .listItemClickWithLog(
                 identifier = "article_list_item",
                 index = index,
-                detail = "articleId=${article.id}",
+                pageId = ARTICLE_LIST_PAGE_ID,
+                params = mapOf("articleId" to article.id),
                 onClick = onClick,
             ),
         colors = CardDefaults.cardColors(
@@ -205,6 +228,17 @@ private fun consumeArticleListUiEffect(
 ) {
     when (effect) {
         is ArticleUiEffect.ShowSnackbar -> {
+            val outcome = when (effect.type) {
+                SnackbarType.Success -> "success"
+                SnackbarType.Error -> "failure"
+                SnackbarType.Normal -> "info"
+            }
+            logUiOutcome(
+                pageId = ARTICLE_LIST_PAGE_ID,
+                actionId = "article_list_snackbar",
+                outcome = outcome,
+                params = mapOf("message" to effect.message),
+            )
             showSnackbar(
                 dispatcher = dispatcher,
                 message = effect.message,

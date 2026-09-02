@@ -137,7 +137,7 @@ internal object TaskFlowAnalyticsMessageFormatter {
             if (!pageId.isNullOrBlank()) {
                 add("pageId=$pageId")
             }
-            add("opId=$operationId")
+            add("actionId=$operationId")
             val snapshot = formatParamsSnapshot(params = params, detail = detail)
             if (snapshot.isNotBlank()) {
                 add("params=$snapshot")

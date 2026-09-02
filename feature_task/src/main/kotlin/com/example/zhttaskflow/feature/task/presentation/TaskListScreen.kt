@@ -39,7 +39,9 @@ import com.example.zhttaskflow.base.ui.TaskFlowRefreshableListPayload
 import com.example.zhttaskflow.base.ui.TaskFlowStateRefreshableListContent
 import com.example.zhttaskflow.base.ui.TaskFlowUiConstants
 import com.example.zhttaskflow.base.ui.extension.PageLifecycleLog
+import com.example.zhttaskflow.base.ui.extension.listItemClickWithLog
 import com.example.zhttaskflow.base.ui.extension.logUiInteraction
+import com.example.zhttaskflow.base.ui.extension.logUiOutcome
 import com.example.zhttaskflow.base.ui.rememberTaskFlowImePadding
 import com.example.zhttaskflow.base.ui.rememberTaskFlowListLazyContentPadding
 import com.example.zhttaskflow.base.ui.taskFlowImeBringIntoViewOnFocus
@@ -50,6 +52,8 @@ import com.example.zhttaskflow.feature.task.domain.TaskStatus
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
+
+private const val TASK_LIST_PAGE_ID: String = "TaskList"
 
 /**
  * 任务列表主页面：订阅状态并分发事件；消费全部页面内 UI 类 [TaskUiEffect]（导航类由路由宿主处理）。
@@ -90,7 +94,7 @@ fun TaskListScreen(
                     logUiInteraction(
                         action = "click",
                         identifier = "task_list_more",
-                        pageId = "TaskList",
+                        pageId = TASK_LIST_PAGE_ID,
                     )
                     showBottomSheet(controller = dialogController) {
                         TaskListMoreBottomSheetContent(
@@ -99,7 +103,16 @@ fun TaskListScreen(
                                 logUiInteraction(
                                     action = "click",
                                     identifier = "task_list_more_${action.opIdSuffix}",
-                                    pageId = "TaskList",
+                                    pageId = TASK_LIST_PAGE_ID,
+                                )
+                                logUiOutcome(
+                                    pageId = TASK_LIST_PAGE_ID,
+                                    actionId = "task_list_more_result",
+                                    outcome = "info",
+                                    params = mapOf(
+                                        "message" to feedbackMessage,
+                                        "option" to action.opIdSuffix,
+                                    ),
                                 )
                                 showSnackbar(
                                     dispatcher = snackbarDispatcher,
@@ -117,7 +130,11 @@ fun TaskListScreen(
         floatingActionButton = {
             FloatingActionButton(
                 onClick = {
-                    logUiInteraction(action = "click", identifier = "task_list_fab_add")
+                    logUiInteraction(
+                        action = "click",
+                        identifier = "task_list_fab_add",
+                        pageId = TASK_LIST_PAGE_ID,
+                    )
                     addTaskFormState.reset()
                     dialogController.showConfirmDialog(
                         title = addDialogTitle,
@@ -158,11 +175,19 @@ fun TaskListScreen(
             uiState = uiState,
             listContentPadding = listContentPadding,
             onRefresh = {
-                logUiInteraction(action = "pullRefresh", identifier = "task_list")
+                logUiInteraction(
+                    action = "pullRefresh",
+                    identifier = "task_list",
+                    pageId = TASK_LIST_PAGE_ID,
+                )
                 viewModel.onEvent(TaskUiEvent.Refresh)
             },
             onRetry = {
-                logUiInteraction(action = "click", identifier = "task_list_retry")
+                logUiInteraction(
+                    action = "click",
+                    identifier = "task_list_retry",
+                    pageId = TASK_LIST_PAGE_ID,
+                )
                 viewModel.onEvent(TaskUiEvent.Refresh)
             },
             onTaskClick = { taskId ->
@@ -247,9 +272,10 @@ private fun TaskListContent(
         modifier = modifier.fillMaxSize(),
         emptyMessage = stringResource(id = R.string.task_str_empty_list),
         key = { _, task -> task.id },
-    ) { _, task ->
+    ) { index, task ->
         TaskListItem(
             task = task,
+            index = index,
             onClick = { onTaskClick(task.id) },
         )
     }
@@ -274,13 +300,20 @@ private fun TaskUiState.toRefreshableUiState(): BaseUiState<TaskFlowRefreshableL
 @Composable
 private fun TaskListItem(
     task: Task,
+    index: Int,
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     Card(
         modifier = modifier
             .fillMaxWidth()
-            .clickable(onClick = onClick),
+            .listItemClickWithLog(
+                identifier = "task_list_item",
+                index = index,
+                pageId = TASK_LIST_PAGE_ID,
+                params = mapOf("taskId" to task.id),
+                onClick = onClick,
+            ),
         colors = CardDefaults.cardColors(
             containerColor = MaterialTheme.colorScheme.surfaceContainerLow,
         ),
@@ -364,6 +397,17 @@ private fun consumeTaskListUiEffect(
 ) {
     when (effect) {
         is TaskUiEffect.ShowSnackbar -> {
+            val outcome = when (effect.type) {
+                SnackbarType.Success -> "success"
+                SnackbarType.Error -> "failure"
+                SnackbarType.Normal -> "info"
+            }
+            logUiOutcome(
+                pageId = TASK_LIST_PAGE_ID,
+                actionId = "task_list_snackbar",
+                outcome = outcome,
+                params = mapOf("message" to effect.message),
+            )
             showSnackbar(
                 dispatcher = dispatcher,
                 message = effect.message,
