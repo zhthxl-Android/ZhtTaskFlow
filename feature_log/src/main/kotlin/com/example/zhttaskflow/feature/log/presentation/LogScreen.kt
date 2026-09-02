@@ -40,6 +40,7 @@ internal fun LogScreen(
     TaskFlowListScaffold(
         modifier = modifier,
         title = stringResource(id = R.string.log_str_viewer_title),
+        // 末位 Tab：不拦截系统返回，由底部导航切换
         interceptTabRootBackToDesktop = false,
     ) { contentPadding ->
         Box(

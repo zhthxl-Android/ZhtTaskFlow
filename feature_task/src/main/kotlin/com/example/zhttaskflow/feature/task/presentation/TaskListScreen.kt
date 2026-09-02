@@ -87,7 +87,7 @@ fun TaskListScreen(
         modifier = modifier,
         title = stringResource(id = R.string.task_str_list_title),
         collapsibleTopBarOnScroll = true,
-        interceptTabRootBackToDesktop = true,
+        interceptTabRootBackToDesktop = false,
         actions = {
             TextButton(
                 onClick = {

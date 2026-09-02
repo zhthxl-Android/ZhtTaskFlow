@@ -14,7 +14,7 @@ import com.example.zhttaskflow.navigation.registerAppRoutes
 import com.example.zhttaskflow.nav.deeplink.TaskFlowDeepLinkNavigation
 import com.example.zhttaskflow.nav.rememberTaskFlowNavigator
 import com.example.zhttaskflow.nav.TaskFlowNavigator
-import com.example.zhttaskflow.nav.route.TaskFlowLogNavRoutes
+import com.example.zhttaskflow.navigation.TaskFlowMainTab
 import com.example.zhttaskflow.nav.route.TaskFlowRouteRegistryImpl
 import com.example.zhttaskflow.nav.theme.TaskFlowTheme
 
@@ -45,7 +45,7 @@ import com.example.zhttaskflow.nav.theme.TaskFlowTheme
  * 1. 外部通过 `ACTION_VIEW` 拉起本 Activity（Manifest 已声明 `taskflow` scheme）。
  * 2. [onCreate] / [onNewIntent] 提取 `Intent.data`，写入待处理队列，**不**在 Activity 内直接 `NavController.navigate`。
  * 3. [MainActivityDeepLinkEffect] 在 [AppMainShell] 组合完成后调用 [TaskFlowNavigator.navigate]。
- * 4. 桌面图标 `MAIN` / `LAUNCHER` 启动无 `data`，保持原首页逻辑；应用内路由不受影响。
+ * 4. 桌面图标 `MAIN` / `LAUNCHER` 启动无 `data`，默认进入资讯列表 Tab。
  *
  * ## 本地验证（adb）
  *
@@ -72,7 +72,7 @@ class MainActivity : ComponentActivity() {
                 }
                 AppMainShell(
                     registry = routeRegistry,
-                    startDestination = TaskFlowLogNavRoutes.LOG_ROUTE,
+                    startDestination = TaskFlowMainTab.startDestinationRoute,
                     navigator = navigator,
                 )
                 MainActivityDeepLinkEffect(

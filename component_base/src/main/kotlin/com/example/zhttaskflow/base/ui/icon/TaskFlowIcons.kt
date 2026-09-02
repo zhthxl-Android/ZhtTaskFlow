@@ -9,9 +9,9 @@ import androidx.compose.material.icons.automirrored.outlined.List
 import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Error
-import androidx.compose.material.icons.filled.Home
+import androidx.compose.material.icons.filled.Description
 import androidx.compose.material.icons.filled.Info
-import androidx.compose.material.icons.outlined.Home
+import androidx.compose.material.icons.outlined.Description
 import androidx.compose.ui.graphics.vector.ImageVector
 
 /**
@@ -32,8 +32,8 @@ object TaskFlowIcons {
      * 底部 Tab 图标：选中 Filled、未选中 Outlined。
      */
     object Tab {
-        val HomeSelected: ImageVector = Icons.Filled.Home
-        val HomeUnselected: ImageVector = Icons.Outlined.Home
+        val LogSelected: ImageVector = Icons.Filled.Description
+        val LogUnselected: ImageVector = Icons.Outlined.Description
         val ArticleSelected: ImageVector = Icons.AutoMirrored.Filled.Article
         val ArticleUnselected: ImageVector = Icons.AutoMirrored.Outlined.Article
         val TaskSelected: ImageVector = Icons.AutoMirrored.Filled.List

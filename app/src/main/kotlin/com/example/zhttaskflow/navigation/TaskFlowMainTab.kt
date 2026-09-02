@@ -8,20 +8,14 @@ import com.example.zhttaskflow.nav.route.TaskFlowLogNavRoutes
 import com.example.zhttaskflow.nav.route.TaskFlowTaskNavRoutes
 
 /**
- * 主界面底部 Tab 配置：路由、选中/未选中图标、文案资源。
+ * 主界面底部 Tab 配置：顺序为资讯 → 任务 → 日志；路由、图标与文案资源。
  */
-enum class MainTab(
+enum class TaskFlowMainTab(
     val route: String,
     val labelResId: Int,
     val selectedIcon: ImageVector,
     val unselectedIcon: ImageVector,
 ) {
-    Log(
-        route = TaskFlowLogNavRoutes.LOG_ROUTE,
-        labelResId = R.string.app_tab_log,
-        selectedIcon = TaskFlowIcons.Tab.HomeSelected,
-        unselectedIcon = TaskFlowIcons.Tab.HomeUnselected,
-    ),
     Article(
         route = TaskFlowArticleNavRoutes.ARTICLE_LIST,
         labelResId = R.string.app_tab_article,
@@ -33,13 +27,22 @@ enum class MainTab(
         labelResId = R.string.app_tab_task,
         selectedIcon = TaskFlowIcons.Tab.TaskSelected,
         unselectedIcon = TaskFlowIcons.Tab.TaskUnselected,
+    ),
+    Log(
+        route = TaskFlowLogNavRoutes.LOG_ROUTE,
+        labelResId = R.string.app_tab_log,
+        selectedIcon = TaskFlowIcons.Tab.LogSelected,
+        unselectedIcon = TaskFlowIcons.Tab.LogUnselected,
     );
 
     companion object {
+        /** 应用默认启动 Tab（资讯列表）。 */
+        val startDestinationRoute: String = Article.route
+
         /**
          * 根据当前 destination 路由解析 Tab；详情等非 Tab 路由返回 null。
          */
-        fun fromRoute(route: String?): MainTab? {
+        fun fromRoute(route: String?): TaskFlowMainTab? {
             if (route == null) {
                 return null
             }

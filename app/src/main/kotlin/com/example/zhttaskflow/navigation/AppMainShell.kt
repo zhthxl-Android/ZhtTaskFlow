@@ -30,7 +30,7 @@ import com.example.zhttaskflow.nav.interceptor.rememberTaskFlowDeepLinkRouteMapp
 import com.example.zhttaskflow.nav.route.TaskFlowRouteRegistry
 
 /**
- * 应用主界面骨架：底部 Tab + NavHost；全局 Snackbar / Loading / 弹窗由 [TaskFlowBaseScaffold] 托管，
+ * 应用主界面骨架：底部 Tab（资讯 → 任务 → 日志）+ NavHost；全局 Snackbar / Loading / 弹窗由 [TaskFlowBaseScaffold] 托管，
  * 路由拦截链与导航宿主同层装配，保障拦截过程 UI 与全站交互规范一致。
  *
  * ## 壳层可替换能力（无 Hilt，CompositionLocal）
@@ -55,7 +55,7 @@ import com.example.zhttaskflow.nav.route.TaskFlowRouteRegistry
 @Composable
 fun AppMainShell(
     registry: TaskFlowRouteRegistry,
-    startDestination: String,
+    startDestination: String = TaskFlowMainTab.startDestinationRoute,
     navigator: TaskFlowNavigator,
     modifier: Modifier = Modifier,
     analyticsImpl: TaskFlowAnalytics? = null,
@@ -67,7 +67,7 @@ fun AppMainShell(
     val navController = rememberNavController()
     val navBackStackEntry = navController.currentBackStackEntryAsState().value
     val currentRoute = navBackStackEntry?.destination?.route
-    val selectedTab = MainTab.fromRoute(currentRoute)
+    val selectedTab = TaskFlowMainTab.fromRoute(currentRoute)
 
     val analytics = analyticsImpl ?: rememberAppShellAnalytics()
     val performanceReporter = performanceImpl ?: rememberAppShellPerformanceReporter()

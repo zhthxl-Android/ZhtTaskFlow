@@ -28,9 +28,9 @@ object TaskFlowNavTransitionDefaults {
 }
 
 private val MAIN_TAB_ROUTES: Set<String> = setOf(
-    TaskFlowLogNavRoutes.LOG_ROUTE,
     TaskFlowArticleNavRoutes.ARTICLE_LIST,
     TaskFlowTaskNavRoutes.TASK_LIST,
+    TaskFlowLogNavRoutes.LOG_ROUTE,
 )
 
 private fun isMainTabRoute(route: String?): Boolean {

@@ -7,12 +7,12 @@ import com.example.zhttaskflow.nav.TaskFlowNavigator
 import com.example.zhttaskflow.nav.route.TaskFlowRouteRegistry
 
 /**
- * 壳工程路由装配：按「日志 → 任务 → 资讯」顺序注册各 Feature，不实现任何业务页面。
+ * 壳工程路由装配：按「资讯 → 任务 → 日志」顺序注册各 Feature，不实现任何业务页面。
  */
 internal fun TaskFlowRouteRegistry.registerAppRoutes(
     navigator: TaskFlowNavigator,
 ) {
-    registerLogRoutes(registry = this, navigator = navigator)
-    registerTaskRoutes(registry = this, navigator = navigator)
     registerArticleRoutes(registry = this, navigator = navigator)
+    registerTaskRoutes(registry = this, navigator = navigator)
+    registerLogRoutes(registry = this, navigator = navigator)
 }
