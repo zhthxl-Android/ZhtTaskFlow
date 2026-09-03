@@ -69,6 +69,10 @@ fun rememberTaskFlowScaffoldContentPadding(
     )
 }
 
+/**
+ * [StateBox] 四态（Loading/Empty/Error）内容区 padding：列表页水平边距由 [rememberTaskFlowListLazyContentPadding] 承担，
+ * 此处为零，避免与列表成功态双重水平 inset（与 [com.example.zhttaskflow.feature.log.presentation.LogScreen] 一致）。
+ */
 @Composable
 fun rememberTaskFlowStateBoxContentPadding(): PaddingValues = PaddingValues(0.dp)
 

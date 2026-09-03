@@ -24,6 +24,7 @@ import com.example.zhttaskflow.base.mvi.BaseUiState
 import com.example.zhttaskflow.base.ui.TaskFlowListPaginationState
 import com.example.zhttaskflow.base.ui.TaskFlowListScaffold
 import com.example.zhttaskflow.base.ui.TaskFlowPaginatedListPayload
+import com.example.zhttaskflow.base.ui.rememberTaskFlowStateBoxContentPadding
 import com.example.zhttaskflow.base.ui.TaskFlowStatePaginatedListContent
 import com.example.zhttaskflow.base.ui.TaskFlowUiConstants
 import com.example.zhttaskflow.base.ui.extension.PageLifecycleLog
@@ -129,6 +130,7 @@ private fun ArticleListContent(
         },
         listContentPadding = listContentPadding,
         modifier = modifier.fillMaxSize(),
+        contentPadding = rememberTaskFlowStateBoxContentPadding(),
         emptyMessage = stringResource(id = R.string.article_str_empty_list),
         key = { _, article -> article.id },
     ) { index, article ->

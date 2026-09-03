@@ -29,6 +29,7 @@ import com.example.zhttaskflow.base.ext.rememberTaskFlowDialogController
 import com.example.zhttaskflow.base.ext.rememberTaskFlowSnackbarDispatcher
 import com.example.zhttaskflow.base.ext.showSnackbar
 import com.example.zhttaskflow.base.observability.TaskFlowDeveloperObservability
+import com.example.zhttaskflow.base.ui.extension.PageLifecycleLog
 import com.example.zhttaskflow.base.ui.TaskFlowListScaffold
 import com.example.zhttaskflow.base.ui.TaskFlowUiConstants
 import com.example.zhttaskflow.core.debug.TaskFlowDeveloperTools
@@ -69,6 +70,8 @@ internal fun DebugSettingsScreen(
     val slowConfirmMessage = stringResource(id = R.string.log_str_debug_simulate_slow_confirm)
     val doneGenericMessage = stringResource(id = R.string.log_str_debug_done_generic)
     val slowTitle = stringResource(id = R.string.log_str_debug_simulate_slow)
+
+    PageLifecycleLog(pageName = DEBUG_SETTINGS_PAGE_ID)
 
     TaskFlowListScaffold(
         modifier = modifier,
@@ -293,3 +296,6 @@ private fun RowSwitch(
         Switch(checked = checked, onCheckedChange = onCheckedChange)
     }
 }
+
+/** 深度调试面板 pageId（与 [PageLifecycleLog] / 交互埋点命名一致）。 */
+internal const val DEBUG_SETTINGS_PAGE_ID: String = "DebugSettings"

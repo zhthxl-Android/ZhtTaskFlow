@@ -35,6 +35,7 @@ import com.example.zhttaskflow.base.mvi.BaseUiState
 import com.example.zhttaskflow.base.ui.TaskFlowImeAvoidanceMode
 import com.example.zhttaskflow.base.ui.TaskFlowListScaffold
 import com.example.zhttaskflow.base.ui.TaskFlowRefreshableListPayload
+import com.example.zhttaskflow.base.ui.rememberTaskFlowStateBoxContentPadding
 import com.example.zhttaskflow.base.ui.TaskFlowStateRefreshableListContent
 import com.example.zhttaskflow.base.ui.TaskFlowUiConstants
 import com.example.zhttaskflow.base.ui.extension.PageLifecycleLog
@@ -269,6 +270,7 @@ private fun TaskListContent(
         onRefresh = onRefresh,
         listContentPadding = listContentPadding,
         modifier = modifier.fillMaxSize(),
+        contentPadding = rememberTaskFlowStateBoxContentPadding(),
         emptyMessage = stringResource(id = R.string.task_str_empty_list),
         key = { _, task -> task.id },
     ) { index, task ->

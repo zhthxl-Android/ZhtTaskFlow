@@ -25,6 +25,7 @@ const val TASKFLOW_CRASH_ACTION_ID: String = "app_uncaught_crash"
  * - 调试默认：[TaskFlowDebugCrashReporter]（`TaskFlowLogger` + Analytics outcome，`actionId=[TASKFLOW_CRASH_ACTION_ID]`）。
  *
  * ANR：Release 在 [com.example.zhttaskflow.TaskFlowApplication] 调用 `ReleaseTaskFlowCrashMonitoring.install`；
+ * 协程未捕获异常：同 Application 内 [TaskFlowCoroutineExceptionHandler.install]。
  * 产品 SDK 接入后可在同一初始化点替换轻量探测。
  */
 fun interface TaskFlowCrashReporter {
@@ -106,6 +107,16 @@ internal object TaskFlowCrashReporterRegistry {
 
     private val stack = ArrayDeque<TaskFlowCrashReporter>()
 
+    @Volatile
+    private var applicationDefault: TaskFlowCrashReporter? = null
+
+    /**
+     * [com.example.zhttaskflow.TaskFlowApplication.onCreate] 在 UI 装配前注册默认 Reporter（协程/线程未捕获异常）。
+     */
+    fun installApplicationDefault(reporter: TaskFlowCrashReporter) {
+        applicationDefault = reporter
+    }
+
     fun push(reporter: TaskFlowCrashReporter) {
         stack.addLast(reporter)
     }
@@ -117,7 +128,7 @@ internal object TaskFlowCrashReporterRegistry {
     }
 
     fun current(): TaskFlowCrashReporter {
-        val shell = stack.lastOrNull() ?: TaskFlowCrashReporterFallback
+        val shell = stack.lastOrNull() ?: applicationDefault ?: TaskFlowCrashReporterFallback
         return TaskFlowDeveloperObservability.resolveCrashReporter(shell)
     }
 }
