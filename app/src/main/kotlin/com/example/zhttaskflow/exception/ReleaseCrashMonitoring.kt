@@ -44,7 +44,7 @@ object ReleaseCrashMonitoring {
                     }
                 }
             },
-            "TaskFlow-AnrWatchdog",
+            "App-AnrWatchdog",
         )
         watchdogThread.isDaemon = true
         watchdogThread.start()

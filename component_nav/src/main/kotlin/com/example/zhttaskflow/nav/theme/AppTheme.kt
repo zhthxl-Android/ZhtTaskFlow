@@ -10,8 +10,6 @@ import com.example.zhttaskflow.base.theme.ThemeControllerProvider
 import com.example.zhttaskflow.base.theme.isAppDarkTheme
 import com.example.zhttaskflow.base.theme.rememberThemeController
 
-private const val THEME_DEPRECATION_MESSAGE = "将在下个版本移除，请使用 AppTheme（见 ReplaceWith）"
-
 /**
  * 应用全局 Material3 主题：支持跟随系统 / 强制浅色 / 强制深色，保证全页面配色同步切换。
  *
@@ -37,10 +35,3 @@ fun AppTheme(
         )
     }
 }
-
-@Deprecated(THEME_DEPRECATION_MESSAGE, ReplaceWith("AppTheme"))
-@Composable
-fun TaskFlowTheme(
-    themeController: ThemeController = rememberThemeController(),
-    content: @Composable () -> Unit,
-) = AppTheme(themeController = themeController, content = content)

@@ -50,6 +50,3 @@ enum class MainTab(
         }
     }
 }
-
-@Deprecated("将在下个版本移除，请使用 MainTab", ReplaceWith("MainTab"))
-typealias TaskFlowMainTab = MainTab

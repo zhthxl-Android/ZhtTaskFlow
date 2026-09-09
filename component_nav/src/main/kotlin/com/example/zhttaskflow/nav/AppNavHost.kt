@@ -94,33 +94,3 @@ fun AppNavHost(
 
 @Composable
 fun rememberNavigator(): AppNavigator = remember { AppNavigator() }
-
-private const val NAV_DEPRECATION_MESSAGE = "将在下个版本移除，请使用新名称（见 ReplaceWith）"
-
-@Deprecated(NAV_DEPRECATION_MESSAGE, ReplaceWith("AppNavHost"))
-@Composable
-fun TaskFlowNavHost(
-    registry: RouteRegistry,
-    startDestination: String,
-    navigator: AppNavigator,
-    modifier: Modifier = Modifier,
-    navController: NavHostController = rememberNavController(),
-    transitionRegistry: NavTransitionRegistry = NavTransitionRegistry.Default,
-    enterTransition: (AnimatedContentTransitionScope<NavBackStackEntry>.() -> EnterTransition)? = null,
-    exitTransition: (AnimatedContentTransitionScope<NavBackStackEntry>.() -> ExitTransition)? = null,
-    popEnterTransition: (AnimatedContentTransitionScope<NavBackStackEntry>.() -> EnterTransition)? = null,
-    popExitTransition: (AnimatedContentTransitionScope<NavBackStackEntry>.() -> ExitTransition)? = null,
-    routerInterceptorChain: RouterInterceptorChain = RouterInterceptorChain.Empty,
-) = AppNavHost(
-    registry = registry,
-    startDestination = startDestination,
-    navigator = navigator,
-    modifier = modifier,
-    navController = navController,
-    transitionRegistry = transitionRegistry,
-    enterTransition = enterTransition,
-    exitTransition = exitTransition,
-    popEnterTransition = popEnterTransition,
-    popExitTransition = popExitTransition,
-    routerInterceptorChain = routerInterceptorChain,
-)

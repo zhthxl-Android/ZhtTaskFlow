@@ -44,7 +44,7 @@ import com.example.zhttaskflow.base.ui.extension.logUiInteraction
 import com.example.zhttaskflow.base.ui.extension.logUiOutcome
 import com.example.zhttaskflow.base.ui.rememberImePadding
 import com.example.zhttaskflow.base.ui.rememberListLazyContentPadding
-import com.example.zhttaskflow.base.ui.taskFlowImeBringIntoViewOnFocus
+import com.example.zhttaskflow.base.ui.imeBringIntoViewOnFocus
 import com.example.zhttaskflow.base.ui.imePadding
 import com.example.zhttaskflow.feature.task.R
 import com.example.zhttaskflow.feature.task.domain.Task
@@ -360,7 +360,7 @@ private fun AddTaskDialogFormContent(
             singleLine = true,
             modifier = Modifier
                 .fillMaxWidth()
-                .taskFlowImeBringIntoViewOnFocus(),
+                .imeBringIntoViewOnFocus(),
         )
         OutlinedTextField(
             value = formState.content,
@@ -368,7 +368,7 @@ private fun AddTaskDialogFormContent(
             label = { Text(text = stringResource(id = R.string.task_str_field_content)) },
             modifier = Modifier
                 .fillMaxWidth()
-                .taskFlowImeBringIntoViewOnFocus(),
+                .imeBringIntoViewOnFocus(),
         )
     }
 }

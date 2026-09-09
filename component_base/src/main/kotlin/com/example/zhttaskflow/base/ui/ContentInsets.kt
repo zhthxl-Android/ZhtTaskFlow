@@ -107,7 +107,7 @@ fun rememberListLazyContentPadding(
  * ```
  * val ime = rememberImePadding(mode = ImeAvoidanceMode.BringIntoView)
  * Column(Modifier.then(ime.contentModifier).padding(ime.padding)) {
- *     OutlinedTextField(modifier = Modifier.taskFlowImeBringIntoViewOnFocus())
+ *     OutlinedTextField(modifier = Modifier.imeBringIntoViewOnFocus())
  * }
  * ```
  *
@@ -166,7 +166,7 @@ fun Modifier.imePadding(state: ImePaddingState): Modifier {
 /**
  * 输入框获焦时滚入可视区域；需配合 [ImeAvoidanceMode.BringIntoView] 的父容器使用。
  */
-fun Modifier.taskFlowImeBringIntoViewOnFocus(): Modifier = composed {
+fun Modifier.imeBringIntoViewOnFocus(): Modifier = composed {
     val bringIntoViewRequester = remember { BringIntoViewRequester() }
     val scope = rememberCoroutineScope()
     Modifier

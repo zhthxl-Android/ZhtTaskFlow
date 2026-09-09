@@ -1,6 +1,6 @@
 <#
 .SYNOPSIS
-  向 TaskFlow 本地可观测日志仓灌入测试 JSONL（埋点 / 性能 / 崩溃），用于日志 Tab 压测。
+  向 ZhtTaskFlow 本地可观测日志仓灌入测试 JSONL（埋点 / 性能 / 崩溃），用于日志 Tab 压测。
 
 .DESCRIPTION
   - 生成与 LocalLogStore.encodeRecord 兼容的 JSON Lines 文件。

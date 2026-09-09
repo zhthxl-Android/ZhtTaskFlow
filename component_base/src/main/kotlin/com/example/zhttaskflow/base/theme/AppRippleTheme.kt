@@ -54,8 +54,6 @@ object RippleTokens {
         }
 }
 
-private const val RIPPLE_THEME_DEPRECATION = "将在下个版本移除，请使用 AppRippleTheme（见 ReplaceWith）"
-
 /**
  * 在 [MaterialTheme] 之下注入全局 [LocalRippleConfiguration]，
  * Material3 可点击组件与遵循 M3 Ripple 的 [androidx.compose.foundation.clickable] 自动统一水波纹。
@@ -86,17 +84,11 @@ fun AppRippleTheme(
     }
 }
 
-@Deprecated(RIPPLE_THEME_DEPRECATION, ReplaceWith("AppRippleTheme"))
-@Composable
-fun TaskFlowRippleTheme(
-    content: @Composable () -> Unit,
-) = AppRippleTheme(content = content)
-
 /**
  * 无波纹点击变体：用于全屏遮罩、自定义按压反馈等不需要水波纹的场景。
  */
 @Composable
-fun Modifier.taskFlowClickableNoRipple(
+fun Modifier.clickableNoRipple(
     enabled: Boolean = true,
     onClick: () -> Unit,
 ): Modifier {
@@ -112,7 +104,7 @@ fun Modifier.taskFlowClickableNoRipple(
 /**
  * 禁用全局水波纹的局部作用域（Material3 可点击组件不绘制水波纹）。
  *
- * 子树内若使用 [androidx.compose.foundation.clickable] 且未指定 `indication`，请改用 [taskFlowClickableNoRipple]。
+ * 子树内若使用 [androidx.compose.foundation.clickable] 且未指定 `indication`，请改用 [clickableNoRipple]。
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable

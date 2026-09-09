@@ -6,14 +6,14 @@ import com.example.zhttaskflow.core.util.isDebugLoggingEnabled
 /**
  * 全项目统一日志门面（唯一推荐实现）。
  *
- * - 全局 Tag 前缀 `TaskFlow/` 与历史 base 层 Logger 一致；
+ * - 全局 Tag 前缀 `App/`（与 Release 契约 Tag `TaskFlow/Observability` 无关，勿混用）；
  * - [isDebugLoggingEnabled] 集中管控 Debug/Release 策略：Debug 安装包输出，Release 跳过；
  * - 消息统一 lambda 懒加载，Release 下无字符串拼接开销；
  * - 带 [Throwable] 的重载与 `android.util.Log` 行为等价；数据层诊断堆栈另提供 [d] 拼接格式重载。
  */
 object Logger {
 
-    private const val GLOBAL_TAG_PREFIX = "TaskFlow"
+    private const val GLOBAL_TAG_PREFIX = "App"
 
     private fun resolveTag(tag: String): String = "$GLOBAL_TAG_PREFIX/$tag"
 

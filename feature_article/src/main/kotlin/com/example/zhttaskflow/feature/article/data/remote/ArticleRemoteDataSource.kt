@@ -55,7 +55,7 @@ internal class ArticleMockRemoteDataSource : ArticlePageRemoteFetcher {
                 title = "示例资讯 $page-$index",
                 summary = "这是用于独立调试的示例摘要内容。",
                 coverUrl = null,
-                author = "Demo",
+                author = "ZhtTaskFlow",
                 publishedAt = now - index * 60_000L,
                 category = ArticleDataConstants.DEFAULT_CATEGORY,
                 detailUrl = "${ArticleDataConstants.DEFAULT_DETAIL_URL_PREFIX}$id",

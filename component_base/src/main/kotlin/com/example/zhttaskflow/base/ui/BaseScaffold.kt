@@ -257,31 +257,3 @@ private fun BaseScaffoldContent(
         }
     }
 }
-
-private const val SCAFFOLD_DEPRECATION = "将在下个版本移除，请使用 BaseScaffold"
-
-@Deprecated(SCAFFOLD_DEPRECATION, ReplaceWith("BaseScaffold"))
-@Composable
-fun TaskFlowBaseScaffold(
-    modifier: Modifier = Modifier,
-    consumeStatusBarsInContent: Boolean,
-    analytics: Analytics? = null,
-    performanceImpl: PerformanceReporter? = null,
-    crashReporter: CrashReporter? = null,
-    bottomBar: @Composable () -> Unit = {},
-    floatingActionButton: @Composable () -> Unit = {},
-    header: @Composable () -> Unit = {},
-    contentModifier: Modifier = Modifier,
-    content: @Composable (scaffoldContentPadding: PaddingValues) -> Unit,
-) = BaseScaffold(
-    modifier = modifier,
-    consumeStatusBarsInContent = consumeStatusBarsInContent,
-    analytics = analytics,
-    performanceImpl = performanceImpl,
-    crashReporter = crashReporter,
-    bottomBar = bottomBar,
-    floatingActionButton = floatingActionButton,
-    header = header,
-    contentModifier = contentModifier,
-    content = content,
-)

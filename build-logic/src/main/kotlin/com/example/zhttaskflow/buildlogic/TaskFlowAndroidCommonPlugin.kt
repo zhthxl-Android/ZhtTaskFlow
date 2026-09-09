@@ -13,7 +13,7 @@ import org.gradle.kotlin.dsl.dependencies
  */
 class TaskFlowAndroidCommonPlugin : Plugin<Project> {
     override fun apply(project: Project) {
-        registerTaskFlowExtensionIfAbsent(project)
+        registerExtensionIfAbsent(project)
 
         val configureAction = {
             project.extensions.findByType(LibraryExtension::class.java)?.let { extension ->
@@ -28,10 +28,10 @@ class TaskFlowAndroidCommonPlugin : Plugin<Project> {
         project.pluginManager.withPlugin("com.android.library") { configureAction() }
         project.pluginManager.withPlugin("com.android.application") { configureAction() }
 
-        project.injectTaskFlowComposeApiDependencies()
+        project.injectComposeApiDependencies()
     }
 
-    private fun registerTaskFlowExtensionIfAbsent(project: Project) {
+    private fun registerExtensionIfAbsent(project: Project) {
         if (project.extensions.findByName("taskFlow") != null) {
             return
         }
@@ -40,7 +40,7 @@ class TaskFlowAndroidCommonPlugin : Plugin<Project> {
         }
     }
 
-    private fun Project.injectTaskFlowComposeApiDependencies() {
+    private fun Project.injectComposeApiDependencies() {
         val catalog = libsCatalog()
         dependencies {
             add("api", catalog.findLibrary("androidx-lifecycle-viewmodel-ktx").get())

@@ -14,7 +14,7 @@ internal fun Project.configureCustomLint() {
     }
 }
 
-/** TaskFlow 自定义 Lint（Severity.ERROR）；Debug / Release Lint 与 lintVital 均须零违规。 */
+/** 工程自定义 Lint（Severity.ERROR）；Debug / Release Lint 与 lintVital 均须零违规。Issue ID 为构建契约，勿改。 */
 internal val CustomLintFatalIssueIds: List<String> = listOf(
     "TaskFlowNoToastInFeature",
     "TaskFlowNoBareScaffoldInFeature",

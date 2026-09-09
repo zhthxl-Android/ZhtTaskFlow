@@ -459,7 +459,7 @@ app_、base_、core_、nav_、task_、article_、log_ 等；Lint `MissingPrefix`
    - 仍无法区分时使用 **`App*` 语义短名**（如 `AppNavHost`、`AppNavigator`、`AppTheme`、`AppIcons`）；
    - **最后**才保留工程前缀——当前仅 **`TaskFlowApplication`** 作为应用入口类强制保留。
 3. **禁止夹心混用**：不得出现 `ReleaseTaskFlow*`、`DebugTaskFlow*`、`XxxTaskFlowYyy` 等前后缀拼接形式；环境实现统一 `Debug*` / `Release*`。
-4. **过渡兼容**：旧公开名在 `DeprecatedApi.kt`（`component_base` / `component_nav`）以 `@Deprecated` + `ReplaceWith` 保留 **一个发布周期**，下版本可安全删除。
+4. **命名收尾状态**：YAGNI 短名与 `App*` 冲突处理已落地；**已移除**全部 `TaskFlow*` 命名过渡 `@Deprecated` 别名，仅保留 §18.0 / §18.3 政策类与契约类标识。
 
 ### 18.2 当前推荐公开 API（摘录）
 
@@ -469,13 +469,13 @@ app_、base_、core_、nav_、task_、article_、log_ 等；Lint `MissingPrefix`
 | 导航宿主 | `AppNavHost`、`AppNavigator`、`LocalNavigator` | NavHost / Navigator 与 AndroidX 冲突 |
 | 主题 | `AppTheme` | 与 `MaterialTheme` 语义区分 |
 | 图标入口 | `AppIcons` | 与 `Icons` 冲突 |
-| UI 壳层 | `BaseScaffold`、`ListScaffold`、`PageScaffold`、`StateBox` | 二级页用 `PageScaffold`（`TaskFlowScaffold` 仅 Deprecated 转发） |
+| UI 壳层 | `BaseScaffold`、`ListScaffold`、`PageScaffold`、`StateBox` | 二级页用 `PageScaffold` |
 | Material 封装 | `Divider`、`SnackbarHost`、`SnackbarVisuals`、`PullToRefreshBox` | 定义在 `component_base`，内部 M3 别名 |
 | 路由 / 拦截 | `NavRoutes`、`RouterInterceptor`、`LoginInterceptor`、`DeepLinkNavigation`、`RouteGatePolicy` | 无工程前缀 |
 | MVI 标记 | `NavigationUiEffect`、`PresentationUiEffect`、`UiEffectConsumption` | 双 Collector 规范 |
 | 可观测 | `Analytics`、`CrashReporter`、`PerformanceReporter`、`LocalLogStore` | Release dex 校验含 `LocalLogStore` 等类名 |
 
-Compose 横切：**新代码**使用 `rememberSnackbarDispatcher()`、`LocalNavigator` 等短名；`rememberTaskFlow*` / `LocalTaskFlow*` 仅作 Deprecated 别名。
+Compose 横切：使用 `rememberSnackbarDispatcher()`、`LocalNavigator`、`rememberNavigator()` 等短名。
 
 ### 18.3 契约字符串（非类型名，慎改）
 
@@ -496,10 +496,10 @@ Compose 横切：**新代码**使用 `rememberSnackbarDispatcher()`、`LocalNavi
 - Feature 层直接 `import androidx.compose.material3.Scaffold` / `Divider` / `SnackbarHost` / `pulltorefresh.PullToRefreshBox`（见自定义 Lint）。
 - 为假想冲突预加 `TaskFlow` 前缀的新 API。
 
-### 18.6 `@Deprecated` 过渡别名
+### 18.6 命名过渡层（已完成）
 
-- 旧 `TaskFlow*` 公开 API 集中在 `component_base` / `component_nav` 的 **`DeprecatedApi.kt`**、**`InfrastructureDeprecatedApi.kt`**，均标注「**下个版本可统一移除**」，并附带 `ReplaceWith` 指向新短名。
-- 新代码 **禁止** 引用 `TaskFlow*` 主名（编译期应已迁移）；仅存量或第三方拷贝可暂时保留，发布前 grep 确认无新增调用。
+- 曾用于平滑迁移的 `DeprecatedApi.kt` / `InfrastructureDeprecatedApi.kt` / `nav/DeprecatedApi.kt` 及分散 `@Deprecated` 转发 **已全部删除**（首次开发无外部接入方，直接收尾）。
+- 新代码 **仅** 使用 §18.2 短名与 `App*` API；禁止再引入 `TaskFlow*` 业务类型名（契约字符串除外）。
 
 [BaseArchitecture]: ../component_base/src/main/kotlin/com/example/zhttaskflow/base/doc/BaseArchitecture.kt
 [NavArchitecture]: ../component_nav/src/main/kotlin/com/example/zhttaskflow/nav/doc/NavArchitecture.kt

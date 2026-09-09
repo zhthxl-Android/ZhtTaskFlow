@@ -94,7 +94,7 @@ tasks.register("checkDependencyRules") {
 
         if (violations.isNotEmpty()) {
             logger.error("")
-            logger.error("=== TaskFlow 依赖红线校验失败（${violations.size} 项）===")
+            logger.error("=== ZhtTaskFlow 依赖红线校验失败（${violations.size} 项）===")
             violations.forEach { message -> logger.error("  - $message") }
             logger.error("")
             error("checkDependencyRules failed")

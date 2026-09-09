@@ -91,7 +91,7 @@ object LocalLogStore {
 
     private val appContextRef = AtomicReference<Context?>(null)
     private val ioExecutor = Executors.newSingleThreadExecutor { runnable ->
-        Thread(runnable, "TaskFlow-LocalLogStore").apply { isDaemon = true }
+        Thread(runnable, "App-LocalLogStore").apply { isDaemon = true }
     }
 
     @Volatile

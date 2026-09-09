@@ -14,7 +14,7 @@
     <string name="log_str_cancel">取消</string>
     <string name="log_str_empty">暂无日志</string>
     <string name="log_str_clear_success">已清空本地日志</string>
-    <string name="log_str_export_share_title">分享 TaskFlow 可观测日志</string>
+    <string name="log_str_export_share_title">分享 ZhtTaskFlow 可观测日志</string>
     <string name="log_str_export_dialog_title">导出日志</string>
     <string name="log_str_export_dialog_message">请选择要导出的日志范围。</string>
     <string name="log_str_export_scope_filtered">导出当前筛选结果</string>

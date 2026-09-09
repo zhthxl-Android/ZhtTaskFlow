@@ -15,7 +15,7 @@ package com.example.zhttaskflow.base.doc
  *
  * Feature 仅依赖 `component_base`（经 nav/core api 传递）、`component_core`、`component_nav`；**禁止** Feature 互相依赖。
  *
- * **命名过渡**：旧 `TaskFlow*` 公开名见 [com.example.zhttaskflow.base.DeprecatedApi] 与 [com.example.zhttaskflow.base.InfrastructureDeprecatedApi]（`@Deprecated`，下个版本可统一移除）；新代码使用 `BaseScaffold`、`ExceptionMonitoringRoot`、`BlockingLoadingOverlay`、`ConfirmDialog` 等短名。
+ * **公开 API**：使用 `BaseScaffold`、`ExceptionMonitoringRoot`、`BlockingLoadingOverlay`、`ConfirmDialog` 等短名；与 AndroidX/Material 冲突处使用 `App*` 语义名（见 `docs/ARCHITECTURE.md` §18）。
  *
  * ## UI 脚手架层级
  *
