@@ -1,7 +1,7 @@
 package com.example.zhttaskflow.feature.log.presentation
 
 import com.example.zhttaskflow.base.ext.SnackbarType
-import com.example.zhttaskflow.base.ext.TaskFlowPresentationUiEffect
+import com.example.zhttaskflow.base.ext.PresentationUiEffect
 import com.example.zhttaskflow.base.mvi.BaseUiEffect
 import java.io.File
 
@@ -18,7 +18,7 @@ sealed interface LogUiEffect : BaseUiEffect {
      */
     data class ShowShareSheet(
         val exportFile: File,
-    ) : LogUiEffect, TaskFlowPresentationUiEffect
+    ) : LogUiEffect, PresentationUiEffect
 
     /**
      * 展示预定义用户文案（Screen 层映射为 string 资源）。
@@ -26,7 +26,7 @@ sealed interface LogUiEffect : BaseUiEffect {
     data class ShowMessage(
         val message: LogUserMessage,
         val type: SnackbarType = SnackbarType.Normal,
-    ) : LogUiEffect, TaskFlowPresentationUiEffect
+    ) : LogUiEffect, PresentationUiEffect
 
     /**
      * 展示动态文案 Snackbar（如用例/仓库返回的错误说明）。
@@ -34,7 +34,7 @@ sealed interface LogUiEffect : BaseUiEffect {
     data class ShowSnackbar(
         val message: String,
         val type: SnackbarType = SnackbarType.Normal,
-    ) : LogUiEffect, TaskFlowPresentationUiEffect
+    ) : LogUiEffect, PresentationUiEffect
 }
 
 /**

@@ -1,7 +1,7 @@
 package com.example.zhttaskflow.feature.task.presentation
 
 import com.example.zhttaskflow.base.ext.SnackbarType
-import com.example.zhttaskflow.base.ext.TaskFlowPresentationUiEffect
+import com.example.zhttaskflow.base.ext.PresentationUiEffect
 import com.example.zhttaskflow.base.mvi.BaseUiEffect
 
 /**
@@ -13,5 +13,5 @@ sealed interface TaskDetailUiEffect : BaseUiEffect {
         val message: String,
         val type: SnackbarType = SnackbarType.Normal,
         val actionId: String = "task_detail_snackbar",
-    ) : TaskDetailUiEffect, TaskFlowPresentationUiEffect
+    ) : TaskDetailUiEffect, PresentationUiEffect
 }

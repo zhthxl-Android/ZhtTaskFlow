@@ -6,36 +6,36 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.runtime.remember
 import com.example.zhttaskflow.feature.task.navigation.registerTaskRoutes
-import com.example.zhttaskflow.nav.rememberTaskFlowNavigator
-import com.example.zhttaskflow.nav.route.TaskFlowRouteRegistryImpl
-import com.example.zhttaskflow.nav.route.TaskFlowTaskNavRoutes
-import com.example.zhttaskflow.nav.standalone.TaskFlowFeatureDebugDeepLinkState
-import com.example.zhttaskflow.nav.standalone.TaskFlowFeatureDebugShell
-import com.example.zhttaskflow.nav.standalone.prepareTaskFlowFeatureDebug
-import com.example.zhttaskflow.nav.theme.TaskFlowTheme
+import com.example.zhttaskflow.nav.rememberNavigator
+import com.example.zhttaskflow.nav.route.RouteRegistryImpl
+import com.example.zhttaskflow.nav.route.TaskNavRoutes
+import com.example.zhttaskflow.nav.standalone.FeatureDebugDeepLinkState
+import com.example.zhttaskflow.nav.standalone.FeatureDebugShell
+import com.example.zhttaskflow.nav.standalone.prepareFeatureDebug
+import com.example.zhttaskflow.nav.theme.AppTheme
 
 /** Feature 独立调试入口：调试壳对齐集成宿主（拦截链、深链、全局 Snackbar）。 */
 class FeatureTaskDebugActivity : ComponentActivity() {
 
-    private val deepLinkState = TaskFlowFeatureDebugDeepLinkState()
+    private val deepLinkState = FeatureDebugDeepLinkState()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        prepareTaskFlowFeatureDebug()
+        prepareFeatureDebug()
         deepLinkState.updateFromIntent(intent)
         setContent {
-            TaskFlowTheme {
-                val navigator = rememberTaskFlowNavigator()
+            AppTheme {
+                val navigator = rememberNavigator()
                 val routeRegistry = remember(navigator) {
-                    TaskFlowRouteRegistryImpl().also { registry ->
+                    RouteRegistryImpl().also { registry ->
                         registerTaskRoutes(registry, navigator)
                     }
                 }
-                TaskFlowFeatureDebugShell(
+                FeatureDebugShell(
                     registry = routeRegistry,
-                    startDestination = TaskFlowTaskNavRoutes.TASK_LIST,
+                    startDestination = TaskNavRoutes.TASK_LIST,
                     navigator = navigator,
-                    mainTabRootRoute = TaskFlowTaskNavRoutes.TASK_LIST,
+                    mainTabRootRoute = TaskNavRoutes.TASK_LIST,
                     deepLinkState = deepLinkState,
                 )
             }

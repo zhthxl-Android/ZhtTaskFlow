@@ -50,7 +50,7 @@ bash scripts/ci-verify.sh
 .\gradlew.bat :feature_log:testDebugUnitTest --no-daemon
 ```
 
-Release 产物校验会检查 APK 的 `classes.dex` 是否包含：`ReleaseTaskFlowAnalytics`、`ReleaseTaskFlowPerformanceReporter`、`ReleaseTaskFlowCrashReporter`、`TaskFlowLocalLogStore`。
+Release 产物校验会检查 APK 的 `classes.dex` 是否包含：`ReleaseAnalytics`、`ReleasePerformanceReporter`、`ReleaseCrashReporter`、`LocalLogStore`。
 
 ### 可选：仪表化 E2E（本地，未进 CI）
 
@@ -71,7 +71,7 @@ Release 产物校验会检查 APK 的 `classes.dex` 是否包含：`ReleaseTaskF
 3. **主路径（与线上用户一致）**：底部 **日志** Tab → 确认列表有 **埋点 / 性能 / 崩溃** 条目；顶栏 **导出分享** 可选择「当前筛选」或「全部」并出现系统分享面板与 `.jsonl` 文件。
 4. Logcat 过滤 `TaskFlow/Observability`（Release 契约日志，与本地 `files/taskflow_observability/logs/` JSONL 并存）。
 
-> Release 包在 `isTaskFlowDebugLoggingEnabled() == false` 时，`AppMainShell` 默认注入 `Release*` 实现；Debug 安装包仍走 `TaskFlowDebug*` 实现。**日志 Tab 在 Debug / Release 均可见，无环境开关。** 历史上独立的 `TaskFlowObservabilityDebugActivity` 已移除，请勿再使用 adb 启动该 Activity。
+> Release 包在 `isDebugLoggingEnabled() == false` 时，`AppMainShell` 默认注入 `Release*` 实现；Debug 安装包仍走 `Debug*` 实现。**日志 Tab 在 Debug / Release 均可见，无环境开关。** 历史上独立的 `TaskFlowObservabilityDebugActivity` 已移除，请勿再使用 adb 启动该 Activity。
 
 ---
 
@@ -146,7 +146,7 @@ adb shell am start -a android.intent.action.VIEW -d "taskflow://nav/route?target
 | # | 场景 | 预期 | 通过 |
 |---|------|------|------|
 | 23 | 进入任务列表并滚动 | 日志 Tab 或 Logcat 出现 `scroll_fps` / `first_frame` 类性能记录 | ☐ |
-| 24 | 慢首帧或低 FPS（可选） | 性能记录中 `anomaly=true`（阈值见 `ReleaseTaskFlowPerformanceReporter`） | ☐ |
+| 24 | 慢首帧或低 FPS（可选） | 性能记录中 `anomaly=true`（阈值见 `ReleasePerformanceReporter`） | ☐ |
 | 25 | 离开页面 | 存在 `page_dwell` / 停留类指标 | ☐ |
 
 ### 3.5 离线功能
@@ -159,7 +159,7 @@ adb shell am start -a android.intent.action.VIEW -d "taskflow://nav/route?target
 
 ### 3.6 日志 Tab 压测与大数据量（建议，Release 或 Debug 均可）
 
-在 **非产线常驻** 前提下，用于验证分页、筛选与导出在条目较多时仍可用（与 `TaskFlowLocalLogStore` 索引分页、`ExportLogsUseCase` 默认 `maxEntries = 2000` 一致）。
+在 **非产线常驻** 前提下，用于验证分页、筛选与导出在条目较多时仍可用（与 `LocalLogStore` 索引分页、`ExportLogsUseCase` 默认 `maxEntries = 2000` 一致）。
 
 | # | 场景 | 操作步骤 | 预期 | 通过 |
 |---|------|----------|------|------|

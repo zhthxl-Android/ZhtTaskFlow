@@ -2,7 +2,7 @@ package com.example.zhttaskflow.feature.article.presentation
 
 import android.util.Log
 import com.example.zhttaskflow.base.mvi.BaseUiState
-import com.example.zhttaskflow.core.foundation.TaskFlowNetworkException
+import com.example.zhttaskflow.core.foundation.NetworkException
 import com.example.zhttaskflow.feature.article.domain.usecase.ArticleDetailResult
 import com.example.zhttaskflow.feature.article.domain.usecase.GetArticleDetailUseCase
 import io.mockk.coEvery
@@ -91,7 +91,7 @@ class ArticleDetailViewModelTest {
     fun load_networkException_usesLocalizedNetworkMessage() = viewModelTest {
         coEvery {
             getArticleDetailUseCase(articleId = ARTICLE_ID, detailUrl = DETAIL_URL)
-        } throws TaskFlowNetworkException(
+        } throws NetworkException(
             message = "no network",
             userMessage = "ignored",
         )

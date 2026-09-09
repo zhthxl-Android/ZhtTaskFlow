@@ -1,13 +1,13 @@
 package com.example.zhttaskflow.feature.log.data.mapper
 
-import com.example.zhttaskflow.core.observability.TaskFlowLocalLogStore
+import com.example.zhttaskflow.core.observability.LocalLogStore
 import com.example.zhttaskflow.feature.log.domain.LogCategory
 import com.example.zhttaskflow.feature.log.domain.LogEntry
 import com.example.zhttaskflow.feature.log.domain.LogQueryFilter
 
 internal object LogRecordMapper {
 
-    fun toDomain(record: TaskFlowLocalLogStore.LogRecord): LogEntry {
+    fun toDomain(record: LocalLogStore.LogRecord): LogEntry {
         return LogEntry(
             id = record.stableId(),
             timestampEpochMs = record.timestampEpochMs,
@@ -23,8 +23,8 @@ internal object LogRecordMapper {
         )
     }
 
-    fun toStore(entry: LogEntry): TaskFlowLocalLogStore.LogRecord {
-        return TaskFlowLocalLogStore.LogRecord(
+    fun toStore(entry: LogEntry): LocalLogStore.LogRecord {
+        return LocalLogStore.LogRecord(
             timestampEpochMs = entry.timestampEpochMs,
             logType = entry.category.toStore(),
             pageId = entry.pageId,
@@ -37,30 +37,30 @@ internal object LogRecordMapper {
         )
     }
 
-    fun toStoreLogType(category: LogCategory?): TaskFlowLocalLogStore.LogType? {
+    fun toStoreLogType(category: LogCategory?): LocalLogStore.LogType? {
         return category?.toStore()
     }
 
-    fun toStoreQueryFilter(filter: LogQueryFilter, maxEntries: Int): TaskFlowLocalLogStore.QueryFilter {
-        return TaskFlowLocalLogStore.QueryFilter(
+    fun toStoreQueryFilter(filter: LogQueryFilter, maxEntries: Int): LocalLogStore.QueryFilter {
+        return LocalLogStore.QueryFilter(
             logType = toStoreLogType(filter.logType),
             maxEntries = maxEntries,
         )
     }
 
-    private fun TaskFlowLocalLogStore.LogType.toDomain(): LogCategory {
+    private fun LocalLogStore.LogType.toDomain(): LogCategory {
         return when (this) {
-            TaskFlowLocalLogStore.LogType.ANALYTICS -> LogCategory.ANALYTICS
-            TaskFlowLocalLogStore.LogType.PERFORMANCE -> LogCategory.PERFORMANCE
-            TaskFlowLocalLogStore.LogType.CRASH -> LogCategory.CRASH
+            LocalLogStore.LogType.ANALYTICS -> LogCategory.ANALYTICS
+            LocalLogStore.LogType.PERFORMANCE -> LogCategory.PERFORMANCE
+            LocalLogStore.LogType.CRASH -> LogCategory.CRASH
         }
     }
 
-    private fun LogCategory.toStore(): TaskFlowLocalLogStore.LogType {
+    private fun LogCategory.toStore(): LocalLogStore.LogType {
         return when (this) {
-            LogCategory.ANALYTICS -> TaskFlowLocalLogStore.LogType.ANALYTICS
-            LogCategory.PERFORMANCE -> TaskFlowLocalLogStore.LogType.PERFORMANCE
-            LogCategory.CRASH -> TaskFlowLocalLogStore.LogType.CRASH
+            LogCategory.ANALYTICS -> LocalLogStore.LogType.ANALYTICS
+            LogCategory.PERFORMANCE -> LocalLogStore.LogType.PERFORMANCE
+            LogCategory.CRASH -> LocalLogStore.LogType.CRASH
         }
     }
 }

@@ -19,10 +19,10 @@ fi
 echo "Checking release APK: $APK"
 
 REQUIRED_MARKERS=(
-  "ReleaseTaskFlowAnalytics"
-  "ReleaseTaskFlowPerformanceReporter"
-  "ReleaseTaskFlowCrashReporter"
-  "TaskFlowLocalLogStore"
+  "ReleaseAnalytics"
+  "ReleasePerformanceReporter"
+  "ReleaseCrashReporter"
+  "LocalLogStore"
 )
 
 TMP_DIR="$(mktemp -d)"

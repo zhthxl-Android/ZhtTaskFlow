@@ -16,22 +16,22 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import com.example.zhttaskflow.base.ext.SnackbarType
-import com.example.zhttaskflow.base.ext.TaskFlowSnackbarDispatcher
-import com.example.zhttaskflow.base.ext.rememberTaskFlowSnackbarDispatcher
+import com.example.zhttaskflow.base.ext.SnackbarDispatcher
+import com.example.zhttaskflow.base.ext.rememberSnackbarDispatcher
 import com.example.zhttaskflow.base.ext.showSnackbar
 import com.example.zhttaskflow.base.extension.collectUiStateWithLifecycle
 import com.example.zhttaskflow.base.mvi.BaseUiState
-import com.example.zhttaskflow.base.ui.TaskFlowListPaginationState
-import com.example.zhttaskflow.base.ui.TaskFlowListScaffold
-import com.example.zhttaskflow.base.ui.TaskFlowPaginatedListPayload
-import com.example.zhttaskflow.base.ui.rememberTaskFlowStateBoxContentPadding
-import com.example.zhttaskflow.base.ui.TaskFlowStatePaginatedListContent
-import com.example.zhttaskflow.base.ui.TaskFlowUiConstants
+import com.example.zhttaskflow.base.ui.ListPaginationState
+import com.example.zhttaskflow.base.ui.ListScaffold
+import com.example.zhttaskflow.base.ui.PaginatedListPayload
+import com.example.zhttaskflow.base.ui.rememberStateBoxContentPadding
+import com.example.zhttaskflow.base.ui.StatePaginatedListContent
+import com.example.zhttaskflow.base.ui.UiConstants
 import com.example.zhttaskflow.base.ui.extension.PageLifecycleLog
 import com.example.zhttaskflow.base.ui.extension.listItemClickWithLog
 import com.example.zhttaskflow.base.ui.extension.logUiInteraction
 import com.example.zhttaskflow.base.ui.extension.logUiOutcome
-import com.example.zhttaskflow.base.ui.rememberTaskFlowListLazyContentPadding
+import com.example.zhttaskflow.base.ui.rememberListLazyContentPadding
 import com.example.zhttaskflow.feature.article.R
 import com.example.zhttaskflow.feature.article.domain.Article
 import java.text.SimpleDateFormat
@@ -61,13 +61,13 @@ fun ArticleListScreen(
         pageArgs = lifecycleArgs,
     )
 
-    TaskFlowListScaffold(
+    ListScaffold(
         modifier = modifier,
         collapsibleTopBarOnScroll = true,
         // 启动 Tab 根页：系统返回退桌面（与资讯列表 Tab 行为一致）
         interceptTabRootBackToDesktop = true,
     ) { scaffoldContentPadding ->
-        val snackbarDispatcher = rememberTaskFlowSnackbarDispatcher()
+        val snackbarDispatcher = rememberSnackbarDispatcher()
         LaunchedEffect(viewModel, snackbarDispatcher) {
             viewModel.uiEffect.collect { effect ->
                 consumeArticleListUiEffect(
@@ -76,7 +76,7 @@ fun ArticleListScreen(
                 )
             }
         }
-        val listContentPadding = rememberTaskFlowListLazyContentPadding(
+        val listContentPadding = rememberListLazyContentPadding(
             scaffoldPadding = scaffoldContentPadding,
         )
         ArticleListContent(
@@ -94,7 +94,7 @@ private fun ArticleListContent(
     onEvent: (ArticleUiEvent) -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    TaskFlowStatePaginatedListContent(
+    StatePaginatedListContent(
         uiState = uiState.toPaginatedUiState(),
         onRetry = {
             logUiInteraction(
@@ -130,7 +130,7 @@ private fun ArticleListContent(
         },
         listContentPadding = listContentPadding,
         modifier = modifier.fillMaxSize(),
-        contentPadding = rememberTaskFlowStateBoxContentPadding(),
+        contentPadding = rememberStateBoxContentPadding(),
         emptyMessage = stringResource(id = R.string.article_str_empty_list),
         key = { _, article -> article.id },
     ) { index, article ->
@@ -149,15 +149,15 @@ private fun ArticleListContent(
     }
 }
 
-private fun ArticleUiState.toPaginatedUiState(): BaseUiState<TaskFlowPaginatedListPayload<Article>> =
+private fun ArticleUiState.toPaginatedUiState(): BaseUiState<PaginatedListPayload<Article>> =
     when (this) {
         BaseUiState.Loading -> BaseUiState.Loading
         BaseUiState.Empty -> BaseUiState.Empty
         is BaseUiState.Error -> BaseUiState.Error(message = message)
         is BaseUiState.Success -> BaseUiState.Success(
-            data = TaskFlowPaginatedListPayload(
+            data = PaginatedListPayload(
                 items = data.articles,
-                pagination = TaskFlowListPaginationState(
+                pagination = ListPaginationState(
                     isRefreshing = data.isRefreshing,
                     isLoadingMore = data.isLoadingMore,
                     isLoadMoreError = data.isLoadMoreError,
@@ -189,8 +189,8 @@ private fun ArticleListItem(
         ),
     ) {
         Column(
-            modifier = Modifier.padding(TaskFlowUiConstants.PageHorizontalPadding),
-            verticalArrangement = Arrangement.spacedBy(TaskFlowUiConstants.ListItemCardInnerSpacing),
+            modifier = Modifier.padding(UiConstants.PageHorizontalPadding),
+            verticalArrangement = Arrangement.spacedBy(UiConstants.ListItemCardInnerSpacing),
         ) {
             Text(
                 text = article.title,
@@ -221,11 +221,11 @@ private fun formatPublishedAt(epochMillis: Long): String {
 }
 
 /**
- * Screen 层 Collector：仅处理 [com.example.zhttaskflow.base.ext.TaskFlowPresentationUiEffect]。
- * 导航类 Effect 由 [com.example.zhttaskflow.feature.article.navigation.ArticleListRouteHost] 消费，见 [com.example.zhttaskflow.base.ext.TaskFlowUiEffectConsumption]。
+ * Screen 层 Collector：仅处理 [com.example.zhttaskflow.base.ext.PresentationUiEffect]。
+ * 导航类 Effect 由 [com.example.zhttaskflow.feature.article.navigation.ArticleListRouteHost] 消费，见 [com.example.zhttaskflow.base.ext.UiEffectConsumption]。
  */
 private fun consumeArticleListUiEffect(
-    dispatcher: TaskFlowSnackbarDispatcher,
+    dispatcher: SnackbarDispatcher,
     effect: ArticleUiEffect,
 ) {
     when (effect) {
@@ -248,7 +248,7 @@ private fun consumeArticleListUiEffect(
             )
         }
         is ArticleUiEffect.NavigateToDetail -> {
-            // TaskFlowNavigationUiEffect：由 ArticleListRouteHost 消费
+            // NavigationUiEffect：由 ArticleListRouteHost 消费
         }
     }
 }

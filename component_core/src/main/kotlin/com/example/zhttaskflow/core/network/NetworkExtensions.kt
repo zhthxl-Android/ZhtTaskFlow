@@ -1,6 +1,6 @@
 package com.example.zhttaskflow.core.network
 
-import com.example.zhttaskflow.core.foundation.TaskFlowNetworkException
+import com.example.zhttaskflow.core.foundation.NetworkException
 import com.example.zhttaskflow.core.util.nullIfBlank
 import com.google.gson.JsonIOException
 import com.google.gson.JsonParseException
@@ -59,7 +59,7 @@ internal suspend fun <T> executeSafeApiCall(
         ApiResult.Failure(
             exception = networkException(
                 technical = "SocketTimeoutException: ${timeout.message.nullIfBlank() ?: "timeout"}",
-                userMessage = TaskFlowNetworkUserMessages.NETWORK_TIMEOUT,
+                userMessage = NetworkUserMessages.NETWORK_TIMEOUT,
                 cause = timeout,
             ),
             kind = ApiErrorKind.NETWORK,
@@ -80,12 +80,12 @@ internal suspend fun <T> executeSafeApiCall(
             ApiErrorKind.NETWORK
         }
         val userMessage = if (kind == ApiErrorKind.BUSINESS) {
-            TaskFlowNetworkUserMessages.BUSINESS_FALLBACK
+            NetworkUserMessages.BUSINESS_FALLBACK
         } else {
-            TaskFlowNetworkUserMessages.NETWORK_IO
+            NetworkUserMessages.NETWORK_IO
         }
         ApiResult.Failure(
-            exception = TaskFlowNetworkException(
+            exception = NetworkException(
                 message = "HttpException code=$code message=$message",
                 cause = httpException,
                 errorCode = code,
@@ -99,12 +99,12 @@ internal suspend fun <T> executeSafeApiCall(
         ApiResult.Failure(
             exception = networkException(
                 technical = "IOException: ${io.message.nullIfBlank() ?: "network io"}",
-                userMessage = TaskFlowNetworkUserMessages.NETWORK_IO,
+                userMessage = NetworkUserMessages.NETWORK_IO,
                 cause = io,
             ),
             kind = ApiErrorKind.NETWORK,
         )
-    } catch (network: TaskFlowNetworkException) {
+    } catch (network: NetworkException) {
         logSafeApiCallFailure(
             tag,
             network.message.nullIfBlank() ?: "业务请求失败",
@@ -118,10 +118,10 @@ internal suspend fun <T> executeSafeApiCall(
     } catch (throwable: Throwable) {
         logSafeApiCallFailure(tag, throwable.message.nullIfBlank() ?: "未知错误", throwable)
         ApiResult.Failure(
-            exception = TaskFlowNetworkException(
+            exception = NetworkException(
                 message = throwable.message.nullIfBlank() ?: "UnknownError",
                 cause = throwable,
-                userMessage = TaskFlowNetworkUserMessages.UNKNOWN,
+                userMessage = NetworkUserMessages.UNKNOWN,
             ),
             kind = ApiErrorKind.UNKNOWN,
         )
@@ -166,7 +166,7 @@ private suspend fun <T> runSafeApiCallBlock(
  */
 private fun ensureNetworkAvailableOrThrow() {
     // 检查任务流网络是否已连接
-    if (NetworkChecker.isTaskFlowNetworkConnected()) {
+    if (NetworkChecker.isNetworkConnected()) {
         // 如果网络已连接，则直接返回
         return
     }
@@ -189,10 +189,10 @@ private fun logSafeApiCallRetry(
 
 private fun parseFailure(cause: Throwable): ApiResult.Failure {
     return ApiResult.Failure(
-        exception = TaskFlowNetworkException(
+        exception = NetworkException(
             message = "JsonParseException: ${cause.message.nullIfBlank() ?: "parse error"}",
             cause = cause,
-            userMessage = TaskFlowNetworkUserMessages.PARSE,
+            userMessage = NetworkUserMessages.PARSE,
         ),
         kind = ApiErrorKind.PARSE,
     )
@@ -202,8 +202,8 @@ private fun networkException(
     technical: String,
     userMessage: String,
     cause: Throwable,
-): TaskFlowNetworkException {
-    return TaskFlowNetworkException(
+): NetworkException {
+    return NetworkException(
         message = technical,
         cause = cause,
         userMessage = userMessage,

@@ -1,6 +1,6 @@
 package com.example.zhttaskflow.feature.article.data
 
-import com.example.zhttaskflow.core.cache.TaskFlowThreeTierCache
+import com.example.zhttaskflow.core.cache.ThreeTierCache
 import com.example.zhttaskflow.core.network.ApiResult
 import com.example.zhttaskflow.feature.article.data.remote.ArticlePageRemoteFetcher
 import com.example.zhttaskflow.feature.article.data.local.ArticleLocalDataSource
@@ -10,7 +10,7 @@ import com.example.zhttaskflow.feature.article.domain.ArticleRepository
 import kotlinx.coroutines.flow.Flow
 
 /**
- * [ArticleRepository] 实现：组合本地数据源、远程数据源与 [TaskFlowThreeTierCache]。
+ * [ArticleRepository] 实现：组合本地数据源、远程数据源与 [ThreeTierCache]。
  *
  * ## 防腐边界
  * - 业务仅定义领域模型与 Room **声明式**表结构/查询（见 `local` 包）；
@@ -20,8 +20,8 @@ import kotlinx.coroutines.flow.Flow
  * 网络侧经 [com.example.zhttaskflow.core.network.safeApiCall] 兜底。
  *
  * ## 三级缓存与刷新分工
- * - [observeArticlePage]：经 [TaskFlowThreeTierCache.observe] 推送本地→内存→远程的渐进数据，适合订阅式 UI。
- * - [refreshArticlePage]：经 [TaskFlowThreeTierCache.refresh] 强制走远程并回写本地与内存，适合首屏、下拉刷新与加载更多。
+ * - [observeArticlePage]：经 [ThreeTierCache.observe] 推送本地→内存→远程的渐进数据，适合订阅式 UI。
+ * - [refreshArticlePage]：经 [ThreeTierCache.refresh] 强制走远程并回写本地与内存，适合首屏、下拉刷新与加载更多。
  * - [clearMemoryCache]：仅清空内存层，下拉刷新前调用以避免陈旧页数据干扰。
  */
 class ArticleRepositoryImpl(
@@ -29,7 +29,7 @@ class ArticleRepositoryImpl(
     private val remoteDataSource: ArticlePageRemoteFetcher,
 ) : ArticleRepository {
 
-    private val pageTierCache = TaskFlowThreeTierCache<ArticlePageCacheKey, ArticlePage>(
+    private val pageTierCache = ThreeTierCache<ArticlePageCacheKey, ArticlePage>(
         readLocal = { key -> localDataSource.loadPage(key.page, key.pageSize) },
         readRemote = { key ->
             unwrapOrThrow(remoteDataSource.fetchPage(key.page, key.pageSize))

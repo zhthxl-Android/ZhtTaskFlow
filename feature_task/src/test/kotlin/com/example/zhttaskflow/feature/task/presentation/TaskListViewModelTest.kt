@@ -11,7 +11,7 @@ import com.example.zhttaskflow.feature.task.domain.usecase.DeleteTaskUseCase
 import com.example.zhttaskflow.feature.task.domain.usecase.GetTaskListUseCase
 import com.example.zhttaskflow.feature.task.domain.usecase.ObserveTaskDataChangesUseCase
 import com.example.zhttaskflow.feature.task.domain.usecase.UpdateTaskUseCase
-import com.example.zhttaskflow.nav.route.TaskFlowTaskNavRoutes
+import com.example.zhttaskflow.nav.route.TaskNavRoutes
 import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.every
@@ -169,7 +169,7 @@ class TaskListViewModelTest {
             yield()
         }
         val nav = effects.filterIsInstance<TaskUiEffect.NavigateToEdit>().single()
-        assertEquals(TaskFlowTaskNavRoutes.detailPath("task-42"), nav.url)
+        assertEquals(TaskNavRoutes.detailPath("task-42"), nav.url)
     }
 
     @Test

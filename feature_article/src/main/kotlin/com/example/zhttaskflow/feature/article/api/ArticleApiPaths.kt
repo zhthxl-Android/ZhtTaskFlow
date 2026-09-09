@@ -3,7 +3,7 @@ package com.example.zhttaskflow.feature.article.api
 /**
  * 资讯业务专属玩 Android 开放 API 相对路径（单一事实来源）。
  *
- * BaseUrl 统一引用 [com.example.zhttaskflow.core.network.TaskFlowWanAndroidApiConfig.PRODUCTION_BASE_URL]；
+ * BaseUrl 统一引用 [com.example.zhttaskflow.core.network.WanAndroidApiConfig.PRODUCTION_BASE_URL]；
  * 本对象仅维护接口 path，新增/修改路径仅需改动 feature_article 模块。
  */
 object ArticleApiPaths {

@@ -5,12 +5,12 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.runtime.remember
 import com.example.zhttaskflow.feature.log.navigation.registerLogRoutes
-import com.example.zhttaskflow.nav.rememberTaskFlowNavigator
-import com.example.zhttaskflow.nav.route.TaskFlowLogNavRoutes
-import com.example.zhttaskflow.nav.route.TaskFlowRouteRegistryImpl
-import com.example.zhttaskflow.nav.standalone.TaskFlowFeatureDebugShell
-import com.example.zhttaskflow.nav.standalone.prepareTaskFlowFeatureDebug
-import com.example.zhttaskflow.nav.theme.TaskFlowTheme
+import com.example.zhttaskflow.nav.rememberNavigator
+import com.example.zhttaskflow.nav.route.LogNavRoutes
+import com.example.zhttaskflow.nav.route.RouteRegistryImpl
+import com.example.zhttaskflow.nav.standalone.FeatureDebugShell
+import com.example.zhttaskflow.nav.standalone.prepareFeatureDebug
+import com.example.zhttaskflow.nav.theme.AppTheme
 
 /**
  * 通过 Gradle 属性 `feature.log.standalone=true` 切换为 application 模块后单独安装运行。
@@ -19,23 +19,23 @@ class LogDebugActivity : ComponentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        prepareTaskFlowFeatureDebug()
+        prepareFeatureDebug()
         setContent {
-            TaskFlowTheme {
-                val navigator = rememberTaskFlowNavigator()
+            AppTheme {
+                val navigator = rememberNavigator()
                 val routeRegistry = remember(navigator) {
-                    TaskFlowRouteRegistryImpl().also { registry ->
+                    RouteRegistryImpl().also { registry ->
                         registerLogRoutes(
                             registry = registry,
                             navigator = navigator,
                         )
                     }
                 }
-                TaskFlowFeatureDebugShell(
+                FeatureDebugShell(
                     registry = routeRegistry,
-                    startDestination = TaskFlowLogNavRoutes.LOG_ROUTE,
+                    startDestination = LogNavRoutes.LOG_ROUTE,
                     navigator = navigator,
-                    mainTabRootRoute = TaskFlowLogNavRoutes.LOG_ROUTE,
+                    mainTabRootRoute = LogNavRoutes.LOG_ROUTE,
                 )
             }
         }

@@ -2,8 +2,8 @@ package com.example.zhttaskflow.core.network
 
 import android.content.Context
 import com.example.zhttaskflow.core.network.gson.buildSafeGson
-import com.example.zhttaskflow.core.util.TaskFlowRuntimeUtils
-import com.example.zhttaskflow.core.util.isTaskFlowDebugLoggingEnabled
+import com.example.zhttaskflow.core.util.RuntimeUtils
+import com.example.zhttaskflow.core.util.isDebugLoggingEnabled
 import okhttp3.Interceptor
 import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
@@ -40,8 +40,8 @@ object RetrofitServiceFactory {
             "Retrofit baseUrl 必须以 / 结尾: $baseUrl"
         }
         val appContext = context.applicationContext
-        TaskFlowRuntimeUtils.ensureSyncFrom(appContext)
-        TaskFlowSafeApiCallRuntime.bindContext(appContext)
+        RuntimeUtils.ensureSyncFrom(appContext)
+        SafeApiCallRuntime.bindContext(appContext)
         val client = obtainOkHttpClient(appContext, extraInterceptors, defaultHeaders)
         val retrofit = obtainRetrofit(baseUrl, client)
         return retrofit.create(serviceClass)
@@ -57,7 +57,7 @@ object RetrofitServiceFactory {
         }
         val builder = sharedOkHttpClient(context).newBuilder()
         if (defaultHeaders.isNotEmpty()) {
-            builder.addInterceptor(TaskFlowHeaderInterceptor { defaultHeaders })
+            builder.addInterceptor(HeaderInterceptor { defaultHeaders })
         }
         extraInterceptors.forEach { interceptor ->
             builder.addInterceptor(interceptor)
@@ -88,20 +88,20 @@ object RetrofitServiceFactory {
     private fun buildSharedOkHttpClient(context: Context): OkHttpClient {
         val builder = OkHttpClient.Builder()
             .connectTimeout(
-                TaskFlowNetworkDefaults.CONNECT_TIMEOUT_SECONDS,
+                NetworkDefaults.CONNECT_TIMEOUT_SECONDS,
                 TimeUnit.SECONDS,
             )
             .readTimeout(
-                TaskFlowNetworkDefaults.READ_TIMEOUT_SECONDS,
+                NetworkDefaults.READ_TIMEOUT_SECONDS,
                 TimeUnit.SECONDS,
             )
             .writeTimeout(
-                TaskFlowNetworkDefaults.WRITE_TIMEOUT_SECONDS,
+                NetworkDefaults.WRITE_TIMEOUT_SECONDS,
                 TimeUnit.SECONDS,
             )
-            .addInterceptor(TaskFlowHeaderInterceptor { emptyMap() })
-            .addInterceptor(TaskFlowResponseInterceptor())
-        if (isTaskFlowDebugLoggingEnabled()) {
+            .addInterceptor(HeaderInterceptor { emptyMap() })
+            .addInterceptor(ResponseInterceptor())
+        if (isDebugLoggingEnabled()) {
             builder.addInterceptor(
                 HttpLoggingInterceptor().apply {
                     level = HttpLoggingInterceptor.Level.BODY

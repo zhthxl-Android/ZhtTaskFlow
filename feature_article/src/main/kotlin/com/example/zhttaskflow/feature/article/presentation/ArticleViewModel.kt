@@ -11,7 +11,7 @@ import com.example.zhttaskflow.feature.article.domain.ArticlePage
 import com.example.zhttaskflow.feature.article.domain.ArticlePagingDefaults
 import com.example.zhttaskflow.feature.article.domain.usecase.GetArticlePageUseCase
 import com.example.zhttaskflow.feature.article.domain.usecase.RefreshArticlePageUseCase
-import com.example.zhttaskflow.nav.route.TaskFlowArticleNavRoutes
+import com.example.zhttaskflow.nav.route.ArticleNavRoutes
 
 /**
  * 资讯列表 ViewModel：MVI 单向数据流，通过领域用例调度分页与 UI 状态。
@@ -217,7 +217,7 @@ class ArticleViewModel(
         }
         sendEffect(
             ArticleUiEffect.NavigateToDetail(
-                url = TaskFlowArticleNavRoutes.detailPath(
+                url = ArticleNavRoutes.detailPath(
                     articleId = articleId,
                     detailUrl = detailUrl,
                 ),

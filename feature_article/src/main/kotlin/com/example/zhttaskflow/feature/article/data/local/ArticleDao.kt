@@ -12,7 +12,7 @@ import com.example.zhttaskflow.feature.article.data.ArticleDataConstants
  * 文章本地 DAO：全部使用参数化查询，无 SQL 拼接。
  *
  * **防腐说明**：本文件为业务数据 **声明**（编译期 Room 注解）；运行时由 core 层
- * [com.example.zhttaskflow.core.persistence.room.TaskFlowRoomTemplate] 执行。
+ * [com.example.zhttaskflow.core.persistence.room.RoomTemplate] 执行。
  */
 @Dao
 interface ArticleDao : BaseRoomDao {

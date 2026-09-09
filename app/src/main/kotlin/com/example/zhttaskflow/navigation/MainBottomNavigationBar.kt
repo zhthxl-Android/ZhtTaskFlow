@@ -17,15 +17,15 @@ import androidx.compose.ui.text.style.TextOverflow
  */
 @Composable
 fun MainBottomNavigationBar(
-    selectedTab: TaskFlowMainTab,
-    onTabSelected: (TaskFlowMainTab) -> Unit,
+    selectedTab: MainTab,
+    onTabSelected: (MainTab) -> Unit,
     modifier: Modifier = Modifier,
 ) {
     NavigationBar(
         modifier = modifier,
         windowInsets = NavigationBarDefaults.windowInsets,
     ) {
-        TaskFlowMainTab.entries.forEach { tab ->
+        MainTab.entries.forEach { tab ->
             val selected = tab == selectedTab
             val label = stringResource(id = tab.labelResId)
             NavigationBarItem(

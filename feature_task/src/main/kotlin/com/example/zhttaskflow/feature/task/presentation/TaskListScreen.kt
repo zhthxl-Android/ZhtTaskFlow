@@ -25,27 +25,27 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import com.example.zhttaskflow.base.ext.SnackbarType
-import com.example.zhttaskflow.base.ext.TaskFlowSnackbarDispatcher
-import com.example.zhttaskflow.base.ext.rememberTaskFlowDialogController
-import com.example.zhttaskflow.base.ext.rememberTaskFlowSnackbarDispatcher
+import com.example.zhttaskflow.base.ext.SnackbarDispatcher
+import com.example.zhttaskflow.base.ext.rememberDialogController
+import com.example.zhttaskflow.base.ext.rememberSnackbarDispatcher
 import com.example.zhttaskflow.base.ext.showBottomSheet
 import com.example.zhttaskflow.base.ext.showSnackbar
 import com.example.zhttaskflow.base.extension.collectUiStateWithLifecycle
 import com.example.zhttaskflow.base.mvi.BaseUiState
-import com.example.zhttaskflow.base.ui.TaskFlowImeAvoidanceMode
-import com.example.zhttaskflow.base.ui.TaskFlowListScaffold
-import com.example.zhttaskflow.base.ui.TaskFlowRefreshableListPayload
-import com.example.zhttaskflow.base.ui.rememberTaskFlowStateBoxContentPadding
-import com.example.zhttaskflow.base.ui.TaskFlowStateRefreshableListContent
-import com.example.zhttaskflow.base.ui.TaskFlowUiConstants
+import com.example.zhttaskflow.base.ui.ImeAvoidanceMode
+import com.example.zhttaskflow.base.ui.ListScaffold
+import com.example.zhttaskflow.base.ui.RefreshableListPayload
+import com.example.zhttaskflow.base.ui.rememberStateBoxContentPadding
+import com.example.zhttaskflow.base.ui.StateRefreshableListContent
+import com.example.zhttaskflow.base.ui.UiConstants
 import com.example.zhttaskflow.base.ui.extension.PageLifecycleLog
 import com.example.zhttaskflow.base.ui.extension.listItemClickWithLog
 import com.example.zhttaskflow.base.ui.extension.logUiInteraction
 import com.example.zhttaskflow.base.ui.extension.logUiOutcome
-import com.example.zhttaskflow.base.ui.rememberTaskFlowImePadding
-import com.example.zhttaskflow.base.ui.rememberTaskFlowListLazyContentPadding
+import com.example.zhttaskflow.base.ui.rememberImePadding
+import com.example.zhttaskflow.base.ui.rememberListLazyContentPadding
 import com.example.zhttaskflow.base.ui.taskFlowImeBringIntoViewOnFocus
-import com.example.zhttaskflow.base.ui.taskFlowImePadding
+import com.example.zhttaskflow.base.ui.imePadding
 import com.example.zhttaskflow.feature.task.R
 import com.example.zhttaskflow.feature.task.domain.Task
 import com.example.zhttaskflow.feature.task.domain.TaskStatus
@@ -77,13 +77,13 @@ fun TaskListScreen(
         pageArgs = lifecycleArgs,
     )
 
-    val dialogController = rememberTaskFlowDialogController()
-    val snackbarDispatcher = rememberTaskFlowSnackbarDispatcher()
+    val dialogController = rememberDialogController()
+    val snackbarDispatcher = rememberSnackbarDispatcher()
     val addDialogTitle = stringResource(id = R.string.task_str_dialog_title)
     val addDialogConfirmText = stringResource(id = R.string.task_str_confirm)
     val addDialogDismissText = stringResource(id = R.string.task_str_cancel)
 
-    TaskFlowListScaffold(
+    ListScaffold(
         modifier = modifier,
         title = stringResource(id = R.string.task_str_list_title),
         collapsibleTopBarOnScroll = true,
@@ -167,9 +167,9 @@ fun TaskListScreen(
                 )
             }
         }
-        val listContentPadding = rememberTaskFlowListLazyContentPadding(
+        val listContentPadding = rememberListLazyContentPadding(
             scaffoldPadding = scaffoldContentPadding,
-            extraBottom = TaskFlowUiConstants.FabContentExtraBottom,
+            extraBottom = UiConstants.FabContentExtraBottom,
         )
         TaskListContent(
             uiState = uiState,
@@ -208,8 +208,8 @@ private class AddTaskFormState {
 }
 
 /**
- * **BottomSheet 业务接入示范**：通过 [showBottomSheet] + 全局 [com.example.zhttaskflow.base.ext.TaskFlowDialogController]
- * 渲染 [com.example.zhttaskflow.base.ui.dialog.TaskFlowBottomSheet]；选项点击后关闭并 Snackbar 反馈。
+ * **BottomSheet 业务接入示范**：通过 [showBottomSheet] + 全局 [com.example.zhttaskflow.base.ext.DialogController]
+ * 渲染 [com.example.zhttaskflow.base.ui.dialog.BottomSheet]；选项点击后关闭并 Snackbar 反馈。
  */
 private enum class TaskListMoreSheetAction(val actionSuffix: String) {
     Batch(actionSuffix = "batch"),
@@ -233,10 +233,10 @@ private fun ColumnScope.TaskListMoreBottomSheetContent(
         modifier = Modifier
             .fillMaxWidth()
             .padding(
-                horizontal = TaskFlowUiConstants.PageHorizontalPadding,
-                vertical = TaskFlowUiConstants.ListVerticalSpacing,
+                horizontal = UiConstants.PageHorizontalPadding,
+                vertical = UiConstants.ListVerticalSpacing,
             ),
-        verticalArrangement = Arrangement.spacedBy(TaskFlowUiConstants.ListVerticalSpacing),
+        verticalArrangement = Arrangement.spacedBy(UiConstants.ListVerticalSpacing),
     ) {
         menuItems.forEach { (action, labels) ->
             val label = stringResource(id = labels.first)
@@ -247,9 +247,9 @@ private fun ColumnScope.TaskListMoreBottomSheetContent(
                 color = MaterialTheme.colorScheme.onSurface,
                 modifier = Modifier
                     .fillMaxWidth()
-                    .heightIn(min = TaskFlowUiConstants.DialogActionHeight)
+                    .heightIn(min = UiConstants.DialogActionHeight)
                     .clickable { onItemClick(action, feedbackMessage) }
-                    .padding(vertical = TaskFlowUiConstants.ListVerticalSpacing),
+                    .padding(vertical = UiConstants.ListVerticalSpacing),
             )
         }
     }
@@ -264,13 +264,13 @@ private fun TaskListContent(
     onTaskClick: (String) -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    TaskFlowStateRefreshableListContent(
+    StateRefreshableListContent(
         uiState = uiState.toRefreshableUiState(),
         onRetry = onRetry,
         onRefresh = onRefresh,
         listContentPadding = listContentPadding,
         modifier = modifier.fillMaxSize(),
-        contentPadding = rememberTaskFlowStateBoxContentPadding(),
+        contentPadding = rememberStateBoxContentPadding(),
         emptyMessage = stringResource(id = R.string.task_str_empty_list),
         key = { _, task -> task.id },
     ) { index, task ->
@@ -282,13 +282,13 @@ private fun TaskListContent(
     }
 }
 
-private fun TaskUiState.toRefreshableUiState(): BaseUiState<TaskFlowRefreshableListPayload<Task>> =
+private fun TaskUiState.toRefreshableUiState(): BaseUiState<RefreshableListPayload<Task>> =
     when (this) {
         BaseUiState.Loading -> BaseUiState.Loading
         BaseUiState.Empty -> BaseUiState.Empty
         is BaseUiState.Error -> BaseUiState.Error(message = message)
         is BaseUiState.Success -> BaseUiState.Success(
-            data = TaskFlowRefreshableListPayload(
+            data = RefreshableListPayload(
                 items = data.tasks,
                 isRefreshing = data.isRefreshing,
             ),
@@ -320,8 +320,8 @@ private fun TaskListItem(
         ),
     ) {
         Column(
-            modifier = Modifier.padding(TaskFlowUiConstants.PageHorizontalPadding),
-            verticalArrangement = Arrangement.spacedBy(TaskFlowUiConstants.ListItemCompactVerticalSpacing),
+            modifier = Modifier.padding(UiConstants.PageHorizontalPadding),
+            verticalArrangement = Arrangement.spacedBy(UiConstants.ListItemCompactVerticalSpacing),
         ) {
             Text(
                 text = task.title,
@@ -345,13 +345,13 @@ private fun TaskListItem(
 private fun AddTaskDialogFormContent(
     formState: AddTaskFormState,
 ) {
-    val imePadding = rememberTaskFlowImePadding(mode = TaskFlowImeAvoidanceMode.BringIntoView)
+    val imePadding = rememberImePadding(mode = ImeAvoidanceMode.BringIntoView)
 
     Column(
         modifier = Modifier
             .fillMaxWidth()
-            .taskFlowImePadding(imePadding),
-        verticalArrangement = Arrangement.spacedBy(TaskFlowUiConstants.ListVerticalSpacing),
+            .imePadding(imePadding),
+        verticalArrangement = Arrangement.spacedBy(UiConstants.ListVerticalSpacing),
     ) {
         OutlinedTextField(
             value = formState.title,
@@ -389,11 +389,11 @@ private fun formatCreatedAt(epochMillis: Long): String {
 }
 
 /**
- * Screen 层 Collector：仅处理 [com.example.zhttaskflow.base.ext.TaskFlowPresentationUiEffect]。
- * 导航类 Effect 由 [com.example.zhttaskflow.feature.task.navigation.TaskListRouteHost] 消费，见 [com.example.zhttaskflow.base.ext.TaskFlowUiEffectConsumption]。
+ * Screen 层 Collector：仅处理 [com.example.zhttaskflow.base.ext.PresentationUiEffect]。
+ * 导航类 Effect 由 [com.example.zhttaskflow.feature.task.navigation.TaskListRouteHost] 消费，见 [com.example.zhttaskflow.base.ext.UiEffectConsumption]。
  */
 private fun consumeTaskListUiEffect(
-    dispatcher: TaskFlowSnackbarDispatcher,
+    dispatcher: SnackbarDispatcher,
     effect: TaskUiEffect,
 ) {
     when (effect) {
@@ -416,7 +416,7 @@ private fun consumeTaskListUiEffect(
             )
         }
         is TaskUiEffect.NavigateToEdit -> {
-            // TaskFlowNavigationUiEffect：由 TaskListRouteHost 消费
+            // NavigationUiEffect：由 TaskListRouteHost 消费
         }
     }
 }

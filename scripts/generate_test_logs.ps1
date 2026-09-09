@@ -3,7 +3,7 @@
   向 TaskFlow 本地可观测日志仓灌入测试 JSONL（埋点 / 性能 / 崩溃），用于日志 Tab 压测。
 
 .DESCRIPTION
-  - 生成与 TaskFlowLocalLogStore.encodeRecord 兼容的 JSON Lines 文件。
+  - 生成与 LocalLogStore.encodeRecord 兼容的 JSON Lines 文件。
   - 默认通过 adb + run-as 写入 Debug 包私有目录（不进入 Release 产物）。
   - 首次打开日志 Tab 时由应用按 .jsonl 自动重建 .idx 侧车索引。
 

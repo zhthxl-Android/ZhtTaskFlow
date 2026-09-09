@@ -14,7 +14,7 @@ import com.example.zhttaskflow.feature.task.domain.usecase.DeleteTaskUseCase
 import com.example.zhttaskflow.feature.task.domain.usecase.GetTaskListUseCase
 import com.example.zhttaskflow.feature.task.domain.usecase.ObserveTaskDataChangesUseCase
 import com.example.zhttaskflow.feature.task.domain.usecase.UpdateTaskUseCase
-import com.example.zhttaskflow.nav.route.TaskFlowTaskNavRoutes
+import com.example.zhttaskflow.nav.route.TaskNavRoutes
 import kotlinx.coroutines.launch
 
 /**
@@ -230,7 +230,7 @@ class TaskViewModel(
         }
         sendEffect(
             TaskUiEffect.NavigateToEdit(
-                url = TaskFlowTaskNavRoutes.detailPath(taskId),
+                url = TaskNavRoutes.detailPath(taskId),
             ),
         )
     }

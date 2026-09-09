@@ -24,25 +24,26 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.core.content.FileProvider
-import com.example.zhttaskflow.core.util.isTaskFlowDebugLoggingEnabled
+import com.example.zhttaskflow.core.util.isDebugLoggingEnabled
 import com.example.zhttaskflow.base.ext.SnackbarType
-import com.example.zhttaskflow.base.ext.TaskFlowDialogController
-import com.example.zhttaskflow.base.ext.rememberTaskFlowDialogController
-import com.example.zhttaskflow.base.ext.rememberTaskFlowSnackbarDispatcher
+import com.example.zhttaskflow.base.ext.DialogController
+import com.example.zhttaskflow.base.ext.SnackbarDispatcher
+import com.example.zhttaskflow.base.ext.rememberDialogController
+import com.example.zhttaskflow.base.ext.rememberSnackbarDispatcher
 import com.example.zhttaskflow.base.ext.showSnackbar
 import com.example.zhttaskflow.base.extension.collectUiStateWithLifecycle
 import com.example.zhttaskflow.base.mvi.BaseUiState
-import com.example.zhttaskflow.base.ui.TaskFlowListPaginationState
-import com.example.zhttaskflow.base.ui.TaskFlowListScaffold
-import com.example.zhttaskflow.base.ui.TaskFlowPaginatedListPayload
-import com.example.zhttaskflow.base.ui.TaskFlowStatePaginatedListContent
-import com.example.zhttaskflow.base.ui.TaskFlowUiConstants
+import com.example.zhttaskflow.base.ui.ListPaginationState
+import com.example.zhttaskflow.base.ui.ListScaffold
+import com.example.zhttaskflow.base.ui.PaginatedListPayload
+import com.example.zhttaskflow.base.ui.StatePaginatedListContent
+import com.example.zhttaskflow.base.ui.UiConstants
 import com.example.zhttaskflow.base.ui.extension.PageLifecycleLog
 import com.example.zhttaskflow.base.ui.extension.listItemClickWithLog
 import com.example.zhttaskflow.base.ui.extension.logUiInteraction
 import com.example.zhttaskflow.base.ui.extension.logUiOutcome
-import com.example.zhttaskflow.base.ui.rememberTaskFlowListLazyContentPadding
-import com.example.zhttaskflow.base.ui.rememberTaskFlowStateBoxContentPadding
+import com.example.zhttaskflow.base.ui.rememberListLazyContentPadding
+import com.example.zhttaskflow.base.ui.rememberStateBoxContentPadding
 import com.example.zhttaskflow.feature.log.domain.LogExportScope
 import com.example.zhttaskflow.feature.log.R
 
@@ -55,11 +56,11 @@ internal fun LogScreen(
     modifier: Modifier = Modifier,
 ) {
     val uiState by viewModel.uiState.collectUiStateWithLifecycle()
-    val dialogController = rememberTaskFlowDialogController()
-    val snackbarDispatcher = rememberTaskFlowSnackbarDispatcher()
+    val dialogController = rememberDialogController()
+    val snackbarDispatcher = rememberSnackbarDispatcher()
     val context = LocalContext.current
     var showDebugPanel by remember { mutableStateOf(false) }
-    val showDebugEntry = remember(context) { isTaskFlowDebugLoggingEnabled() }
+    val showDebugEntry = remember(context) { isDebugLoggingEnabled() }
 
     if (showDebugPanel && showDebugEntry) {
         DebugSettingsScreen(
@@ -117,7 +118,7 @@ internal fun LogScreen(
         }
     }
 
-    TaskFlowListScaffold(
+    ListScaffold(
         modifier = modifier,
         title = stringResource(id = R.string.log_str_viewer_title),
         interceptTabRootBackToDesktop = false,
@@ -205,11 +206,11 @@ internal fun LogScreen(
                     viewModel.onEvent(LogUiEvent.FilterSelected(filter))
                 },
             )
-            val listContentPadding = rememberTaskFlowListLazyContentPadding(
+            val listContentPadding = rememberListLazyContentPadding(
                 scaffoldPadding = scaffoldContentPadding,
             )
             val successExpandedIds = (uiState as? BaseUiState.Success)?.data?.expandedEntryIds.orEmpty()
-            TaskFlowStatePaginatedListContent(
+            StatePaginatedListContent(
                 uiState = uiState.toPaginatedListState(),
                 onRetry = {
                     logUiInteraction(
@@ -244,7 +245,7 @@ internal fun LogScreen(
                     viewModel.onEvent(LogUiEvent.LoadMore)
                 },
                 listContentPadding = listContentPadding,
-                contentPadding = rememberTaskFlowStateBoxContentPadding(),
+                contentPadding = rememberStateBoxContentPadding(),
                 emptyMessage = emptyMessage,
                 modifier = Modifier.fillMaxSize(),
                 key = { _, entry -> entry.id },
@@ -266,16 +267,16 @@ internal fun LogScreen(
     }
 }
 
-private fun LogUiState.toPaginatedListState(): BaseUiState<TaskFlowPaginatedListPayload<LogEntryUi>> {
+private fun LogUiState.toPaginatedListState(): BaseUiState<PaginatedListPayload<LogEntryUi>> {
     return when (this) {
         BaseUiState.Loading -> BaseUiState.Loading
         BaseUiState.Empty -> BaseUiState.Empty
         is BaseUiState.Error -> BaseUiState.Error(message = message)
         is BaseUiState.Success -> {
             BaseUiState.Success(
-                data = TaskFlowPaginatedListPayload(
+                data = PaginatedListPayload(
                     items = data.entries,
-                    pagination = TaskFlowListPaginationState(
+                    pagination = ListPaginationState(
                         isRefreshing = data.isRefreshing,
                         isLoadingMore = data.isLoadingMore,
                         isLoadMoreError = false,
@@ -291,7 +292,7 @@ private fun LogUiState.toPaginatedListState(): BaseUiState<TaskFlowPaginatedList
  * 导出范围选择：默认推荐「当前筛选结果」（置于首位）。
  */
 private fun showLogExportDialog(
-    dialogController: TaskFlowDialogController,
+    dialogController: DialogController,
     title: String,
     message: String,
     filteredLabel: String,
@@ -304,8 +305,8 @@ private fun showLogExportDialog(
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(
-                    horizontal = TaskFlowUiConstants.StateScreenContentPadding,
-                    vertical = TaskFlowUiConstants.ListVerticalSpacing,
+                    horizontal = UiConstants.StateScreenContentPadding,
+                    vertical = UiConstants.ListVerticalSpacing,
                 ),
         ) {
             Text(
@@ -316,8 +317,8 @@ private fun showLogExportDialog(
                 text = message,
                 style = MaterialTheme.typography.bodyMedium,
                 modifier = Modifier.padding(
-                    top = TaskFlowUiConstants.ListVerticalSpacing,
-                    bottom = TaskFlowUiConstants.StateScreenActionTopSpacing,
+                    top = UiConstants.ListVerticalSpacing,
+                    bottom = UiConstants.StateScreenActionTopSpacing,
                 ),
             )
             TextButton(
@@ -360,10 +361,10 @@ private fun LogTypeFilterRow(
             .fillMaxWidth()
             .horizontalScroll(scrollState)
             .padding(
-                horizontal = TaskFlowUiConstants.PageHorizontalPadding,
-                vertical = TaskFlowUiConstants.ListVerticalSpacing,
+                horizontal = UiConstants.PageHorizontalPadding,
+                vertical = UiConstants.ListVerticalSpacing,
             ),
-        horizontalArrangement = Arrangement.spacedBy(TaskFlowUiConstants.ListVerticalSpacing),
+        horizontalArrangement = Arrangement.spacedBy(UiConstants.ListVerticalSpacing),
     ) {
         LogTypeFilter.entries.forEach { filter ->
             val label = when (filter) {
@@ -383,7 +384,7 @@ private fun LogTypeFilterRow(
 
 private fun consumeLogUiEffect(
     context: android.content.Context,
-    dispatcher: com.example.zhttaskflow.base.ext.TaskFlowSnackbarDispatcher,
+    dispatcher: com.example.zhttaskflow.base.ext.SnackbarDispatcher,
     exportShareTitle: String,
     clearSuccessMessage: String,
     effect: LogUiEffect,

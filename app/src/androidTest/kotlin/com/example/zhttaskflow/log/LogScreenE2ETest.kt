@@ -8,21 +8,21 @@ import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.example.zhttaskflow.MainActivity
-import com.example.zhttaskflow.androidtest.TaskFlowE2ETestSupport
-import com.example.zhttaskflow.androidtest.TaskFlowE2ETestSupport.LOG_CANCEL
-import com.example.zhttaskflow.androidtest.TaskFlowE2ETestSupport.LOG_CLEAR
-import com.example.zhttaskflow.androidtest.TaskFlowE2ETestSupport.LOG_CLEAR_CONFIRM_TITLE
-import com.example.zhttaskflow.androidtest.TaskFlowE2ETestSupport.LOG_CONFIRM
-import com.example.zhttaskflow.androidtest.TaskFlowE2ETestSupport.LOG_EMPTY
-import com.example.zhttaskflow.androidtest.TaskFlowE2ETestSupport.LOG_ENTRY_DETAIL
-import com.example.zhttaskflow.androidtest.TaskFlowE2ETestSupport.LOG_FILTER_ANALYTICS
-import com.example.zhttaskflow.androidtest.TaskFlowE2ETestSupport.LOG_FILTER_CRASH
-import com.example.zhttaskflow.androidtest.TaskFlowE2ETestSupport.LOG_VIEWER_TITLE
-import com.example.zhttaskflow.androidtest.TaskFlowE2ETestSupport.TAB_LOG
-import com.example.zhttaskflow.androidtest.TaskFlowE2ETestSupport.selectMainTab
-import com.example.zhttaskflow.androidtest.TaskFlowE2ETestSupport.waitForBottomTabs
-import com.example.zhttaskflow.androidtest.TaskFlowE2ETestSupport.waitForText
-import com.example.zhttaskflow.core.observability.TaskFlowLocalLogStore
+import com.example.zhttaskflow.androidtest.E2ETestSupport
+import com.example.zhttaskflow.androidtest.E2ETestSupport.LOG_CANCEL
+import com.example.zhttaskflow.androidtest.E2ETestSupport.LOG_CLEAR
+import com.example.zhttaskflow.androidtest.E2ETestSupport.LOG_CLEAR_CONFIRM_TITLE
+import com.example.zhttaskflow.androidtest.E2ETestSupport.LOG_CONFIRM
+import com.example.zhttaskflow.androidtest.E2ETestSupport.LOG_EMPTY
+import com.example.zhttaskflow.androidtest.E2ETestSupport.LOG_ENTRY_DETAIL
+import com.example.zhttaskflow.androidtest.E2ETestSupport.LOG_FILTER_ANALYTICS
+import com.example.zhttaskflow.androidtest.E2ETestSupport.LOG_FILTER_CRASH
+import com.example.zhttaskflow.androidtest.E2ETestSupport.LOG_VIEWER_TITLE
+import com.example.zhttaskflow.androidtest.E2ETestSupport.TAB_LOG
+import com.example.zhttaskflow.androidtest.E2ETestSupport.selectMainTab
+import com.example.zhttaskflow.androidtest.E2ETestSupport.waitForBottomTabs
+import com.example.zhttaskflow.androidtest.E2ETestSupport.waitForText
+import com.example.zhttaskflow.core.observability.LocalLogStore
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
@@ -41,12 +41,12 @@ class LogScreenE2ETest {
     fun seedLocalLogs() {
         composeRule.activityRule.scenario.onActivity {
             appendLog(
-                logType = TaskFlowLocalLogStore.LogType.ANALYTICS,
+                logType = LocalLogStore.LogType.ANALYTICS,
                 event = "e2e_analytics_event",
                 actionId = "e2e_analytics",
             )
             appendLog(
-                logType = TaskFlowLocalLogStore.LogType.CRASH,
+                logType = LocalLogStore.LogType.CRASH,
                 event = "e2e_crash_event",
                 actionId = "e2e_crash",
             )
@@ -108,11 +108,11 @@ class LogScreenE2ETest {
     }
 
     private fun appendLog(
-        logType: TaskFlowLocalLogStore.LogType,
+        logType: LocalLogStore.LogType,
         event: String,
         actionId: String,
     ) {
-        val record = TaskFlowLocalLogStore.LogRecord(
+        val record = LocalLogStore.LogRecord(
             timestampEpochMs = System.currentTimeMillis(),
             logType = logType,
             pageId = "E2E",
@@ -120,7 +120,7 @@ class LogScreenE2ETest {
             event = event,
             params = emptyMap(),
         )
-        TaskFlowLocalLogStore.append(record)
+        LocalLogStore.append(record)
         Thread.sleep(800)
     }
 }

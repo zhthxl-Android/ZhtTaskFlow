@@ -5,23 +5,23 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.runtime.remember
 import com.example.zhttaskflow.feature.article.navigation.registerArticleRoutes
-import com.example.zhttaskflow.nav.rememberTaskFlowNavigator
-import com.example.zhttaskflow.nav.route.TaskFlowArticleNavRoutes
-import com.example.zhttaskflow.nav.route.TaskFlowRouteRegistryImpl
-import com.example.zhttaskflow.nav.standalone.TaskFlowFeatureDebugShell
-import com.example.zhttaskflow.nav.standalone.prepareTaskFlowFeatureDebug
-import com.example.zhttaskflow.nav.theme.TaskFlowTheme
+import com.example.zhttaskflow.nav.rememberNavigator
+import com.example.zhttaskflow.nav.route.ArticleNavRoutes
+import com.example.zhttaskflow.nav.route.RouteRegistryImpl
+import com.example.zhttaskflow.nav.standalone.FeatureDebugShell
+import com.example.zhttaskflow.nav.standalone.prepareFeatureDebug
+import com.example.zhttaskflow.nav.theme.AppTheme
 
 /** Feature 独立调试入口：使用演示远程数据源，壳层 inset 与集成宿主一致。 */
 class FeatureArticleDebugActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        prepareTaskFlowFeatureDebug()
+        prepareFeatureDebug()
         setContent {
-            TaskFlowTheme {
-                val navigator = rememberTaskFlowNavigator()
+            AppTheme {
+                val navigator = rememberNavigator()
                 val routeRegistry = remember(navigator) {
-                    TaskFlowRouteRegistryImpl().also { registry ->
+                    RouteRegistryImpl().also { registry ->
                         registerArticleRoutes(
                             registry = registry,
                             navigator = navigator,
@@ -29,11 +29,11 @@ class FeatureArticleDebugActivity : ComponentActivity() {
                         )
                     }
                 }
-                TaskFlowFeatureDebugShell(
+                FeatureDebugShell(
                     registry = routeRegistry,
-                    startDestination = TaskFlowArticleNavRoutes.ARTICLE_LIST,
+                    startDestination = ArticleNavRoutes.ARTICLE_LIST,
                     navigator = navigator,
-                    mainTabRootRoute = TaskFlowArticleNavRoutes.ARTICLE_LIST,
+                    mainTabRootRoute = ArticleNavRoutes.ARTICLE_LIST,
                 )
             }
         }

@@ -16,7 +16,7 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import kotlin.math.roundToInt
 
-/** 列表上滑收起顶栏 / 状态栏占位、下滑恢复（供 [TaskFlowListScaffold] 使用）。 */
+/** 列表上滑收起顶栏 / 状态栏占位、下滑恢复（供 [ListScaffold] 使用）。 */
 @Stable
 class CollapsibleTopBarState(
     maxCollapsePx: Float,

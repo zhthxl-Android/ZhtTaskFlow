@@ -12,7 +12,7 @@ import org.gradle.kotlin.dsl.dependencies
  * - `room.schemaLocation` → `{moduleProjectDir}/schemas`；
  * - 启用稳定项 `room.incremental`。
  */
-internal fun Project.configureTaskFlowRoomKsp(
+internal fun Project.configureRoomKsp(
     includeRoomCompileOnlyAnnotations: Boolean = false,
 ) {
     val catalog = libsCatalog()

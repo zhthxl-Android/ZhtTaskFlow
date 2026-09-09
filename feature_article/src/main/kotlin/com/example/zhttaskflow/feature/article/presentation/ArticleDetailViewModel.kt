@@ -4,7 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import com.example.zhttaskflow.base.mvi.BaseUiState
 import com.example.zhttaskflow.base.mvi.BaseViewModel
-import com.example.zhttaskflow.core.foundation.TaskFlowNetworkException
+import com.example.zhttaskflow.core.foundation.NetworkException
 import com.example.zhttaskflow.feature.article.domain.usecase.GetArticleDetailUseCase
 
 /**
@@ -34,7 +34,7 @@ class ArticleDetailViewModel(
             scene = "loadDetail",
             userMessageFallback = networkUnavailableMessage,
             onError = { throwable, message ->
-                val displayMessage = if (throwable is TaskFlowNetworkException) {
+                val displayMessage = if (throwable is NetworkException) {
                     networkUnavailableMessage
                 } else {
                     message

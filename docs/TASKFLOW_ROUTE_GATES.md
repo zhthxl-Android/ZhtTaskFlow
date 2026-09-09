@@ -1,12 +1,12 @@
 # TaskFlow 业务路由门禁说明
 
-> 实现：`component_nav` → `TaskFlowRouteGatePolicy`；拦截链见 [ARCHITECTURE.md §12](ARCHITECTURE.md) 与 `TaskFlowNavArchitecture`。
+> 实现：`component_nav` → `RouteGatePolicy`；拦截链见 [ARCHITECTURE.md §12](ARCHITECTURE.md) 与 [NavArchitecture](../component_nav/src/main/kotlin/com/example/zhttaskflow/nav/doc/NavArchitecture.kt)。
 
 ## 约定
 
 - ViewModel 下发 **纯净** path（不含 `needLogin` / `permissionGroup`）。
-- Feature **RouteHost** 在 `TaskFlowNavigator.navigate` 前调用 `TaskFlowRouteGatePolicy.enrichNavigationPath(path)`（或 Feature 内等价封装）。
-- 外部深链 `taskflow://nav/route?target=...` 经 `TaskFlowDeepLinkNavigation.enrichExternalDeepLinkUri` 对 `target` 施加 **相同** 策略后再进入拦截链。
+- Feature **RouteHost** 在 `AppNavigator.navigate` 前调用 `RouteGatePolicy.enrichNavigationPath(path)`（或 Feature 内等价封装）。
+- 外部深链 `taskflow://nav/route?target=...` 经 `DeepLinkNavigation.enrichExternalDeepLinkUri` 对 `target` 施加 **相同** 策略后再进入拦截链。
 - 未列入下表的路由 **不叠加** 标记，行为与改造前一致。
 
 ## 路由门禁表
@@ -25,10 +25,10 @@
 
 ## 扩展新页面
 
-1. 在 `TaskFlowRouteGatePolicy.enrichNavigationPath` 增加 path 判定与标记组合。
+1. 在 `RouteGatePolicy.enrichNavigationPath` 增加 path 判定与标记组合。
 2. 在本表追加一行说明。
 3. 对应 Feature `*Route.kt` 的导航 Effect 消费处调用 `enrichNavigationPath`（或 Feature 封装函数）。
-4. 若需深链直达，无需改 `MainActivity`：enrich 已统一走 `TaskFlowRouteGatePolicy`。
+4. 若需深链直达，无需改 `MainActivity`：enrich 已统一走 `RouteGatePolicy`。
 
 ## 手动验证
 

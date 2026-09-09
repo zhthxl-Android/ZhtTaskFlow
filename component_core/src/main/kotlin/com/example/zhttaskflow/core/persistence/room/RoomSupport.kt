@@ -1,0 +1,17 @@
+package com.example.zhttaskflow.core.persistence.room
+
+/**
+ * Room 数据库配置，由 Feature 在业务阶段提供数据库名与 schema 导出路径。
+ */
+data class RoomConfig(
+    val databaseName: String,
+    val schemaExportPath: String? = null,
+)
+
+/**
+ * 通用 DAO 标记接口，Feature 层 DAO 可继承并补充 Room 注解。
+ *
+ * 运行时访问使用 [RoomTemplate] 或 [RoomDatabaseBuilder.openDao]；
+ * 禁止在 Feature 中直接调用 [androidx.room.Room.databaseBuilder]。
+ */
+interface BaseRoomDao

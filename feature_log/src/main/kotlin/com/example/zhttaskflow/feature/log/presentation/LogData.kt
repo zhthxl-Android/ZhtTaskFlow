@@ -13,7 +13,7 @@ data class LogData(
 )
 
 /**
- * 顶部类型筛选（与 [com.example.zhttaskflow.core.observability.TaskFlowLocalLogStore.LogType] 对应）。
+ * 顶部类型筛选（与 [com.example.zhttaskflow.core.observability.LocalLogStore.LogType] 对应）。
  */
 enum class LogTypeFilter {
     ALL,

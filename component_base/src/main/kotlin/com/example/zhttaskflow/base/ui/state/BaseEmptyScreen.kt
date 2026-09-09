@@ -8,7 +8,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import com.example.zhttaskflow.base.ui.TaskFlowUiConstants
+import com.example.zhttaskflow.base.ui.UiConstants
 
 /**
  * 空数据占位页。
@@ -26,7 +26,7 @@ fun BaseEmptyScreen(
     ) {
         Text(
             text = message,
-            modifier = Modifier.padding(TaskFlowUiConstants.StateScreenContentPadding),
+            modifier = Modifier.padding(UiConstants.StateScreenContentPadding),
             style = MaterialTheme.typography.bodyLarge,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
         )

@@ -1,7 +1,7 @@
 package com.example.zhttaskflow.feature.log.data.repository
 
 import android.content.Context
-import com.example.zhttaskflow.core.observability.TaskFlowLocalLogStore
+import com.example.zhttaskflow.core.observability.LocalLogStore
 import com.example.zhttaskflow.feature.log.domain.LogCategory
 import com.example.zhttaskflow.feature.log.domain.LogEntry
 import com.example.zhttaskflow.feature.log.domain.LogQueryFilter
@@ -33,20 +33,20 @@ class LogRepositoryTest {
 
     @Before
     fun setUp() {
-        mockkObject(TaskFlowLocalLogStore)
+        mockkObject(LocalLogStore)
     }
 
     @After
     fun tearDown() {
-        unmockkObject(TaskFlowLocalLogStore)
+        unmockkObject(LocalLogStore)
     }
 
     @Test
     fun queryPaged_mapsPageAndEntries() = runTest {
         val storeRecord = sampleStoreRecord()
-        val filterSlot = slot<TaskFlowLocalLogStore.PagedQueryFilter>()
-        every { TaskFlowLocalLogStore.queryPaged(capture(filterSlot)) } returns
-            TaskFlowLocalLogStore.PagedQueryResult(
+        val filterSlot = slot<LocalLogStore.PagedQueryFilter>()
+        every { LocalLogStore.queryPaged(capture(filterSlot)) } returns
+            LocalLogStore.PagedQueryResult(
                 records = listOf(storeRecord),
                 hasMore = true,
             )
@@ -60,37 +60,37 @@ class LogRepositoryTest {
         assertEquals(LogCategory.ANALYTICS, page.entries.single().category)
         assertEquals(2, filterSlot.captured.page)
         assertEquals(25, filterSlot.captured.pageSize)
-        assertEquals(TaskFlowLocalLogStore.LogType.ANALYTICS, filterSlot.captured.logType)
+        assertEquals(LocalLogStore.LogType.ANALYTICS, filterSlot.captured.logType)
     }
 
     @Test
     fun queryPaged_appliesTypeFilter() = runTest {
-        val filterSlot = slot<TaskFlowLocalLogStore.PagedQueryFilter>()
-        every { TaskFlowLocalLogStore.queryPaged(capture(filterSlot)) } returns
-            TaskFlowLocalLogStore.PagedQueryResult(emptyList(), hasMore = false)
+        val filterSlot = slot<LocalLogStore.PagedQueryFilter>()
+        every { LocalLogStore.queryPaged(capture(filterSlot)) } returns
+            LocalLogStore.PagedQueryResult(emptyList(), hasMore = false)
         repository.queryPaged(LogQueryFilter(logType = LogCategory.CRASH), page = 0, pageSize = 50)
-        assertEquals(TaskFlowLocalLogStore.LogType.CRASH, filterSlot.captured.logType)
+        assertEquals(LocalLogStore.LogType.CRASH, filterSlot.captured.logType)
         repository.queryPaged(LogQueryFilter(logType = null), page = 0, pageSize = 50)
         assertEquals(null, filterSlot.captured.logType)
     }
 
     @Test
     fun clearAllLogs_delegatesToStore() = runTest {
-        every { TaskFlowLocalLogStore.clearAllLogs() } just Runs
+        every { LocalLogStore.clearAllLogs() } just Runs
         repository.clearAllLogs()
-        verify(exactly = 1) { TaskFlowLocalLogStore.clearAllLogs() }
+        verify(exactly = 1) { LocalLogStore.clearAllLogs() }
     }
 
     @Test
     fun exportLogs_passesMappedFilterAndReturnsFile() = runTest {
-        val filterSlot = slot<TaskFlowLocalLogStore.QueryFilter>()
+        val filterSlot = slot<LocalLogStore.QueryFilter>()
         val exportFile = File.createTempFile("taskflow_export", ".jsonl")
         every {
-            TaskFlowLocalLogStore.exportRecentLogs(appContext, capture(filterSlot), 500)
+            LocalLogStore.exportRecentLogs(appContext, capture(filterSlot), 500)
         } returns exportFile
         val result = repository.exportLogs(LogQueryFilter(logType = LogCategory.PERFORMANCE), maxEntries = 500)
         assertEquals(exportFile, result)
-        assertEquals(TaskFlowLocalLogStore.LogType.PERFORMANCE, filterSlot.captured.logType)
+        assertEquals(LocalLogStore.LogType.PERFORMANCE, filterSlot.captured.logType)
         assertEquals(500, filterSlot.captured.maxEntries)
     }
 
@@ -106,15 +106,15 @@ class LogRepositoryTest {
             event = "ev",
             params = emptyMap(),
         )
-        every { TaskFlowLocalLogStore.encodeRecord(any()) } returns """{"event":"ev"}"""
+        every { LocalLogStore.encodeRecord(any()) } returns """{"event":"ev"}"""
         val encoded = repository.encodeLogDetail(entry)
         assertEquals("""{"event":"ev"}""", encoded)
     }
 
-    private fun sampleStoreRecord(): TaskFlowLocalLogStore.LogRecord {
-        return TaskFlowLocalLogStore.LogRecord(
+    private fun sampleStoreRecord(): LocalLogStore.LogRecord {
+        return LocalLogStore.LogRecord(
             timestampEpochMs = 1L,
-            logType = TaskFlowLocalLogStore.LogType.ANALYTICS,
+            logType = LocalLogStore.LogType.ANALYTICS,
             pageId = "Home",
             actionId = "click",
             event = "tap",

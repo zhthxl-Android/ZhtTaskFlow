@@ -19,13 +19,13 @@ import com.example.zhttaskflow.base.ui.state.BaseLoadingScreen
  * ## 用途
  * 收敛业务页面重复的 `when (uiState)` 分支，成功态业务 UI 通过 [content] 插槽渲染。
  *
- * ## 标准用法（与 [TaskFlowBaseScaffold]、[TaskFlowScaffold] / [TaskFlowListScaffold] 配合）
+ * ## 标准用法（与 [BaseScaffold]、[PageScaffold] / [ListScaffold] 配合）
  * ```
- * TaskFlowListScaffold(...) { _ ->
+ * ListScaffold(...) { _ ->
  *     StateBox(
  *         uiState = uiState,
  *         onRetry = { ... },
- *         contentPadding = rememberTaskFlowStateBoxContentPadding(),
+ *         contentPadding = rememberStateBoxContentPadding(),
  *         modifier = Modifier.fillMaxSize(),
  *     ) { data -> ... }
  * }
@@ -34,12 +34,12 @@ import com.example.zhttaskflow.base.ui.state.BaseLoadingScreen
  * @param uiState 页面 MVI 状态
  * @param onRetry 错误态点击重试
  * @param modifier 根容器修饰符
- * @param contentPadding 在 [TaskFlowBaseScaffold] 内请使用 [rememberTaskFlowStateBoxContentPadding]（脚手架已消费 inset）
+ * @param contentPadding 在 [BaseScaffold] 内请使用 [rememberStateBoxContentPadding]（脚手架已消费 inset）
  * @param emptyMessage 空数据态展示文案
  * @param loading 首屏加载占位，默认居中 [androidx.compose.material3.CircularProgressIndicator]
  * @param content 成功态业务内容，参数为 [BaseUiState.Success.data]
  *
- * @see com.example.zhttaskflow.base.doc.TaskFlowBaseArchitecture
+ * @see com.example.zhttaskflow.base.doc.BaseArchitecture
  */
 @Composable
 fun <T> StateBox(

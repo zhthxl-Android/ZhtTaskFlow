@@ -6,7 +6,7 @@ import org.gradle.kotlin.dsl.dependencies
 /**
  * 单元测试依赖：JUnit、MockK、协程测试，供 infrastructure / 业务 library 复用。
  */
-internal fun Project.configureTaskFlowUnitTestDependencies() {
+internal fun Project.configureUnitTestDependencies() {
     val catalog = libsCatalog()
     dependencies {
         add("testImplementation", catalog.findLibrary("junit").get())

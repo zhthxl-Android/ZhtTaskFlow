@@ -10,7 +10,7 @@ import com.example.zhttaskflow.feature.article.domain.ArticleRepository
 /**
  * [ArticleRepository] 手动装配入口（无 DI 框架）。
  *
- * - Room：[ArticleLocalDataSource] → [com.example.zhttaskflow.core.persistence.room.TaskFlowRoomTemplate]
+ * - Room：[ArticleLocalDataSource] → [com.example.zhttaskflow.core.persistence.room.RoomTemplate]
  * - 网络：[RetrofitServiceFactory.createApi] 获取 [ArticleApi]，业务层不构建 OkHttp/Retrofit
  */
 object ArticleRepositoryFactory {

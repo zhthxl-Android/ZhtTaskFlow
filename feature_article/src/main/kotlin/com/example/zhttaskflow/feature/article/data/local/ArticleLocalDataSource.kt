@@ -1,9 +1,9 @@
 package com.example.zhttaskflow.feature.article.data.local
 
 import android.content.Context
-import com.example.zhttaskflow.core.log.TaskFlowLogger
-import com.example.zhttaskflow.core.persistence.room.TaskFlowRoomConfig
-import com.example.zhttaskflow.core.persistence.room.TaskFlowRoomTemplate
+import com.example.zhttaskflow.core.log.Logger
+import com.example.zhttaskflow.core.persistence.room.RoomConfig
+import com.example.zhttaskflow.core.persistence.room.RoomTemplate
 import com.example.zhttaskflow.feature.article.data.ArticleDataConstants
 import com.example.zhttaskflow.feature.article.data.mapper.ArticleMapper
 import com.example.zhttaskflow.feature.article.domain.ArticlePage
@@ -11,7 +11,7 @@ import com.example.zhttaskflow.feature.article.domain.ArticlePage
 private const val LOCAL_DATA_SOURCE_LOG_TAG = "ArticleLocalDataSource"
 
 /**
- * 文章本地数据源：仅持有 [ArticleDao]，数据库操作统一经 [TaskFlowRoomTemplate]。
+ * 文章本地数据源：仅持有 [ArticleDao]，数据库操作统一经 [RoomTemplate]。
  *
  * **日志**：仅 Debug 级操作埋点；异常由 Room 模板包装后向上抛出，不在本层打印 Error。
  */
@@ -24,9 +24,9 @@ class ArticleLocalDataSource private constructor(
          * 通过 core Room 统一门面创建本地数据源。
          */
         fun create(context: Context): ArticleLocalDataSource {
-            val dao = TaskFlowRoomTemplate.openDao(
+            val dao = RoomTemplate.openDao(
                 context = context,
-                config = TaskFlowRoomConfig(databaseName = ArticleDataConstants.DATABASE_NAME),
+                config = RoomConfig(databaseName = ArticleDataConstants.DATABASE_NAME),
                 databaseClass = ArticleDatabase::class.java,
                 daoProvider = { database -> database.articleDao() },
             )
@@ -38,7 +38,7 @@ class ArticleLocalDataSource private constructor(
      * 读取某一页缓存；无缓存时返回 null。
      */
     suspend fun loadPage(page: Int, pageSize: Int): ArticlePage? {
-        val cached = TaskFlowRoomTemplate.runWithDao(
+        val cached = RoomTemplate.runWithDao(
             dao = articleDao,
             tag = LOCAL_DATA_SOURCE_LOG_TAG,
             block = { dao ->
@@ -61,7 +61,7 @@ class ArticleLocalDataSource private constructor(
      * 写入某一页缓存（整页替换）。
      */
     suspend fun savePage(page: ArticlePage) {
-        TaskFlowRoomTemplate.runWithDao(
+        RoomTemplate.runWithDao(
             dao = articleDao,
             tag = LOCAL_DATA_SOURCE_LOG_TAG,
             block = { dao ->
@@ -75,6 +75,6 @@ class ArticleLocalDataSource private constructor(
     }
 
     private fun logLocalDebug(message: String) {
-        TaskFlowLogger.d(LOCAL_DATA_SOURCE_LOG_TAG) { message }
+        Logger.d(LOCAL_DATA_SOURCE_LOG_TAG) { message }
     }
 }

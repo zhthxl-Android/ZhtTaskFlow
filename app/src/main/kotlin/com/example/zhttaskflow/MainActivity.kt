@@ -11,19 +11,19 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import com.example.zhttaskflow.navigation.AppMainShell
 import com.example.zhttaskflow.navigation.registerAppRoutes
-import com.example.zhttaskflow.nav.deeplink.TaskFlowDeepLinkNavigation
-import com.example.zhttaskflow.nav.rememberTaskFlowNavigator
-import com.example.zhttaskflow.nav.TaskFlowNavigator
-import com.example.zhttaskflow.navigation.TaskFlowMainTab
-import com.example.zhttaskflow.nav.route.TaskFlowRouteRegistryImpl
-import com.example.zhttaskflow.nav.theme.TaskFlowTheme
+import com.example.zhttaskflow.nav.deeplink.DeepLinkNavigation
+import com.example.zhttaskflow.nav.rememberNavigator
+import com.example.zhttaskflow.nav.AppNavigator
+import com.example.zhttaskflow.navigation.MainTab
+import com.example.zhttaskflow.nav.route.RouteRegistryImpl
+import com.example.zhttaskflow.nav.theme.AppTheme
 
 /**
  * 壳 Activity：模块路由装配、[AppMainShell] 宿主，以及外部深链 [Intent] 统一入口。
  *
  * ## 标准深链格式（运营 / H5 / 推送可直接复用）
  *
- * 约定由 [com.example.zhttaskflow.nav.interceptor.TaskFlowDeepLinkRouteMapperImpl] 解析：
+ * 约定由 [com.example.zhttaskflow.nav.interceptor.DeepLinkRouteMapperImpl] 解析：
  *
  * - **Scheme**：`taskflow`
  * - **Host**：`nav`
@@ -37,14 +37,14 @@ import com.example.zhttaskflow.nav.theme.TaskFlowTheme
  *
  * ## 门禁与内链一致
  *
- * [TaskFlowDeepLinkNavigation.prepareNavigationRoute] 在 `navigate` 前对 `target` 施加与 RouteHost 相同的登录 / 权限标记，
+ * [DeepLinkNavigation.prepareNavigationRoute] 在 `navigate` 前对 `target` 施加与 RouteHost 相同的登录 / 权限标记，
  * 再经深链拦截链：深链 `200` → 权限 `150` → 登录 `100`。
  *
  * ## 接入说明
  *
  * 1. 外部通过 `ACTION_VIEW` 拉起本 Activity（Manifest 已声明 `taskflow` scheme）。
  * 2. [onCreate] / [onNewIntent] 提取 `Intent.data`，写入待处理队列，**不**在 Activity 内直接 `NavController.navigate`。
- * 3. [MainActivityDeepLinkEffect] 在 [AppMainShell] 组合完成后调用 [TaskFlowNavigator.navigate]。
+ * 3. [MainActivityDeepLinkEffect] 在 [AppMainShell] 组合完成后调用 [AppNavigator.navigate]。
  * 4. 桌面图标 `MAIN` / `LAUNCHER` 启动无 `data`，默认进入资讯列表 Tab。
  *
  * ## 本地验证（adb）
@@ -63,16 +63,16 @@ class MainActivity : ComponentActivity() {
         enqueueDeepLinkFromIntent(intent)
         enableEdgeToEdge()
         setContent {
-            TaskFlowTheme {
-                val navigator = rememberTaskFlowNavigator()
+            AppTheme {
+                val navigator = rememberNavigator()
                 val routeRegistry = remember(navigator) {
-                    TaskFlowRouteRegistryImpl().also { registry ->
+                    RouteRegistryImpl().also { registry ->
                         registry.registerAppRoutes(navigator = navigator)
                     }
                 }
                 AppMainShell(
                     registry = routeRegistry,
-                    startDestination = TaskFlowMainTab.startDestinationRoute,
+                    startDestination = MainTab.startDestinationRoute,
                     navigator = navigator,
                 )
                 MainActivityDeepLinkEffect(
@@ -91,20 +91,20 @@ class MainActivity : ComponentActivity() {
     }
 
     private fun enqueueDeepLinkFromIntent(intent: Intent?) {
-        val uri = TaskFlowDeepLinkNavigation.extractDeepLinkUri(intent) ?: return
+        val uri = DeepLinkNavigation.extractDeepLinkUri(intent) ?: return
         pendingDeepLinkUri.value = uri
     }
 }
 
 @Composable
 private fun MainActivityDeepLinkEffect(
-    navigator: TaskFlowNavigator,
+    navigator: AppNavigator,
     pendingUri: String?,
     onDeepLinkConsumed: () -> Unit,
 ) {
     LaunchedEffect(pendingUri) {
         val uri = pendingUri ?: return@LaunchedEffect
-        navigator.navigate(TaskFlowDeepLinkNavigation.prepareNavigationRoute(uri))
+        navigator.navigate(DeepLinkNavigation.prepareNavigationRoute(uri))
         onDeepLinkConsumed()
     }
 }

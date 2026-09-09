@@ -13,24 +13,24 @@ import com.example.zhttaskflow.feature.log.domain.usecase.QueryLogsUseCase
 import com.example.zhttaskflow.feature.log.presentation.LogScreen
 import com.example.zhttaskflow.feature.log.presentation.LogViewModel
 import com.example.zhttaskflow.feature.log.presentation.LogViewModelFactory
-import com.example.zhttaskflow.nav.TaskFlowNavigator
-import com.example.zhttaskflow.nav.route.TaskFlowLogNavRoutes
-import com.example.zhttaskflow.nav.route.TaskFlowRouteRegistry
+import com.example.zhttaskflow.nav.AppNavigator
+import com.example.zhttaskflow.nav.route.LogNavRoutes
+import com.example.zhttaskflow.nav.route.RouteRegistry
 import com.example.zhttaskflow.nav.route.simpleRouteEntry
 
 /**
- * 日志模块路由注册入口（常量见 [TaskFlowLogNavRoutes]）。
+ * 日志模块路由注册入口（常量见 [LogNavRoutes]）。
  *
  * 门禁：`app/log` 无标记，见 `docs/TASKFLOW_ROUTE_GATES.md`。
  */
 fun registerLogRoutes(
-    registry: TaskFlowRouteRegistry,
+    registry: RouteRegistry,
     /** 与全局路由注册签名对齐。 */
-    @Suppress("UNUSED_PARAMETER") navigator: TaskFlowNavigator,
+    @Suppress("UNUSED_PARAMETER") navigator: AppNavigator,
 ) {
     registry.register(
         simpleRouteEntry(
-            route = TaskFlowLogNavRoutes.LOG_ROUTE,
+            route = LogNavRoutes.LOG_ROUTE,
             content = { LogRouteHost() },
         ),
     )

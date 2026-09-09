@@ -28,7 +28,7 @@ interface ArticleRepository {
      * @param page 页码（从 1 开始）
      * @param pageSize 每页条数
      * @return 刷新后的分页结果
-     * @throws com.example.zhttaskflow.core.foundation.TaskFlowException 网络或持久化失败时
+     * @throws com.example.zhttaskflow.core.foundation.AppException 网络或持久化失败时
      */
     suspend fun refreshArticlePage(
         page: Int,

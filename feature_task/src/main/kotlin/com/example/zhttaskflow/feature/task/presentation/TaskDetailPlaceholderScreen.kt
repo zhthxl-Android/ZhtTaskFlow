@@ -25,19 +25,19 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import com.example.zhttaskflow.base.ext.SnackbarType
-import com.example.zhttaskflow.base.ext.rememberTaskFlowSnackbarDispatcher
+import com.example.zhttaskflow.base.ext.rememberSnackbarDispatcher
 import com.example.zhttaskflow.base.ext.showSnackbar
 import com.example.zhttaskflow.base.extension.collectUiStateWithLifecycle
 import com.example.zhttaskflow.base.mvi.BaseUiState
 import com.example.zhttaskflow.base.ui.StateBox
-import com.example.zhttaskflow.base.ui.TaskFlowScaffold
-import com.example.zhttaskflow.base.ui.TaskFlowUiConstants
+import com.example.zhttaskflow.base.ui.PageScaffold
+import com.example.zhttaskflow.base.ui.UiConstants
 import com.example.zhttaskflow.base.ui.extension.PageLifecycleLog
 import com.example.zhttaskflow.base.ui.extension.logUiInteraction
 import com.example.zhttaskflow.base.ui.extension.logUiOutcome
-import com.example.zhttaskflow.base.ui.icon.TaskFlowIcons
-import com.example.zhttaskflow.base.ui.rememberTaskFlowStateBoxContentPadding
-import com.example.zhttaskflow.base.ui.skeleton.rememberTaskFlowDetailSkeletonLoading
+import com.example.zhttaskflow.base.ui.icon.AppIcons
+import com.example.zhttaskflow.base.ui.rememberStateBoxContentPadding
+import com.example.zhttaskflow.base.ui.skeleton.rememberDetailSkeletonLoading
 import com.example.zhttaskflow.feature.task.R
 import com.example.zhttaskflow.feature.task.domain.Task
 import com.example.zhttaskflow.feature.task.domain.TaskAttachment
@@ -50,10 +50,10 @@ import java.util.Locale
 internal const val TASK_DETAIL_PAGE_ID: String = "TaskDetail"
 
 /**
- * 任务详情页：二级页标准骨架（[StateBox] 四态 + [TaskFlowScaffold] 返回拦截），
+ * 任务详情页：二级页标准骨架（[StateBox] 四态 + [PageScaffold] 返回拦截），
  * 展示任务信息、状态流转、编辑与附件列表。
  *
- * @param taskId 路由参数 [com.example.zhttaskflow.nav.route.TaskFlowTaskNavRoutes.ARG_TASK_ID]
+ * @param taskId 路由参数 [com.example.zhttaskflow.nav.route.TaskNavRoutes.ARG_TASK_ID]
  * @param onNavigateUp 导航栈回退
  */
 @Composable
@@ -64,7 +64,7 @@ fun TaskDetailPlaceholderScreen(
     modifier: Modifier = Modifier,
 ) {
     val uiState by viewModel.uiState.collectUiStateWithLifecycle()
-    val snackbarDispatcher = rememberTaskFlowSnackbarDispatcher()
+    val snackbarDispatcher = rememberSnackbarDispatcher()
     val emptyMessage = stringResource(id = R.string.task_str_detail_empty)
     val defaultTitle = stringResource(id = R.string.task_str_detail_title)
     val scaffoldTitle = when (val state = uiState) {
@@ -77,7 +77,7 @@ fun TaskDetailPlaceholderScreen(
         is BaseUiState.Error -> "error"
         is BaseUiState.Empty -> "empty"
     }
-    val detailSkeletonLoading = rememberTaskFlowDetailSkeletonLoading()
+    val detailSkeletonLoading = rememberDetailSkeletonLoading()
 
     LaunchedEffect(taskId) {
         viewModel.onEvent(TaskDetailUiEvent.Load(taskId))
@@ -97,7 +97,7 @@ fun TaskDetailPlaceholderScreen(
         pageArgs = lifecycleArgs,
     )
 
-    TaskFlowScaffold(
+    PageScaffold(
         modifier = modifier,
         title = scaffoldTitle,
         onNavigateUp = onNavigateUp,
@@ -113,7 +113,7 @@ fun TaskDetailPlaceholderScreen(
                 },
             ) {
                 Icon(
-                    imageVector = TaskFlowIcons.Nav.Back,
+                    imageVector = AppIcons.Nav.Back,
                     contentDescription = stringResource(id = R.string.task_str_back),
                 )
             }
@@ -148,7 +148,7 @@ fun TaskDetailPlaceholderScreen(
             },
             emptyMessage = emptyMessage,
             loading = detailSkeletonLoading,
-            contentPadding = rememberTaskFlowStateBoxContentPadding(),
+            contentPadding = rememberStateBoxContentPadding(),
             modifier = Modifier.fillMaxSize(),
         ) { data ->
             TaskDetailSuccessContent(
@@ -217,8 +217,8 @@ private fun TaskDetailSuccessContent(
         modifier = modifier
             .fillMaxSize()
             .verticalScroll(scrollState)
-            .padding(vertical = TaskFlowUiConstants.ListVerticalSpacing),
-        verticalArrangement = Arrangement.spacedBy(TaskFlowUiConstants.ListVerticalSpacing),
+            .padding(vertical = UiConstants.ListVerticalSpacing),
+        verticalArrangement = Arrangement.spacedBy(UiConstants.ListVerticalSpacing),
     ) {
         TaskDetailInfoSection(
             task = data.task,
@@ -315,8 +315,8 @@ private fun TaskDetailStatusSection(
 ) {
     DetailSectionCard(title = stringResource(id = R.string.task_str_detail_section_status)) {
         FlowRow(
-            horizontalArrangement = Arrangement.spacedBy(TaskFlowUiConstants.DetailContentBlockSpacing),
-            verticalArrangement = Arrangement.spacedBy(TaskFlowUiConstants.DetailContentBlockSpacing),
+            horizontalArrangement = Arrangement.spacedBy(UiConstants.DetailContentBlockSpacing),
+            verticalArrangement = Arrangement.spacedBy(UiConstants.DetailContentBlockSpacing),
         ) {
             TaskStatus.entries.forEach { status ->
                 FilterChip(
@@ -344,7 +344,7 @@ private fun TaskDetailAttachmentSection(
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
         } else {
-            Column(verticalArrangement = Arrangement.spacedBy(TaskFlowUiConstants.DetailContentBlockSpacing)) {
+            Column(verticalArrangement = Arrangement.spacedBy(UiConstants.DetailContentBlockSpacing)) {
                 attachments.forEach { attachment ->
                     Card(
                         modifier = Modifier
@@ -361,9 +361,9 @@ private fun TaskDetailAttachmentSection(
                         ),
                     ) {
                         Column(
-                            modifier = Modifier.padding(TaskFlowUiConstants.PageHorizontalPadding),
+                            modifier = Modifier.padding(UiConstants.PageHorizontalPadding),
                             verticalArrangement = Arrangement.spacedBy(
-                                TaskFlowUiConstants.ListItemCompactVerticalSpacing,
+                                UiConstants.ListItemCompactVerticalSpacing,
                             ),
                         ) {
                             Text(
@@ -395,14 +395,14 @@ private fun DetailSectionCard(
     Card(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(horizontal = TaskFlowUiConstants.PageHorizontalPadding),
+            .padding(horizontal = UiConstants.PageHorizontalPadding),
         colors = CardDefaults.cardColors(
             containerColor = MaterialTheme.colorScheme.surfaceContainerLow,
         ),
     ) {
         Column(
-            modifier = Modifier.padding(TaskFlowUiConstants.PageHorizontalPadding),
-            verticalArrangement = Arrangement.spacedBy(TaskFlowUiConstants.ListVerticalSpacing),
+            modifier = Modifier.padding(UiConstants.PageHorizontalPadding),
+            verticalArrangement = Arrangement.spacedBy(UiConstants.ListVerticalSpacing),
         ) {
             Text(
                 text = title,
@@ -449,7 +449,7 @@ private fun formatAttachmentSize(sizeBytes: Long): String {
 }
 
 private fun consumeTaskDetailUiEffect(
-    dispatcher: com.example.zhttaskflow.base.ext.TaskFlowSnackbarDispatcher,
+    dispatcher: com.example.zhttaskflow.base.ext.SnackbarDispatcher,
     effect: TaskDetailUiEffect,
 ) {
     when (effect) {

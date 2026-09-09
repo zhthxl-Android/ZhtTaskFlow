@@ -7,7 +7,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.lifecycle.viewmodel.compose.viewModel
-import com.example.zhttaskflow.core.network.TaskFlowWanAndroidApiConfig
+import com.example.zhttaskflow.core.network.WanAndroidApiConfig
 import com.example.zhttaskflow.feature.article.R
 import com.example.zhttaskflow.feature.article.data.ArticleDataConfig
 import com.example.zhttaskflow.feature.article.data.ArticleRepositoryFactory
@@ -20,27 +20,27 @@ import com.example.zhttaskflow.feature.article.presentation.ArticleDetailViewMod
 import com.example.zhttaskflow.feature.article.presentation.ArticleDetailViewModelFactory
 import com.example.zhttaskflow.feature.article.presentation.ArticleListScreen
 import com.example.zhttaskflow.feature.article.presentation.ArticleUiEffect
-import com.example.zhttaskflow.base.ext.TaskFlowUiEffectConsumption
+import com.example.zhttaskflow.base.ext.UiEffectConsumption
 import com.example.zhttaskflow.feature.article.presentation.ArticleViewModel
 import com.example.zhttaskflow.feature.article.presentation.ArticleViewModelFactory
-import com.example.zhttaskflow.nav.LocalTaskFlowNavigator
-import com.example.zhttaskflow.nav.TaskFlowNavigator
-import com.example.zhttaskflow.nav.interceptor.TaskFlowRouteGatePolicy
-import com.example.zhttaskflow.nav.route.TaskFlowArticleNavRoutes
-import com.example.zhttaskflow.nav.route.TaskFlowRoute
-import com.example.zhttaskflow.nav.route.TaskFlowRouteRegistry
+import com.example.zhttaskflow.nav.LocalNavigator
+import com.example.zhttaskflow.nav.AppNavigator
+import com.example.zhttaskflow.nav.interceptor.RouteGatePolicy
+import com.example.zhttaskflow.nav.route.ArticleNavRoutes
+import com.example.zhttaskflow.nav.route.Route
+import com.example.zhttaskflow.nav.route.RouteRegistry
 import com.example.zhttaskflow.nav.route.simpleRouteEntry
 import com.example.zhttaskflow.nav.route.twoStringArgsRouteEntry
 
 /**
- * 资讯模块路由注册入口（路由常量统一引用 [TaskFlowArticleNavRoutes]）。
+ * 资讯模块路由注册入口（路由常量统一引用 [ArticleNavRoutes]）。
  *
- * 门禁：列表无标记；详情见 [TaskFlowRouteGatePolicy] / `docs/TASKFLOW_ROUTE_GATES.md`。
+ * 门禁：列表无标记；详情见 [RouteGatePolicy] / `docs/TASKFLOW_ROUTE_GATES.md`。
  */
-sealed interface ArticleRoute : TaskFlowRoute {
+sealed interface ArticleRoute : Route {
 
     data object List : ArticleRoute {
-        override val route: String = TaskFlowArticleNavRoutes.ARTICLE_LIST
+        override val route: String = ArticleNavRoutes.ARTICLE_LIST
     }
 }
 
@@ -48,16 +48,16 @@ sealed interface ArticleRoute : TaskFlowRoute {
  * 注册资讯列表与详情路由（在 app / standalone NavHost 中调用）。
  */
 fun registerArticleRoutes(
-    registry: TaskFlowRouteRegistry,
-    /** 与全局路由注册签名对齐，详情跳转由 Composable 内 [LocalTaskFlowNavigator] 消费。 */
-    @Suppress("UNUSED_PARAMETER") navigator: TaskFlowNavigator,
+    registry: RouteRegistry,
+    /** 与全局路由注册签名对齐，详情跳转由 Composable 内 [LocalNavigator] 消费。 */
+    @Suppress("UNUSED_PARAMETER") navigator: AppNavigator,
     repository: ArticleRepository? = null,
     articleDataConfig: ArticleDataConfig? = null,
     useMockRemote: Boolean = false,
 ) {
     registry.register(
         simpleRouteEntry(
-            route = TaskFlowArticleNavRoutes.ARTICLE_LIST,
+            route = ArticleNavRoutes.ARTICLE_LIST,
             content = {
                 ArticleListRouteHost(
                     repository = repository,
@@ -69,9 +69,9 @@ fun registerArticleRoutes(
     )
     registry.register(
         twoStringArgsRouteEntry(
-            route = TaskFlowArticleNavRoutes.ARTICLE_DETAIL,
-            firstArgumentName = TaskFlowArticleNavRoutes.ARG_ARTICLE_ID,
-            secondArgumentName = TaskFlowArticleNavRoutes.ARG_DETAIL_URL,
+            route = ArticleNavRoutes.ARTICLE_DETAIL,
+            firstArgumentName = ArticleNavRoutes.ARG_ARTICLE_ID,
+            secondArgumentName = ArticleNavRoutes.ARG_DETAIL_URL,
             content = { articleId, detailUrl ->
                 ArticleDetailRouteHost(
                     articleId = Uri.decode(articleId),
@@ -85,8 +85,8 @@ fun registerArticleRoutes(
 /**
  * 资讯列表路由宿主：组装 ViewModel 与 [ArticleListScreen]。
  *
- * **导航类 Effect 订阅方（Route 层）**：仅处理 [com.example.zhttaskflow.base.ext.TaskFlowNavigationUiEffect]
- *（[ArticleUiEffect.NavigateToDetail]）。展示类由 [ArticleListScreen] 消费，见 [TaskFlowUiEffectConsumption]。
+ * **导航类 Effect 订阅方（Route 层）**：仅处理 [com.example.zhttaskflow.base.ext.NavigationUiEffect]
+ *（[ArticleUiEffect.NavigateToDetail]）。展示类由 [ArticleListScreen] 消费，见 [UiEffectConsumption]。
  */
 @Composable
 private fun ArticleListRouteHost(
@@ -94,7 +94,7 @@ private fun ArticleListRouteHost(
     articleDataConfig: ArticleDataConfig?,
     useMockRemote: Boolean,
 ) {
-    val navigator = LocalTaskFlowNavigator.current
+    val navigator = LocalNavigator.current
     val factory = rememberArticleViewModelFactory(
         repository = repository,
         articleDataConfig = articleDataConfig,
@@ -102,18 +102,18 @@ private fun ArticleListRouteHost(
     )
     val viewModel: ArticleViewModel = viewModel(factory = factory)
 
-    // Route 层 Collector：仅处理 [TaskFlowNavigationUiEffect]（[ArticleUiEffect.NavigateToDetail]）。
-    // 展示类 Effect 由 [ArticleListScreen] 消费，见 [TaskFlowUiEffectConsumption]。
+    // Route 层 Collector：仅处理 [NavigationUiEffect]（[ArticleUiEffect.NavigateToDetail]）。
+    // 展示类 Effect 由 [ArticleListScreen] 消费，见 [UiEffectConsumption]。
     LaunchedEffect(viewModel) {
         viewModel.uiEffect.collect { effect ->
             when (effect) {
                 is ArticleUiEffect.NavigateToDetail -> {
                     navigator.navigate(
-                        TaskFlowRouteGatePolicy.enrichNavigationPath(effect.url),
+                        RouteGatePolicy.enrichNavigationPath(effect.url),
                     )
                 }
                 else -> {
-                    // TaskFlowPresentationUiEffect：由 ArticleListScreen 消费
+                    // PresentationUiEffect：由 ArticleListScreen 消费
                 }
             }
         }
@@ -130,7 +130,7 @@ private fun ArticleDetailRouteHost(
     articleId: String,
     detailUrl: String,
 ) {
-    val navigator = LocalTaskFlowNavigator.current
+    val navigator = LocalNavigator.current
     val networkUnavailableMessage = stringResource(id = R.string.article_str_network_unavailable)
     val factory = rememberArticleDetailViewModelFactory(
         articleId = articleId,
@@ -179,7 +179,7 @@ private fun rememberArticleViewModelFactory(
     val context = LocalContext.current
     val resolvedRepository = repository ?: remember(context, articleDataConfig, useMockRemote) {
         val config = articleDataConfig ?: ArticleDataConfig(
-            baseUrl = TaskFlowWanAndroidApiConfig.PRODUCTION_BASE_URL,
+            baseUrl = WanAndroidApiConfig.PRODUCTION_BASE_URL,
         )
         ArticleRepositoryFactory.create(
             context = context,

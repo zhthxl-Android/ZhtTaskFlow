@@ -63,7 +63,7 @@ private fun Project.applySharedAndroidSettings(
     //android {
     //     namespace = "com.example.zhttaskflow.nav"  // 删掉，插件自动生成
     //}
-    ext.namespace = computeTaskFlowNamespace()
+    ext.namespace = computeModuleNamespace()
 
     if (resourcePrefix.isNotEmpty()) {
         //等价于在模块的 android {} 中手动写 resourcePrefix "xxx"
@@ -95,10 +95,10 @@ private fun Project.applySharedAndroidSettings(
         disable.add("HardcodedText")
         //不检查依赖库内部的 lint 问题，只检查本模块源码，加快 lint 速度。
         checkDependencies = false
-        TaskFlowCustomLintFatalIssueIds.forEach { issueId ->
+        CustomLintFatalIssueIds.forEach { issueId ->
             error.add(issueId)
             fatal.add(issueId)
         }
     }
-    configureTaskFlowCustomLint()
+    configureCustomLint()
 }

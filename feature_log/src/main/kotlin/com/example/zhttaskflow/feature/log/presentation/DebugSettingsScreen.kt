@@ -25,15 +25,15 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.KeyboardType
 import com.example.zhttaskflow.base.ext.SnackbarType
-import com.example.zhttaskflow.base.ext.rememberTaskFlowDialogController
-import com.example.zhttaskflow.base.ext.rememberTaskFlowSnackbarDispatcher
+import com.example.zhttaskflow.base.ext.rememberDialogController
+import com.example.zhttaskflow.base.ext.rememberSnackbarDispatcher
 import com.example.zhttaskflow.base.ext.showSnackbar
-import com.example.zhttaskflow.base.observability.TaskFlowDeveloperObservability
+import com.example.zhttaskflow.base.observability.DeveloperObservability
 import com.example.zhttaskflow.base.ui.extension.PageLifecycleLog
-import com.example.zhttaskflow.base.ui.TaskFlowListScaffold
-import com.example.zhttaskflow.base.ui.TaskFlowUiConstants
-import com.example.zhttaskflow.core.debug.TaskFlowDeveloperTools
-import com.example.zhttaskflow.core.observability.TaskFlowLocalLogStore
+import com.example.zhttaskflow.base.ui.ListScaffold
+import com.example.zhttaskflow.base.ui.UiConstants
+import com.example.zhttaskflow.core.debug.DeveloperTools
+import com.example.zhttaskflow.core.observability.LocalLogStore
 import com.example.zhttaskflow.feature.log.R
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -52,16 +52,16 @@ internal fun DebugSettingsScreen(
     onBack: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    val dialogController = rememberTaskFlowDialogController()
-    val snackbarDispatcher = rememberTaskFlowSnackbarDispatcher()
+    val dialogController = rememberDialogController()
+    val snackbarDispatcher = rememberSnackbarDispatcher()
     val scope = rememberCoroutineScope()
     var observabilityBackend by remember {
-        mutableStateOf(TaskFlowDeveloperTools.observabilityBackend)
+        mutableStateOf(DeveloperTools.observabilityBackend)
     }
     var injectChannel by remember { mutableStateOf(InjectChannel.ANALYTICS) }
     var injectCountText by remember { mutableStateOf("50") }
     var simulateOffline by remember {
-        mutableStateOf(TaskFlowDeveloperTools.simulateNetworkOffline)
+        mutableStateOf(DeveloperTools.simulateNetworkOffline)
     }
 
     val confirmText = stringResource(id = R.string.log_str_confirm)
@@ -73,7 +73,7 @@ internal fun DebugSettingsScreen(
 
     PageLifecycleLog(pageName = DEBUG_SETTINGS_PAGE_ID)
 
-    TaskFlowListScaffold(
+    ListScaffold(
         modifier = modifier,
         title = stringResource(id = R.string.log_str_debug_title),
         interceptTabRootBackToDesktop = false,
@@ -88,15 +88,15 @@ internal fun DebugSettingsScreen(
                 .fillMaxSize()
                 .padding(scaffoldPadding)
                 .verticalScroll(rememberScrollState())
-                .padding(horizontal = TaskFlowUiConstants.PageHorizontalPadding),
-            verticalArrangement = Arrangement.spacedBy(TaskFlowUiConstants.ListVerticalSpacing),
+                .padding(horizontal = UiConstants.PageHorizontalPadding),
+            verticalArrangement = Arrangement.spacedBy(UiConstants.ListVerticalSpacing),
         ) {
             SectionTitle(text = stringResource(id = R.string.log_str_debug_observability_section))
             ObservabilityBackendRow(
                 selected = observabilityBackend,
                 onSelected = { backend ->
                     observabilityBackend = backend
-                    TaskFlowDeveloperTools.setObservabilityBackend(backend)
+                    DeveloperTools.setObservabilityBackend(backend)
                     showSnackbar(
                         dispatcher = snackbarDispatcher,
                         message = doneGenericMessage,
@@ -105,7 +105,7 @@ internal fun DebugSettingsScreen(
                 },
             )
 
-            HorizontalDivider(modifier = Modifier.padding(vertical = TaskFlowUiConstants.ListVerticalSpacing))
+            HorizontalDivider(modifier = Modifier.padding(vertical = UiConstants.ListVerticalSpacing))
 
             SectionTitle(text = stringResource(id = R.string.log_str_debug_inject_section))
             InjectChannelRow(
@@ -125,15 +125,15 @@ internal fun DebugSettingsScreen(
                     val count = injectCountText.toIntOrNull()?.coerceIn(1, 5_000) ?: 50
                     val channel = when (injectChannel) {
                         InjectChannel.ANALYTICS ->
-                            TaskFlowLocalLogStore.ObservabilityChannel.ANALYTICS
+                            LocalLogStore.ObservabilityChannel.ANALYTICS
                         InjectChannel.PERFORMANCE ->
-                            TaskFlowLocalLogStore.ObservabilityChannel.PERFORMANCE
+                            LocalLogStore.ObservabilityChannel.PERFORMANCE
                         InjectChannel.CRASH ->
-                            TaskFlowLocalLogStore.ObservabilityChannel.CRASH
+                            LocalLogStore.ObservabilityChannel.CRASH
                     }
                     scope.launch {
                         withContext(Dispatchers.IO) {
-                            TaskFlowDeveloperTools.injectTestLogs(channel = channel, count = count)
+                            DeveloperTools.injectTestLogs(channel = channel, count = count)
                         }
                         showSnackbar(
                         dispatcher = snackbarDispatcher,
@@ -147,12 +147,12 @@ internal fun DebugSettingsScreen(
                 Text(text = stringResource(id = R.string.log_str_debug_inject_button))
             }
 
-            HorizontalDivider(modifier = Modifier.padding(vertical = TaskFlowUiConstants.ListVerticalSpacing))
+            HorizontalDivider(modifier = Modifier.padding(vertical = UiConstants.ListVerticalSpacing))
 
             SectionTitle(text = stringResource(id = R.string.log_str_debug_perf_section))
             Button(
                 onClick = {
-                    TaskFlowDeveloperObservability.simulateAnrReport()
+                    DeveloperObservability.simulateAnrReport()
                     showSnackbar(
                         dispatcher = snackbarDispatcher,
                         message = doneGenericMessage,
@@ -165,7 +165,7 @@ internal fun DebugSettingsScreen(
             }
             Button(
                 onClick = {
-                    TaskFlowDeveloperObservability.simulateNonFatalCrash()
+                    DeveloperObservability.simulateNonFatalCrash()
                     showSnackbar(
                         dispatcher = snackbarDispatcher,
                         message = doneGenericMessage,
@@ -184,7 +184,7 @@ internal fun DebugSettingsScreen(
                         confirmText = confirmText,
                         dismissText = dismissText,
                         onConfirm = {
-                            TaskFlowDeveloperObservability.simulateSlowFunction(blockMainThreadMs = 2_000L)
+                            DeveloperObservability.simulateSlowFunction(blockMainThreadMs = 2_000L)
                             showSnackbar(
                                 dispatcher = snackbarDispatcher,
                                 message = doneGenericMessage,
@@ -198,7 +198,7 @@ internal fun DebugSettingsScreen(
                 Text(text = stringResource(id = R.string.log_str_debug_simulate_slow))
             }
 
-            HorizontalDivider(modifier = Modifier.padding(vertical = TaskFlowUiConstants.ListVerticalSpacing))
+            HorizontalDivider(modifier = Modifier.padding(vertical = UiConstants.ListVerticalSpacing))
 
             SectionTitle(text = stringResource(id = R.string.log_str_debug_network_section))
             RowSwitch(
@@ -206,7 +206,7 @@ internal fun DebugSettingsScreen(
                 checked = simulateOffline,
                 onCheckedChange = { enabled ->
                     simulateOffline = enabled
-                    TaskFlowDeveloperTools.setSimulateNetworkOffline(enabled)
+                    DeveloperTools.setSimulateNetworkOffline(enabled)
                 },
             )
             Text(
@@ -214,7 +214,7 @@ internal fun DebugSettingsScreen(
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
-            Spacer(modifier = Modifier.height(TaskFlowUiConstants.ListVerticalSpacing))
+            Spacer(modifier = Modifier.height(UiConstants.ListVerticalSpacing))
         }
     }
 }
@@ -224,24 +224,24 @@ private fun SectionTitle(text: String) {
     Text(
         text = text,
         style = MaterialTheme.typography.titleMedium,
-        modifier = Modifier.padding(top = TaskFlowUiConstants.ListVerticalSpacing),
+        modifier = Modifier.padding(top = UiConstants.ListVerticalSpacing),
     )
 }
 
 @Composable
 private fun ObservabilityBackendRow(
-    selected: TaskFlowDeveloperTools.ObservabilityBackend,
-    onSelected: (TaskFlowDeveloperTools.ObservabilityBackend) -> Unit,
+    selected: DeveloperTools.ObservabilityBackend,
+    onSelected: (DeveloperTools.ObservabilityBackend) -> Unit,
 ) {
-    Column(verticalArrangement = Arrangement.spacedBy(TaskFlowUiConstants.ListVerticalSpacing)) {
+    Column(verticalArrangement = Arrangement.spacedBy(UiConstants.ListVerticalSpacing)) {
         FilterChip(
-            selected = selected == TaskFlowDeveloperTools.ObservabilityBackend.APP_SHELL_DEFAULT,
-            onClick = { onSelected(TaskFlowDeveloperTools.ObservabilityBackend.APP_SHELL_DEFAULT) },
+            selected = selected == DeveloperTools.ObservabilityBackend.APP_SHELL_DEFAULT,
+            onClick = { onSelected(DeveloperTools.ObservabilityBackend.APP_SHELL_DEFAULT) },
             label = { Text(text = stringResource(id = R.string.log_str_debug_observability_shell)) },
         )
         FilterChip(
-            selected = selected == TaskFlowDeveloperTools.ObservabilityBackend.RELEASE_LOCAL,
-            onClick = { onSelected(TaskFlowDeveloperTools.ObservabilityBackend.RELEASE_LOCAL) },
+            selected = selected == DeveloperTools.ObservabilityBackend.RELEASE_LOCAL,
+            onClick = { onSelected(DeveloperTools.ObservabilityBackend.RELEASE_LOCAL) },
             label = { Text(text = stringResource(id = R.string.log_str_debug_observability_release_local)) },
         )
     }
@@ -258,7 +258,7 @@ private fun InjectChannelRow(
     selected: InjectChannel,
     onSelected: (InjectChannel) -> Unit,
 ) {
-    Column(verticalArrangement = Arrangement.spacedBy(TaskFlowUiConstants.ListVerticalSpacing)) {
+    Column(verticalArrangement = Arrangement.spacedBy(UiConstants.ListVerticalSpacing)) {
         FilterChip(
             selected = selected == InjectChannel.ANALYTICS,
             onClick = { onSelected(InjectChannel.ANALYTICS) },

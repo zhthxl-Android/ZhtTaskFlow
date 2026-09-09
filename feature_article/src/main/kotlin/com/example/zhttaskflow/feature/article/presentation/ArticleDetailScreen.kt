@@ -22,14 +22,14 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.core.view.ViewCompat
-import com.example.zhttaskflow.base.ext.handleTaskFlowPageBack
+import com.example.zhttaskflow.base.ext.handlePageBack
 import com.example.zhttaskflow.base.extension.collectUiStateWithLifecycle
 import com.example.zhttaskflow.base.mvi.BaseUiState
 import com.example.zhttaskflow.base.ui.StateBox
-import com.example.zhttaskflow.base.ui.TaskFlowScaffold
-import com.example.zhttaskflow.base.ui.icon.TaskFlowIcons
-import com.example.zhttaskflow.base.ui.rememberTaskFlowStateBoxContentPadding
-import com.example.zhttaskflow.base.ui.skeleton.rememberTaskFlowDetailSkeletonLoading
+import com.example.zhttaskflow.base.ui.PageScaffold
+import com.example.zhttaskflow.base.ui.icon.AppIcons
+import com.example.zhttaskflow.base.ui.rememberStateBoxContentPadding
+import com.example.zhttaskflow.base.ui.skeleton.rememberDetailSkeletonLoading
 import com.example.zhttaskflow.base.ui.extension.PageLifecycleLog
 import com.example.zhttaskflow.base.ui.extension.logUiInteraction
 import com.example.zhttaskflow.feature.article.R
@@ -38,7 +38,7 @@ import com.example.zhttaskflow.feature.article.R
 internal const val ARTICLE_DETAIL_PAGE_ID: String = "ArticleDetail"
 
 /**
- * 文章详情页：WebView 加载 H5 链接；系统/顶栏返回经 [TaskFlowScaffold] 的 [onBackIntercept] 优先 WebView 历史栈。
+ * 文章详情页：WebView 加载 H5 链接；系统/顶栏返回经 [PageScaffold] 的 [onBackIntercept] 优先 WebView 历史栈。
  *
  * @param viewModel MVI 状态源
  * @param articleId 文章标识（展示用）
@@ -62,7 +62,7 @@ fun ArticleDetailScreen(
         is BaseUiState.Error -> "error"
         is BaseUiState.Empty -> "empty"
     }
-    val detailSkeletonLoading = rememberTaskFlowDetailSkeletonLoading()
+    val detailSkeletonLoading = rememberDetailSkeletonLoading()
 
     LaunchedEffect(articleId, detailUrl) {
         viewModel.onEvent(ArticleDetailUiEvent.Load(articleId = articleId, detailUrl = detailUrl))
@@ -84,7 +84,7 @@ fun ArticleDetailScreen(
         pageArgs = lifecycleArgs,
     )
 
-    TaskFlowScaffold(
+    PageScaffold(
         modifier = modifier,
         title = scaffoldTitle,
         onNavigateUp = onNavigateUp,
@@ -97,14 +97,14 @@ fun ArticleDetailScreen(
                         identifier = "article_detail_back",
                         pageId = ARTICLE_DETAIL_PAGE_ID,
                     )
-                    handleTaskFlowPageBack(
+                    handlePageBack(
                         onNavigateUp = onNavigateUp,
                         onBackIntercept = webViewBackIntercept,
                     )
                 },
             ) {
                 Icon(
-                    imageVector = TaskFlowIcons.Nav.Back,
+                    imageVector = AppIcons.Nav.Back,
                     contentDescription = stringResource(id = R.string.article_str_back),
                 )
             }
@@ -122,7 +122,7 @@ fun ArticleDetailScreen(
             },
             emptyMessage = emptyMessage,
             loading = detailSkeletonLoading,
-            contentPadding = rememberTaskFlowStateBoxContentPadding(),
+            contentPadding = rememberStateBoxContentPadding(),
             modifier = Modifier.fillMaxSize(),
         ) { data ->
             val currentDetailUrl = rememberUpdatedState(data.detailUrl)

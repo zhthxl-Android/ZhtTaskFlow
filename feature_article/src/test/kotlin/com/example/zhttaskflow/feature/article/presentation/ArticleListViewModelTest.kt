@@ -9,7 +9,7 @@ import com.example.zhttaskflow.feature.article.domain.ArticlePage
 import com.example.zhttaskflow.feature.article.domain.ArticlePagingDefaults
 import com.example.zhttaskflow.feature.article.domain.usecase.GetArticlePageUseCase
 import com.example.zhttaskflow.feature.article.domain.usecase.RefreshArticlePageUseCase
-import com.example.zhttaskflow.nav.route.TaskFlowArticleNavRoutes
+import com.example.zhttaskflow.nav.route.ArticleNavRoutes
 import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.every
@@ -197,7 +197,7 @@ class ArticleListViewModelTest {
         }
         val nav = effects.filterIsInstance<ArticleUiEffect.NavigateToDetail>().single()
         assertEquals(
-            TaskFlowArticleNavRoutes.detailPath(articleId = "id-1", detailUrl = "https://example.com/a"),
+            ArticleNavRoutes.detailPath(articleId = "id-1", detailUrl = "https://example.com/a"),
             nav.url,
         )
     }

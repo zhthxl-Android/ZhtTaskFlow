@@ -1,7 +1,7 @@
 package com.example.zhttaskflow.feature.task.data
 
-import com.example.zhttaskflow.core.foundation.TaskFlowIllegalStateException
-import com.example.zhttaskflow.core.log.TaskFlowLogger
+import com.example.zhttaskflow.core.foundation.AppIllegalStateException
+import com.example.zhttaskflow.core.log.Logger
 import com.example.zhttaskflow.feature.task.domain.Task
 import com.example.zhttaskflow.feature.task.domain.TaskAttachment
 import com.example.zhttaskflow.feature.task.domain.TaskStatus
@@ -44,33 +44,33 @@ class TaskMockDataSource {
     }
 
     /**
-     * 新增任务；若 id 已存在则抛出 [TaskFlowIllegalStateException]。
+     * 新增任务；若 id 已存在则抛出 [AppIllegalStateException]。
      */
     suspend fun insert(task: Task) = mutex.withLock {
         if (taskStore.containsKey(task.id)) {
-            throw TaskFlowIllegalStateException("任务 id 已存在: ${task.id}")
+            throw AppIllegalStateException("任务 id 已存在: ${task.id}")
         }
         taskStore[task.id] = task
         logTaskDataDebug("写入任务完成 id=${task.id}")
     }
 
     /**
-     * 更新任务；若 id 不存在则抛出 [TaskFlowIllegalStateException]。
+     * 更新任务；若 id 不存在则抛出 [AppIllegalStateException]。
      */
     suspend fun update(task: Task) = mutex.withLock {
         if (!taskStore.containsKey(task.id)) {
-            throw TaskFlowIllegalStateException("任务不存在，无法更新: ${task.id}")
+            throw AppIllegalStateException("任务不存在，无法更新: ${task.id}")
         }
         taskStore[task.id] = task
         logTaskDataDebug("更新任务完成 id=${task.id}")
     }
 
     /**
-     * 删除任务；若 id 不存在则抛出 [TaskFlowIllegalStateException]。
+     * 删除任务；若 id 不存在则抛出 [AppIllegalStateException]。
      */
     suspend fun delete(id: String) = mutex.withLock {
         if (taskStore.remove(id) == null) {
-            throw TaskFlowIllegalStateException("任务不存在，无法删除: $id")
+            throw AppIllegalStateException("任务不存在，无法删除: $id")
         }
         logTaskDataDebug("删除任务完成 id=$id")
     }
@@ -108,6 +108,6 @@ class TaskMockDataSource {
     }
 
     private fun logTaskDataDebug(message: String) {
-        TaskFlowLogger.d(TASK_DATA_SOURCE_LOG_TAG) { message }
+        Logger.d(TASK_DATA_SOURCE_LOG_TAG) { message }
     }
 }

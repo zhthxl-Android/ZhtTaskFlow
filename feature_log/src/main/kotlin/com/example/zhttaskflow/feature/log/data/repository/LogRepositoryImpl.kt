@@ -1,7 +1,7 @@
 package com.example.zhttaskflow.feature.log.data.repository
 
 import android.content.Context
-import com.example.zhttaskflow.core.observability.TaskFlowLocalLogStore
+import com.example.zhttaskflow.core.observability.LocalLogStore
 import com.example.zhttaskflow.feature.log.data.mapper.LogRecordMapper
 import com.example.zhttaskflow.feature.log.domain.LogEntry
 import com.example.zhttaskflow.feature.log.domain.LogPage
@@ -12,7 +12,7 @@ import kotlinx.coroutines.withContext
 import java.io.File
 
 /**
- * [LogRepository] 实现：委托 [TaskFlowLocalLogStore] 完成本地读写。
+ * [LogRepository] 实现：委托 [LocalLogStore] 完成本地读写。
  */
 class LogRepositoryImpl(
     private val appContext: Context,
@@ -23,8 +23,8 @@ class LogRepositoryImpl(
         page: Int,
         pageSize: Int,
     ): LogPage = withContext(Dispatchers.IO) {
-        val result = TaskFlowLocalLogStore.queryPaged(
-            TaskFlowLocalLogStore.PagedQueryFilter(
+        val result = LocalLogStore.queryPaged(
+            LocalLogStore.PagedQueryFilter(
                 logType = LogRecordMapper.toStoreLogType(filter.logType),
                 page = page,
                 pageSize = pageSize,
@@ -39,20 +39,20 @@ class LogRepositoryImpl(
     override suspend fun exportLogs(filter: LogQueryFilter, maxEntries: Int): File =
         withContext(Dispatchers.IO) {
             val storeFilter = LogRecordMapper.toStoreQueryFilter(filter, maxEntries)
-            TaskFlowLocalLogStore.exportRecentLogs(appContext, storeFilter, maxEntries)
+            LocalLogStore.exportRecentLogs(appContext, storeFilter, maxEntries)
         }
 
     override suspend fun clearAllLogs() {
         withContext(Dispatchers.IO) {
-            TaskFlowLocalLogStore.clearAllLogs()
+            LocalLogStore.clearAllLogs()
         }
     }
 
     override fun formatTimestamp(epochMs: Long): String {
-        return TaskFlowLocalLogStore.formatTimestamp(epochMs)
+        return LocalLogStore.formatTimestamp(epochMs)
     }
 
     override fun encodeLogDetail(entry: LogEntry): String {
-        return TaskFlowLocalLogStore.encodeRecord(LogRecordMapper.toStore(entry))
+        return LocalLogStore.encodeRecord(LogRecordMapper.toStore(entry))
     }
 }

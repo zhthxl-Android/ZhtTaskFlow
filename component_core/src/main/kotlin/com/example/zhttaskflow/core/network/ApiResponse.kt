@@ -1,6 +1,6 @@
 package com.example.zhttaskflow.core.network
 
-import com.example.zhttaskflow.core.foundation.TaskFlowNetworkException
+import com.example.zhttaskflow.core.foundation.NetworkException
 import com.example.zhttaskflow.core.util.nullIfBlank
 import com.google.gson.annotations.SerializedName
 
@@ -26,7 +26,7 @@ data class ApiResponse<T>(
 }
 
 /**
- * 校验 [ApiResponse] 并剥离业务 [data]；失败时抛出 [com.example.zhttaskflow.core.foundation.TaskFlowNetworkException]。
+ * 校验 [ApiResponse] 并剥离业务 [data]；失败时抛出 [com.example.zhttaskflow.core.foundation.NetworkException]。
  */
 fun <T> unwrapApiResponse(response: ApiResponse<T>): T {
     val code = response.errorCode ?: -1
@@ -48,9 +48,9 @@ internal fun businessApiException(
     code: Int,
     rawErrorMsg: String?,
     technicalDetail: String,
-): TaskFlowNetworkException {
-    val userMessage = rawErrorMsg.nullIfBlank() ?: TaskFlowNetworkUserMessages.BUSINESS_FALLBACK
-    return TaskFlowNetworkException(
+): NetworkException {
+    val userMessage = rawErrorMsg.nullIfBlank() ?: NetworkUserMessages.BUSINESS_FALLBACK
+    return NetworkException(
         message = "$technicalDetail rawErrorMsg=${rawErrorMsg.orEmpty()}",
         errorCode = code,
         rawErrorMsg = rawErrorMsg,

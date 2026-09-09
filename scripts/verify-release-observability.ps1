@@ -15,10 +15,10 @@ if (-not $Apk) {
 Write-Host "Checking release APK: $($Apk.FullName)"
 
 $RequiredMarkers = @(
-    "ReleaseTaskFlowAnalytics",
-    "ReleaseTaskFlowPerformanceReporter",
-    "ReleaseTaskFlowCrashReporter",
-    "TaskFlowLocalLogStore"
+    "ReleaseAnalytics",
+    "ReleasePerformanceReporter",
+    "ReleaseCrashReporter",
+    "LocalLogStore"
 )
 
 Add-Type -AssemblyName System.IO.Compression.FileSystem

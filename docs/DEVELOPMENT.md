@@ -219,7 +219,16 @@ Remove-Item -Recurse -Force ".\app\build" -ErrorAction SilentlyContinue
 ```
 
 发布前强制流水线与冒烟清单见 [RELEASE_CHECKLIST.md](RELEASE_CHECKLIST.md)（本地一键：`.\scripts\ci-verify.ps1`）。  
-更多架构级校验命令见 [ARCHITECTURE.md § 校验](ARCHITECTURE.md) 与 [TASKFLOW_CUSTOM_LINT.md](TASKFLOW_CUSTOM_LINT.md)。
+更多架构级校验命令见 [ARCHITECTURE.md § 校验](ARCHITECTURE.md) 与 [TASKFLOW_CUSTOM_LINT.md](TASKFLOW_CUSTOM_LINT.md)。  
+类型与文件命名（冲突驱动短名、`App*` 语义名、`@Deprecated` 过渡）见 [ARCHITECTURE.md §18 命名规范](ARCHITECTURE.md#18-命名规范yagni--冲突驱动)。
+
+### 命名与入口自检（发布前）
+
+| 检查项 | 说明 |
+|--------|------|
+| Application | `TaskFlowApplication` 与 `app/src/main/AndroidManifest.xml` 的 `android:name` 一致，源码文件存在 |
+| 主 API | 除 `TaskFlowApplication`、契约字符串（Lint Issue ID、Logcat `TaskFlow/Observability` 等）、`@Deprecated` 别名外，无新增 `TaskFlow*` 类型主名 |
+| 文档 | `ARCHITECTURE.md` §18 与 `BaseArchitecture` / `NavArchitecture` KDoc 中的类型名与源码一致 |
 
 ---
 
@@ -227,7 +236,7 @@ Remove-Item -Recurse -Force ".\app\build" -ErrorAction SilentlyContinue
 
 | 文档 | 内容 |
 |------|------|
-| [ARCHITECTURE.md](ARCHITECTURE.md) | 模块边界、MVI、壳层注入、构建校验清单 |
+| [ARCHITECTURE.md](ARCHITECTURE.md) | 模块边界、MVI、壳层注入、**§18 命名规范**、构建校验清单 |
 | [RELEASE_CHECKLIST.md](RELEASE_CHECKLIST.md) | CI 强制命令、Release 可观测校验、发布冒烟表 |
 | [TASKFLOW_ROUTE_GATES.md](TASKFLOW_ROUTE_GATES.md) | 路由门禁与深链手动验证 |
 | [TASKFLOW_CUSTOM_LINT.md](TASKFLOW_CUSTOM_LINT.md) | 自定义 Lint 与模块 lint 任务 |

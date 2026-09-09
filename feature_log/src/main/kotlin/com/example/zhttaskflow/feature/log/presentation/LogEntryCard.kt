@@ -13,7 +13,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontFamily
-import com.example.zhttaskflow.base.ui.TaskFlowUiConstants
+import com.example.zhttaskflow.base.ui.UiConstants
 import com.example.zhttaskflow.feature.log.R
 
 /**
@@ -34,8 +34,8 @@ internal fun LogEntryCard(
         ),
     ) {
         Column(
-            modifier = Modifier.padding(TaskFlowUiConstants.PageHorizontalPadding),
-            verticalArrangement = Arrangement.spacedBy(TaskFlowUiConstants.ListVerticalSpacing),
+            modifier = Modifier.padding(UiConstants.PageHorizontalPadding),
+            verticalArrangement = Arrangement.spacedBy(UiConstants.ListVerticalSpacing),
         ) {
             Text(
                 text = stringResource(id = R.string.log_str_entry_time, entry.timestampText),
@@ -61,8 +61,8 @@ internal fun LogEntryCard(
             )
             AnimatedVisibility(visible = expanded) {
                 Column(
-                    modifier = Modifier.padding(top = TaskFlowUiConstants.ListVerticalSpacing),
-                    verticalArrangement = Arrangement.spacedBy(TaskFlowUiConstants.ListVerticalSpacing),
+                    modifier = Modifier.padding(top = UiConstants.ListVerticalSpacing),
+                    verticalArrangement = Arrangement.spacedBy(UiConstants.ListVerticalSpacing),
                 ) {
                     Text(
                         text = stringResource(id = R.string.log_str_entry_detail),

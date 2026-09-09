@@ -1,15 +1,15 @@
 package com.example.zhttaskflow.feature.article.presentation
 
 import com.example.zhttaskflow.base.ext.SnackbarType
-import com.example.zhttaskflow.base.ext.TaskFlowNavigationUiEffect
-import com.example.zhttaskflow.base.ext.TaskFlowPresentationUiEffect
-import com.example.zhttaskflow.base.ext.TaskFlowUiEffectConsumption
+import com.example.zhttaskflow.base.ext.NavigationUiEffect
+import com.example.zhttaskflow.base.ext.PresentationUiEffect
+import com.example.zhttaskflow.base.ext.UiEffectConsumption
 import com.example.zhttaskflow.base.mvi.BaseUiEffect
 
 /**
  * 资讯列表页一次性副作用，不写入 [ArticleUiState]。
  *
- * 双 Collector 规范见 [TaskFlowUiEffectConsumption]。
+ * 双 Collector 规范见 [UiEffectConsumption]。
  */
 sealed interface ArticleUiEffect : BaseUiEffect {
 
@@ -22,12 +22,12 @@ sealed interface ArticleUiEffect : BaseUiEffect {
     data class ShowSnackbar(
         val message: String,
         val type: SnackbarType = SnackbarType.Normal,
-    ) : ArticleUiEffect, TaskFlowPresentationUiEffect
+    ) : ArticleUiEffect, PresentationUiEffect
 
     /**
      * 跳转文章详情页（跨页面导航）。
      *
-     * @param url 完整 Navigation 路由 path（由 [com.example.zhttaskflow.nav.route.TaskFlowArticleNavRoutes.detailPath] 生成）
+     * @param url 完整 Navigation 路由 path（由 [com.example.zhttaskflow.nav.route.ArticleNavRoutes.detailPath] 生成）
      */
-    data class NavigateToDetail(val url: String) : ArticleUiEffect, TaskFlowNavigationUiEffect
+    data class NavigateToDetail(val url: String) : ArticleUiEffect, NavigationUiEffect
 }

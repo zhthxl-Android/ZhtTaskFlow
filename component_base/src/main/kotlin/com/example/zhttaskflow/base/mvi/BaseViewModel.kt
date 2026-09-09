@@ -3,7 +3,7 @@ package com.example.zhttaskflow.base.mvi
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.zhttaskflow.core.foundation.userDisplayMessage
-import com.example.zhttaskflow.core.log.TaskFlowLogger
+import com.example.zhttaskflow.core.log.Logger
 import com.example.zhttaskflow.core.network.NetworkChecker
 import com.example.zhttaskflow.core.util.nullIfBlank
 import com.example.zhttaskflow.core.util.orEmpty
@@ -25,8 +25,8 @@ import kotlinx.coroutines.launch
  *
  * @param State 页面状态，通常为 `BaseUiState<FeatureListData>`
  * @param Event 用户事件
- * @param Effect 一次性副作用；子类型应实现 [com.example.zhttaskflow.base.ext.TaskFlowNavigationUiEffect] 或
- * [com.example.zhttaskflow.base.ext.TaskFlowPresentationUiEffect]，见 [com.example.zhttaskflow.base.ext.TaskFlowUiEffectConsumption]
+ * @param Effect 一次性副作用；子类型应实现 [com.example.zhttaskflow.base.ext.NavigationUiEffect] 或
+ * [com.example.zhttaskflow.base.ext.PresentationUiEffect]，见 [com.example.zhttaskflow.base.ext.UiEffectConsumption]
  */
 abstract class BaseViewModel<State : BaseUiState<*>, Event : BaseUiEvent, Effect : BaseUiEffect>(
     initialState: State,
@@ -66,7 +66,7 @@ abstract class BaseViewModel<State : BaseUiState<*>, Event : BaseUiEvent, Effect
     }
 
     /**
-     * 提取面向用户的友好文案：优先网络层 [com.example.zhttaskflow.core.foundation.TaskFlowNetworkException.userMessage]。
+     * 提取面向用户的友好文案：优先网络层 [com.example.zhttaskflow.core.foundation.NetworkException.userMessage]。
      */
     protected fun getUserFriendlyMessage(
         throwable: Throwable,
@@ -88,7 +88,7 @@ abstract class BaseViewModel<State : BaseUiState<*>, Event : BaseUiEvent, Effect
         onError: ((throwable: Throwable, userMessage: String) -> Unit)? = null,
         block: suspend () -> Unit,
     ) {
-        if (precheckNetwork && !NetworkChecker.isTaskFlowNetworkConnected()) {
+        if (precheckNetwork && !NetworkChecker.isNetworkConnected()) {
             val networkError = NetworkChecker.unavailableNetworkException()
             val userMessage = getUserFriendlyMessage(networkError, userMessageFallback)
             logLaunchTaskFailure(tag, scene, networkError)
@@ -110,7 +110,7 @@ abstract class BaseViewModel<State : BaseUiState<*>, Event : BaseUiEvent, Effect
 
     private fun logLaunchTaskFailure(tag: String, scene: String?, throwable: Throwable) {
         val scenePrefix = scene?.let { "[$it] " }.orEmpty()
-        TaskFlowLogger.errorAlways(
+        Logger.errorAlways(
             tag,
             { "$scenePrefix${throwable.message.nullIfBlank() ?: "协程任务失败"}" },
             throwable,

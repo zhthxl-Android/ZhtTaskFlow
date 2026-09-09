@@ -1,6 +1,6 @@
 package com.example.zhttaskflow.core.network
 
-import com.example.zhttaskflow.core.foundation.TaskFlowNetworkException
+import com.example.zhttaskflow.core.foundation.NetworkException
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Test
@@ -21,7 +21,7 @@ class ApiResponseTest {
         try {
             unwrapApiResponse(response)
             error("应抛出异常")
-        } catch (e: TaskFlowNetworkException) {
+        } catch (e: NetworkException) {
             assertEquals(-1, e.errorCode)
             assertEquals("业务失败", e.userMessage)
             assertTrue(e.message?.contains("errorCode=-1") == true)
@@ -52,8 +52,8 @@ class ApiResponseTest {
             throw SocketTimeoutException("timeout")
         }
         assertTrue(result is ApiResult.Failure)
-        val ex = (result as ApiResult.Failure).exception as TaskFlowNetworkException
-        assertEquals(TaskFlowNetworkUserMessages.NETWORK_TIMEOUT, ex.userMessage)
+        val ex = (result as ApiResult.Failure).exception as NetworkException
+        assertEquals(NetworkUserMessages.NETWORK_TIMEOUT, ex.userMessage)
         assertTrue(ex.message?.contains("SocketTimeoutException") == true)
     }
 
@@ -75,7 +75,7 @@ class ApiResponseTest {
         var attempts = 0
         val result = safeApiCall<Unit> {
             attempts++
-            throw TaskFlowNetworkException(
+            throw NetworkException(
                 message = "errorCode=-1",
                 errorCode = -1,
                 userMessage = "业务失败",

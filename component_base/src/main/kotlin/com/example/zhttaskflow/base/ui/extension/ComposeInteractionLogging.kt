@@ -6,8 +6,8 @@ import androidx.compose.foundation.combinedClickable
 import androidx.compose.ui.Modifier
 import com.example.zhttaskflow.base.analytics.TASK_FLOW_ANALYTICS_CLICK_LOG_TAG
 import com.example.zhttaskflow.base.analytics.TASK_FLOW_ANALYTICS_LIST_ITEM_LOG_TAG
-import com.example.zhttaskflow.base.analytics.TaskFlowAnalyticsMessageFormatter
-import com.example.zhttaskflow.base.analytics.TaskFlowAnalyticsRegistry
+import com.example.zhttaskflow.base.analytics.AnalyticsMessageFormatter
+import com.example.zhttaskflow.base.analytics.AnalyticsRegistry
 
 private const val UI_LONG_CLICK_LOG_TAG = "UiLongClick"
 private const val UI_OUTCOME_LOG_TAG = "UiOutcome"
@@ -15,8 +15,8 @@ private const val UI_OUTCOME_LOG_TAG = "UiOutcome"
 /**
  * Compose 层关键交互 Debug 埋点工具（与 [PageLifecycleLog] 互补）。
  *
- * 底层经 [com.example.zhttaskflow.base.analytics.TaskFlowAnalytics] 上报，默认 [com.example.zhttaskflow.base.analytics.TaskFlowDebugAnalytics]，
- * 业务调用方式不变；壳层替换 [com.example.zhttaskflow.base.analytics.LocalTaskFlowAnalytics] 即可切换产品 SDK。
+ * 底层经 [com.example.zhttaskflow.base.analytics.Analytics] 上报，默认 [com.example.zhttaskflow.base.analytics.DebugAnalytics]，
+ * 业务调用方式不变；壳层替换 [com.example.zhttaskflow.base.analytics.LocalAnalytics] 即可切换产品 SDK。
  *
  * ## 关键交互必埋点规范（团队标准）
  *
@@ -50,7 +50,7 @@ internal fun buildInteractionLogMessage(
     params: Map<String, String?>? = null,
     detail: String? = null,
 ): String {
-    return TaskFlowAnalyticsMessageFormatter.formatInteraction(
+    return AnalyticsMessageFormatter.formatInteraction(
         action = action,
         operationId = identifier,
         pageId = pageId,
@@ -72,7 +72,7 @@ fun logUiInteraction(
     detail: String? = null,
     tag: String = defaultTagForAction(action),
 ) {
-    TaskFlowAnalyticsRegistry.current().trackInteraction(
+    AnalyticsRegistry.current().trackInteraction(
         action = action,
         operationId = identifier,
         pageId = pageId,
@@ -122,7 +122,7 @@ fun Modifier.clickWithLog(
 ): Modifier = clickable(
     enabled = enabled,
     onClick = {
-        TaskFlowAnalyticsRegistry.current().trackInteraction(
+        AnalyticsRegistry.current().trackInteraction(
             action = "click",
             operationId = identifier,
             pageId = pageId,
@@ -150,7 +150,7 @@ fun Modifier.longClickWithLog(
     enabled = enabled,
     onClick = {},
     onLongClick = {
-        TaskFlowAnalyticsRegistry.current().trackInteraction(
+        AnalyticsRegistry.current().trackInteraction(
             action = "longClick",
             operationId = identifier,
             pageId = pageId,

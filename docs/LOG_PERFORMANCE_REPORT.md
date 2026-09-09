@@ -23,7 +23,7 @@
 
 | 项 | 内容 |
 |----|------|
-| 工程 | ZhtTaskFlow（组件化 Clean + MVI，`feature_log` + `TaskFlowLocalLogStore`） |
+| 工程 | ZhtTaskFlow（组件化 Clean + MVI，`feature_log` + `LocalLogStore`） |
 | 存储路径 | `files/taskflow_observability/logs/{yyyy-MM-dd}.jsonl` + 侧车 `{day}.jsonl.idx` |
 | 列表分页 | 每页 **50** 条（`LOG_PAGE_SIZE`），按索引倒序，仅解析当前页 JSONL 行 |
 | 压测脚本 | `scripts/generate_test_logs.ps1` |
@@ -43,7 +43,7 @@
     Lines : 5000 (expected 5000)
 ```
 
-生成记录与 `TaskFlowLocalLogStore.encodeRecord` 字段对齐（`timestamp`、`logType`、`pageId`、`event`、`params`；崩溃含 `stackTrace` / `deviceInfo` / `anomaly=true`）。
+生成记录与 `LocalLogStore.encodeRecord` 字段对齐（`timestamp`、`logType`、`pageId`、`event`、`params`；崩溃含 `stackTrace` / `deviceInfo` / `anomaly=true`）。
 
 ### 2.2 设备灌数步骤（Debug 可 `run-as`）
 
@@ -122,7 +122,7 @@
 | 压测脚本可生成指定数量日志 | **通过**（5000 行校验） |
 | 脚本不进 Release 包 | **通过**（仅 `scripts/`，无 `app` assets 引用） |
 | 5000 条场景流畅、无 OOM | **待真机确认**（架构评估为可接受；以 §4 表实测为准） |
-| 清空不影响后续使用 | **待真机确认**（`TaskFlowLocalLogStore.clearAllLogs` + UI 清空链路已有） |
+| 清空不影响后续使用 | **待真机确认**（`LocalLogStore.clearAllLogs` + UI 清空链路已有） |
 
 **后续动作**
 

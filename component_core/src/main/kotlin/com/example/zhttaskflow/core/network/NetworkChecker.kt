@@ -4,7 +4,7 @@ import android.content.Context
 import android.net.ConnectivityManager
 import android.net.NetworkCapabilities
 import androidx.core.content.ContextCompat
-import com.example.zhttaskflow.core.foundation.TaskFlowNetworkException
+import com.example.zhttaskflow.core.foundation.NetworkException
 
 /**
  * 系统网络连接状态检查（基础设施单例，无业务耦合）。
@@ -23,18 +23,18 @@ object NetworkChecker {
     /**
      * 基于宿主已绑定的 Application 上下文判断网络连接态；未绑定时视为有网（与 [safeApiCall] 前置检查一致）。
      */
-    fun isTaskFlowNetworkConnected(): Boolean {
-        val context = TaskFlowSafeApiCallRuntime.applicationContextOrNull() ?: return true
+    fun isNetworkConnected(): Boolean {
+        val context = SafeApiCallRuntime.applicationContextOrNull() ?: return true
         return isNetworkAvailable(context)
     }
 
     /**
      * 强无网场景标准异常（与 [com.example.zhttaskflow.core.network.safeApiCall] 前置失败一致）。
      */
-    fun unavailableNetworkException(): TaskFlowNetworkException {
-        return TaskFlowNetworkException(
+    fun unavailableNetworkException(): NetworkException {
+        return NetworkException(
             message = "NetworkChecker: no active network connection",
-            userMessage = TaskFlowNetworkUserMessages.NETWORK_IO,
+            userMessage = NetworkUserMessages.NETWORK_IO,
         )
     }
 
