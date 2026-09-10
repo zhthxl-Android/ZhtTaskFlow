@@ -6,9 +6,9 @@ import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.staticCompositionLocalOf
 
-const val TASKFLOW_CRASH_LOG_TAG: String = "Exception"
-const val TASKFLOW_CRASH_PAGE_ID: String = "AppShell"
-const val TASKFLOW_CRASH_ACTION_ID: String = "app_uncaught_crash"
+const val CRASH_LOG_TAG: String = "Exception"
+const val CRASH_PAGE_ID: String = "AppShell"
+const val CRASH_ACTION_ID: String = "app_uncaught_crash"
 
 /**
  * 崩溃 / 未捕获异常上报抽象：产品环境由壳工程注入 Bugly、Crashlytics 等实现。
@@ -16,8 +16,8 @@ const val TASKFLOW_CRASH_ACTION_ID: String = "app_uncaught_crash"
  * - 壳层注入：[com.example.zhttaskflow.navigation.AppMainShell] 的 `crashReporterImpl` →
  *   [com.example.zhttaskflow.base.ui.BaseScaffold] → [com.example.zhttaskflow.base.exception.ExceptionMonitoringRoot]。
  * - CompositionLocal：[LocalCrashReporter]；非 Composable 场景经 [CrashReporterRegistry] 解析。
- * - Release 默认：`app` 模块 `ReleaseCrashReporter`（契约 `actionId` 见 [TASKFLOW_CRASH_ACTION_ID] / `app_anr`）。
- * - 调试默认：[DebugCrashReporter]（`Logger` + Analytics outcome，`actionId=[TASKFLOW_CRASH_ACTION_ID]`）。
+ * - Release 默认：`app` 模块 `ReleaseCrashReporter`（契约 `actionId` 见 [CRASH_ACTION_ID] / `app_anr`）。
+ * - 调试默认：[DebugCrashReporter]（`Logger` + Analytics outcome，`actionId=[CRASH_ACTION_ID]`）。
  *
  * ANR：Release 在 [com.example.zhttaskflow.TaskFlowApplication] 调用 `ReleaseCrashMonitoring.install`；
  * 协程未捕获异常：同 Application 内 [AppCoroutineExceptionHandler.install]。

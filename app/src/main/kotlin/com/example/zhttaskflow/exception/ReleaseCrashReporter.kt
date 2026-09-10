@@ -1,7 +1,7 @@
 package com.example.zhttaskflow.exception
 
-import com.example.zhttaskflow.base.exception.TASKFLOW_CRASH_ACTION_ID
-import com.example.zhttaskflow.base.exception.TASKFLOW_CRASH_PAGE_ID
+import com.example.zhttaskflow.base.exception.CRASH_ACTION_ID
+import com.example.zhttaskflow.base.exception.CRASH_PAGE_ID
 import com.example.zhttaskflow.base.exception.CrashReporter
 import com.example.zhttaskflow.core.util.nullIfBlank
 import com.example.zhttaskflow.observability.ReleaseObservabilityContract
@@ -23,8 +23,8 @@ object ReleaseCrashReporter : CrashReporter {
         ReleaseObservabilityContract.emit(
             channel = Channel.CRASH,
             eventOrMetric = ReleaseObservabilityContract.EVENT_CRASH,
-            pageId = TASKFLOW_CRASH_PAGE_ID,
-            actionId = TASKFLOW_CRASH_ACTION_ID,
+            pageId = CRASH_PAGE_ID,
+            actionId = CRASH_ACTION_ID,
             params = buildCrashParams(
                 scene = scene,
                 throwable = throwable,
@@ -44,7 +44,7 @@ object ReleaseCrashReporter : CrashReporter {
         ReleaseObservabilityContract.emit(
             channel = Channel.CRASH,
             eventOrMetric = ReleaseObservabilityContract.EVENT_ANR,
-            pageId = TASKFLOW_CRASH_PAGE_ID,
+            pageId = CRASH_PAGE_ID,
             actionId = ReleaseObservabilityContract.ACTION_APP_ANR,
             params = buildCrashParams(
                 scene = "anr",

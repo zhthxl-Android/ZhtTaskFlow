@@ -2,8 +2,8 @@ package com.example.zhttaskflow.base.observability
 
 import com.example.zhttaskflow.base.analytics.Analytics
 import com.example.zhttaskflow.base.analytics.PageViewEvent
-import com.example.zhttaskflow.base.exception.TASKFLOW_CRASH_ACTION_ID
-import com.example.zhttaskflow.base.exception.TASKFLOW_CRASH_PAGE_ID
+import com.example.zhttaskflow.base.exception.CRASH_ACTION_ID
+import com.example.zhttaskflow.base.exception.CRASH_PAGE_ID
 import com.example.zhttaskflow.base.exception.CrashReporter
 import com.example.zhttaskflow.base.performance.PerformanceReporter
 import com.example.zhttaskflow.core.debug.DeveloperTools
@@ -273,8 +273,8 @@ private object ReleaseLocalCrashReporter : CrashReporter {
         LocalObservabilityEmitter.emit(
             channel = LocalObservabilityEmitter.Channel.CRASH,
             eventOrMetric = LocalObservabilityEmitter.EVENT_CRASH,
-            pageId = TASKFLOW_CRASH_PAGE_ID,
-            actionId = TASKFLOW_CRASH_ACTION_ID,
+            pageId = CRASH_PAGE_ID,
+            actionId = CRASH_ACTION_ID,
             params = buildCrashParams(
                 scene = scene,
                 throwable = throwable,
@@ -291,7 +291,7 @@ private object ReleaseLocalCrashReporter : CrashReporter {
         LocalObservabilityEmitter.emit(
             channel = LocalObservabilityEmitter.Channel.CRASH,
             eventOrMetric = LocalObservabilityEmitter.EVENT_ANR,
-            pageId = TASKFLOW_CRASH_PAGE_ID,
+            pageId = CRASH_PAGE_ID,
             actionId = LocalObservabilityEmitter.ACTION_APP_ANR,
             params = buildCrashParams(
                 scene = "anr",

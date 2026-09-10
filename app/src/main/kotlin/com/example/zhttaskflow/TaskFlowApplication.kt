@@ -14,8 +14,11 @@ class TaskFlowApplication : Application() {
 
     override fun onCreate() {
         super.onCreate()
+        //运行环境初始化（Debug/Release）
         bindNetworkDiagnostics(applicationContext)
+        //本地可观测日志仓初始化
         LocalLogStore.init(applicationContext)
+        //全局异常捕获
         val crashReporter = if (isDebugLoggingEnabled()) {
             DebugCrashReporter
         } else {

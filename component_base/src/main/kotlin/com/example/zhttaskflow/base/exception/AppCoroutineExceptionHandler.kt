@@ -11,7 +11,7 @@ import kotlinx.coroutines.SupervisorJob
 import kotlin.coroutines.CoroutineContext
 import kotlin.coroutines.cancellation.CancellationException
 
-/** 协程未捕获异常上报 actionId 扩展字段（与 [TASKFLOW_CRASH_ACTION_ID] 同属崩溃通道）。 */
+/** 协程未捕获异常上报 actionId 扩展字段（与 [CRASH_ACTION_ID] 同属崩溃通道）。 */
 const val TASKFLOW_COROUTINE_UNCAUGHT_SOURCE: String = "app_uncaught_coroutine"
 
 /**
@@ -23,7 +23,7 @@ const val TASKFLOW_COROUTINE_UNCAUGHT_SOURCE: String = "app_uncaught_coroutine"
  */
 object AppCoroutineExceptionHandler {
 
-    private const val LOG_TAG: String = TASKFLOW_CRASH_LOG_TAG
+    private const val LOG_TAG: String = CRASH_LOG_TAG
 
     @Volatile
     private var installedHandler: CoroutineExceptionHandler? = null

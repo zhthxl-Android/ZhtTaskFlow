@@ -56,7 +56,7 @@ private const val BUSINESS_ACTION_ID = "app_business_exception"
  */
 object ExceptionHandler {
 
-    private const val LOG_TAG = TASKFLOW_CRASH_LOG_TAG
+    private const val LOG_TAG = CRASH_LOG_TAG
 
     /**
      * 已捕获的业务向异常：展示 Error Snackbar 并写日志（不触发进程退出）。
@@ -78,7 +78,7 @@ object ExceptionHandler {
         AnalyticsRegistry.current().trackUiOutcome(
             outcome = "failure",
             operationId = BUSINESS_ACTION_ID,
-            pageId = TASKFLOW_CRASH_PAGE_ID,
+            pageId = CRASH_PAGE_ID,
             params = mapOf("type" to throwable::class.simpleName.orEmpty()),
         )
         snackbarDispatcher?.showSnackbar(
