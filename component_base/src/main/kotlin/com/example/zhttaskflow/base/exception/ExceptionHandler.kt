@@ -66,13 +66,17 @@ object ExceptionHandler {
         snackbarDispatcher: SnackbarDispatcher?,
         userMessageFallback: String = BaseViewModel.DEFAULT_USER_MESSAGE_FALLBACK,
     ) {
+        // 协程取消，忽略
         if (throwable is CancellationException) {
             return
         }
+        // is Error
         if (isCrashThrowable(throwable)) {
+            // 静默上报，不弹 Snackbar
             reportCrash(throwable, fatal = false)
             return
         }
+        // 是 Exception：走业务异常流程
         val userMessage = throwable.userDisplayMessage(userMessageFallback)
         Logger.errorAlways(LOG_TAG, { "business: $userMessage" }, throwable)
         AnalyticsRegistry.current().trackUiOutcome(
@@ -108,6 +112,7 @@ object ExceptionHandler {
         }
     }
 
+    // 崩溃上报：简单委托
     fun reportCrash(
         throwable: Throwable,
         fatal: Boolean,
@@ -116,10 +121,12 @@ object ExceptionHandler {
         crashReporter.reportCrash(throwable, fatal)
     }
 
+    // 判断是不是崩溃级：只认 Error，不认 Exception
     internal fun isCrashThrowable(throwable: Throwable): Boolean {
         return throwable is Error
     }
 
+    // 安装线程未捕获异常处理器
     internal fun installUncaughtExceptionHandler(
         crashReporter: CrashReporter,
     ): () -> Unit {
@@ -129,10 +136,11 @@ object ExceptionHandler {
             Logger.errorAlways(LOG_TAG, {
                 "uncaught thread=${thread.name} ${exception.message.nullIfBlank().orEmpty()}"
             }, exception)
+            //自定义处理器处理完后，必须调用前一个处理器（最终是系统默认），否则用户看不到 "应用已停止" 对话框
             previous?.uncaughtException(thread, exception)
         }
         Thread.setDefaultUncaughtExceptionHandler(handler)
-        return { Thread.setDefaultUncaughtExceptionHandler(previous) }
+        return { Thread.setDefaultUncaughtExceptionHandler(previous) }// 返回恢复函数
     }
 }
 

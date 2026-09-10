@@ -26,7 +26,9 @@ const val CRASH_ACTION_ID: String = "app_uncaught_crash"
 fun interface CrashReporter {
 
     /**
-     * @param fatal `true` 表示进程级未捕获崩溃；`false` 表示协程等可恢复未捕获异常。
+     * 上报崩溃 / 未捕获异常。
+     * @param fatal `true` 表示进程级未捕获崩溃；
+     *              `false` 表示可恢复未捕获异常（协程异常、业务捕获的 Error）。
      */
     fun reportCrash(throwable: Throwable, fatal: Boolean)
 }

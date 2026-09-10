@@ -66,16 +66,22 @@ object DeveloperObservability {
         }
     }
 
+    // 每次调用时动态判断当前该用哪个实现
     fun resolveCrashReporter(shellDefault: CrashReporter): CrashReporter {
+        // Release 包：直接返回壳层实现，零开销
         if (!isDebugLoggingEnabled()) {
             return shellDefault
         }
+        // Debug 包：根据开发者面板的开关切换
         return when (DeveloperTools.observabilityBackend) {
+            // 模拟 Release 本地落盘
             DeveloperTools.ObservabilityBackend.RELEASE_LOCAL -> ReleaseLocalCrashReporter
+            // 用壳层默认（DebugCrashReporter）
             DeveloperTools.ObservabilityBackend.APP_SHELL_DEFAULT -> shellDefault
         }
     }
 
+    // 返回一个稳定的装饰器对象，内部每次方法调用都重新 resolve
     fun wrapPerformanceReporter(shellDefault: PerformanceReporter): PerformanceReporter {
         return object : PerformanceReporter {
             override fun onFirstFrameRendered(pageId: String, durationMs: Long) {

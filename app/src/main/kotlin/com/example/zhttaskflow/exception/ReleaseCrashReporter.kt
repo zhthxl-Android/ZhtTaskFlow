@@ -19,7 +19,9 @@ object ReleaseCrashReporter : CrashReporter {
 
     override fun reportCrash(throwable: Throwable, fatal: Boolean) {
         val scene = if (fatal) "fatal" else "non_fatal"
+        //最后一次页面id
         val pagePath = LocalLogStore.lastKnownPageId().orEmpty()
+        // 通过 ReleaseObservabilityContract 统一上报
         ReleaseObservabilityContract.emit(
             channel = Channel.CRASH,
             eventOrMetric = ReleaseObservabilityContract.EVENT_CRASH,

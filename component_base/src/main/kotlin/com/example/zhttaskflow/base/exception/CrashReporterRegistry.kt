@@ -7,10 +7,10 @@ import com.example.zhttaskflow.base.observability.DeveloperObservability
  */
 internal object CrashReporterRegistry {
 
-    private val stack = ArrayDeque<CrashReporter>()
+    private val stack = ArrayDeque<CrashReporter>()// 栈
 
     @Volatile
-    private var applicationDefault: CrashReporter? = null
+    private var applicationDefault: CrashReporter? = null// Application 层默认值
 
     /**
      * [com.example.zhttaskflow.TaskFlowApplication.onCreate] 在 UI 装配前注册默认 Reporter（协程/线程未捕获异常）。
@@ -20,17 +20,20 @@ internal object CrashReporterRegistry {
     }
 
     fun push(reporter: CrashReporter) {
-        stack.addLast(reporter)
+        stack.addLast(reporter)// 压栈
     }
 
     fun pop(reporter: CrashReporter) {
+        // 只弹出栈顶匹配的（引用相等 ===），防止乱序 pop
         if (stack.isNotEmpty() && stack.last() === reporter) {
             stack.removeLast()
         }
     }
 
     fun current(): CrashReporter {
+        // 优先级：栈顶 > applicationDefault > DebugCrashReporter（兜底）
         val shell = stack.lastOrNull() ?: applicationDefault ?: CrashReporterFallback
+        // 再经过 DeveloperObservability 包装一层（运行时可切换）
         return DeveloperObservability.resolveCrashReporter(shell)
     }
 }

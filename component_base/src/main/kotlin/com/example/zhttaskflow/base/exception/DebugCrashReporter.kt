@@ -12,9 +12,11 @@ object DebugCrashReporter : CrashReporter {
 
     override fun reportCrash(throwable: Throwable, fatal: Boolean) {
         val scene = if (fatal) "fatal" else "non_fatal"
+        //打 Logcat，errorAlways 不受 Debug 开关控制
         Logger.errorAlways(CRASH_LOG_TAG, {
             "[$scene] ${throwable.message.nullIfBlank() ?: throwable::class.simpleName.orEmpty()}"
         }, throwable)
+        // 埋点
         AnalyticsRegistry.current().trackUiOutcome(
             outcome = "failure",
             operationId = CRASH_ACTION_ID,

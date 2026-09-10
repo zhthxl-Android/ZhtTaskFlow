@@ -47,12 +47,16 @@ object AppCoroutineExceptionHandler {
      * @param crashReporter 与壳层 [com.example.zhttaskflow.navigation.AppMainShell] 注入策略一致（Debug/Release）。
      */
     fun install(crashReporter: CrashReporter) {
+        //存全局默认,把 crashReporter 存到 Registry，UI 还没起来时的兜底。
         CrashReporterRegistry.installApplicationDefault(crashReporter)
+        //创建协程处理器
         val handler = createCoroutineExceptionHandler()
         installedHandler = handler
+        //挂载到应用根协程作用域
         applicationScope = CoroutineScope(
             SupervisorJob() + Dispatchers.Main.immediate + handler,
         )
+        //安装线程未捕获异常处理器
         ExceptionHandler.installUncaughtExceptionHandler(crashReporter)
     }
 
@@ -71,6 +75,7 @@ object AppCoroutineExceptionHandler {
         }
         val reporter = CrashReporterRegistry.current()
         val pagePath = LocalLogStore.lastKnownPageId().orEmpty()
+        // 如 "SupervisorJob;HandlerDispatcher;CoroutineName"
         val contextSummary = formatCoroutineContext(context)
         val reportable = CoroutineUncaughtException(
             pagePath = pagePath,
