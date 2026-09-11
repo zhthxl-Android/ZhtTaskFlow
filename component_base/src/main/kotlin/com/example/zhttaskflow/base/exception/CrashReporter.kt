@@ -33,10 +33,12 @@ fun interface CrashReporter {
     fun reportCrash(throwable: Throwable, fatal: Boolean)
 }
 
+//默认值为DebugCrashReporter
 val LocalCrashReporter = staticCompositionLocalOf<CrashReporter> {
     DebugCrashReporter
 }
 
+//保底上报器
 internal val CrashReporterFallback: CrashReporter = DebugCrashReporter
 
 /**

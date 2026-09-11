@@ -41,10 +41,10 @@ interface Analytics {
      * @param logTag 调试实现写入 Logcat 的子 Tag；产品实现可忽略
      */
     fun trackInteraction(
-        action: String,
-        operationId: String,
-        pageId: String? = null,
-        params: Map<String, String?>? = null,
+        action: String,//交互类型
+        operationId: String,//操作唯一标识，对应埋点契约里的 `actionId`，是核心统计字段
+        pageId: String? = null,//所属页面，可选
+        params: Map<String, String?>? = null,//自定义业务参数
         detail: String? = null,
         logTag: String? = null,
     )
@@ -54,8 +54,8 @@ interface Analytics {
  * 页面曝光子类型（调试日志与产品事件映射共用）。
  */
 enum class PageViewEvent {
-    Enter,
-    ArgsChange,
+    Enter,// 进入页面
+    ArgsChange,// 参数变化（非首次进入）
 }
 
 /**

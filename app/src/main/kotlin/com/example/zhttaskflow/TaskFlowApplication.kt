@@ -24,6 +24,7 @@ class TaskFlowApplication : Application() {
         } else {
             ReleaseCrashReporter
         }
+        //全局协程异常捕获
         AppCoroutineExceptionHandler.install(crashReporter)
         ReleaseCrashMonitoring.install(this)
     }

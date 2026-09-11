@@ -11,7 +11,7 @@ internal class CoroutineUncaughtException(
     cause: Throwable,
 ) : RuntimeException(
     buildString {
-        append(TASKFLOW_COROUTINE_UNCAUGHT_SOURCE)
+        append(COROUTINE_UNCAUGHT_SOURCE)
         append(" pagePath=").append(pagePath)
         append(" context=").append(coroutineContextSummary)
         append(" message=").append(cause.message.nullIfBlank().orEmpty())

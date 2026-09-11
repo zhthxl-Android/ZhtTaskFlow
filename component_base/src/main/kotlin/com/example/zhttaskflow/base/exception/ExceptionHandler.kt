@@ -130,17 +130,23 @@ object ExceptionHandler {
     internal fun installUncaughtExceptionHandler(
         crashReporter: CrashReporter,
     ): () -> Unit {
+        //保存当前已有的默认异常处理器
         val previous = Thread.getDefaultUncaughtExceptionHandler()
+        //创建自定义的异常处理器
         val handler = Thread.UncaughtExceptionHandler { thread, exception ->
+            //自定义崩溃上报：标记为致命异常
             crashReporter.reportCrash(exception, fatal = true)
+            //输出错误日志
             Logger.errorAlways(LOG_TAG, {
                 "uncaught thread=${thread.name} ${exception.message.nullIfBlank().orEmpty()}"
             }, exception)
             //自定义处理器处理完后，必须调用前一个处理器（最终是系统默认），否则用户看不到 "应用已停止" 对话框
             previous?.uncaughtException(thread, exception)
         }
+        //将自定义处理器设置为 JVM 全局默认
         Thread.setDefaultUncaughtExceptionHandler(handler)
-        return { Thread.setDefaultUncaughtExceptionHandler(previous) }// 返回恢复函数
+        //返回一个「恢复原处理器」的函数
+        return { Thread.setDefaultUncaughtExceptionHandler(previous) }
     }
 }
 
