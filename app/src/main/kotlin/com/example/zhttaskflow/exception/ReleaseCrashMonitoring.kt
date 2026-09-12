@@ -14,10 +14,9 @@ import kotlin.math.max
 import kotlin.math.min
 
 /**
- * Release ANR 监控（标准版 · 逻辑修正版）
+ * Release ANR 监控
  * 核心能力：主线程探针检测、LockSupport零GC、自适应间隔、分层堆栈、前后台分级、阶梯冷却
- * 可靠性保证：并发可见性、虚假唤醒防御、边界兜底、异常保护、编译合规
- * 逻辑修正：拆分探针响应等待与间隔休眠两种策略，修复检测频率异常，时间双重校验生效
+ * 可靠性保证：并发可见性、虚假唤醒防御、边界兜底、异常保护
  */
 object ReleaseCrashMonitoring {
 
