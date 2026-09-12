@@ -18,7 +18,7 @@ import kotlin.math.min
  * 核心能力：主线程探针检测、LockSupport零GC、自适应间隔、分层堆栈、前后台分级、阶梯冷却
  * 可靠性保证：并发可见性、虚假唤醒防御、边界兜底、异常保护
  */
-object ReleaseCrashMonitoring {
+object ReleaseAnrMonitor {
 
     // ==================== 常量配置 ====================
     /** ANR 判定阈值：与系统前台 ANR 对齐（5秒） */
