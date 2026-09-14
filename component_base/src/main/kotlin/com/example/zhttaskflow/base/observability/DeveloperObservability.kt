@@ -16,16 +16,26 @@ import com.example.zhttaskflow.core.util.nullIfBlank
  */
 object DeveloperObservability {
 
+    /**
+     * 解析出「当前环境应该使用的埋点实现」
+     * @param shellDefault 壳层默认实现
+     * */
     fun resolveAnalytics(shellDefault: Analytics): Analytics {
+        // Release 包：直接返回壳层实现，零开销
         if (!isDebugLoggingEnabled()) {
             return shellDefault
         }
+        //根据面板的开关选择
         return when (DeveloperTools.observabilityBackend) {
             DeveloperTools.ObservabilityBackend.RELEASE_LOCAL -> ReleaseLocalAnalytics
             DeveloperTools.ObservabilityBackend.APP_SHELL_DEFAULT -> shellDefault
         }
     }
 
+    /**
+     * 返回一个稳定的装饰器对象
+     * @param shellDefault 壳层默认实现
+     * */
     fun wrapAnalytics(shellDefault: Analytics): Analytics {
         return object : Analytics {
             override fun trackPageView(
@@ -33,6 +43,8 @@ object DeveloperObservability {
                 pageArgs: String?,
                 event: PageViewEvent,
             ) {
+                //每次调用埋点方法时都会重新 resolve 一次
+                //面板切换后端后，下一次埋点立刻生效，不需要重建对象
                 resolveAnalytics(shellDefault).trackPageView(pageId, pageArgs, event)
             }
 
@@ -81,23 +93,27 @@ object DeveloperObservability {
         }
     }
 
-    // 返回一个稳定的装饰器对象，内部每次方法调用都重新 resolve
+    // 性能上报器的装饰器包装，每次性能回调时动态判断当前该用哪个实现
     fun wrapPerformanceReporter(shellDefault: PerformanceReporter): PerformanceReporter {
         return object : PerformanceReporter {
             override fun onFirstFrameRendered(pageId: String, durationMs: Long) {
+                //首帧渲染完成上报
                 resolvePerformanceReporter(shellDefault).onFirstFrameRendered(pageId, durationMs)
             }
 
             override fun onScrollFpsSample(pageId: String, fps: Float, frameCount: Int) {
+                //滑动帧率采样上报
                 resolvePerformanceReporter(shellDefault).onScrollFpsSample(pageId, fps, frameCount)
             }
 
             override fun onPageDwell(pageId: String, dwellMs: Long) {
+                //页面停留时长上报
                 resolvePerformanceReporter(shellDefault).onPageDwell(pageId, dwellMs)
             }
         }
     }
 
+    // 解析当前应该使用的性能上报实现
     private fun resolvePerformanceReporter(shellDefault: PerformanceReporter): PerformanceReporter {
         if (!isDebugLoggingEnabled()) {
             return shellDefault
@@ -128,6 +144,7 @@ object DeveloperObservability {
         val reporter = resolvePerformanceReporter(ReleaseLocalPerformanceReporter)
         val start = System.currentTimeMillis()
         if (blockMainThreadMs > 0L) {
+            //限制最大 8 秒
             Thread.sleep(blockMainThreadMs.coerceAtMost(8_000L))
         }
         val elapsed = System.currentTimeMillis() - start
@@ -148,7 +165,7 @@ object DeveloperObservability {
     }
 
     /**
-     * 非致命崩溃上报（走当前可观测后端）。
+     * 模拟一次非致命崩溃上报（走当前可观测后端）。
      */
     fun simulateNonFatalCrash(message: String = "Debug panel synthetic crash") {
         if (!isDebugLoggingEnabled()) {
@@ -159,6 +176,9 @@ object DeveloperObservability {
     }
 }
 
+/**
+ * private 的release埋点上报， 本地实现，用于调试
+ * */
 private object ReleaseLocalAnalytics : Analytics {
 
     override fun trackPageView(
@@ -233,6 +253,9 @@ private object ReleaseLocalAnalytics : Analytics {
     }
 }
 
+/**
+ * private 的release性能上报， 本地实现，用于调试
+ * */
 private object ReleaseLocalPerformanceReporter : PerformanceReporter {
 
     override fun onFirstFrameRendered(pageId: String, durationMs: Long) {
@@ -269,6 +292,9 @@ private object ReleaseLocalPerformanceReporter : PerformanceReporter {
     }
 }
 
+/**
+ * private 的release崩溃上报， 本地实现，用于调试
+ * */
 private object ReleaseLocalCrashReporter : CrashReporter {
 
     private const val ANR_MESSAGE_MAX_LENGTH: Int = 2_048
