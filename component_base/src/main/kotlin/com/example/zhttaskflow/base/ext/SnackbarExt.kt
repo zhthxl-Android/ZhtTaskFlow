@@ -35,7 +35,10 @@ val LocalSnackbarDispatcher = compositionLocalOf<SnackbarDispatcher> {
 }
 
 /**
+ * Snackbar 分发调度器
  * 在 Composable 中获取调度器：`val snackbar = LocalSnackbarDispatcher.current`。
+ * @param   hostState    SnackbarHostState
+ * @param   scope        协程作用域，用于管理协程生命周期
  */
 @Stable
 class SnackbarDispatcher internal constructor(
@@ -46,6 +49,12 @@ class SnackbarDispatcher internal constructor(
 
     /**
      * 展示 Snackbar（非 suspend，适用于 onClick 等回调）。
+     * @param   message      消息内容
+     * @param   type         类型（Success / Error / Normal）
+     * @param   duration     自定义时长，默认为 [SnackbarType.defaultDuration]
+     * @param   actionLabel  操作按钮文本
+     * @param   withDismissAction  是否显示关闭按钮
+     * @param   onAction     操作按钮点击回调
      */
     fun showSnackbar(
         message: String,

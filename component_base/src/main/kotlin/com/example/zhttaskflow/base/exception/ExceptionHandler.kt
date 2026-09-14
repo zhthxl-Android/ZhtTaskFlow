@@ -168,8 +168,12 @@ fun ExceptionMonitoringRoot(
     val context = LocalContext.current.applicationContext
 
     DisposableEffect(resolvedReporter) {
+        //安装线程未捕获异常处理器
         val resetHandler = ExceptionHandler.installUncaughtExceptionHandler(resolvedReporter)
-        onDispose { resetHandler() }
+        onDispose {
+            //恢复原处理器
+            resetHandler()
+        }
     }
 
     CrashReporterCompositionRoot(crashReporter = resolvedReporter) {
@@ -191,6 +195,9 @@ fun ExceptionMonitoringRoot(
     }
 }
 
+/**
+ * 纯副作用 Composable，不输出 UI，只负责监听网络状态并触发回调
+ * */
 @Composable
 private fun NetworkConnectivityMonitor(
     context: Context,
@@ -205,10 +212,12 @@ private fun NetworkConnectivityMonitor(
             ?: return@DisposableEffect onDispose { }
 
         fun applyBannerFromNetworkState() {
+            //如果处于模拟状态，直接触发回调
             if (DeveloperTools.shouldForceOfflineBanner()) {
                 disconnectedState.value()
                 return
             }
+            //根据网络状态触发回调
             if (NetworkChecker.isNetworkAvailable(context)) {
                 connectedState.value()
             } else {
@@ -219,10 +228,12 @@ private fun NetworkConnectivityMonitor(
         applyBannerFromNetworkState()
         val callback = object : ConnectivityManager.NetworkCallback() {
             override fun onAvailable(network: Network) {
+                //网络可用
                 applyBannerFromNetworkState()
             }
 
             override fun onLost(network: Network) {
+                //网络断开
                 applyBannerFromNetworkState()
             }
 
@@ -230,15 +241,20 @@ private fun NetworkConnectivityMonitor(
                 network: Network,
                 capabilities: NetworkCapabilities,
             ) {
+                //网络能力变化，如 WiFi 切移动数据
                 applyBannerFromNetworkState()
             }
         }
+        //只监听具备 `NET_CAPABILITY_INTERNET` 能力的网络（能上网才算，纯局域网不算）
         val request = NetworkRequest.Builder()
             .addCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET)
             .build()
+        //注册网络状态监听器
         connectivityManager.registerNetworkCallback(request, callback)
         val pollJob = scope.launch {
+            //调试轮询兜底
             while (isActive) {
+                //仅调试日志开启时启动
                 if (isDebugLoggingEnabled()) {
                     applyBannerFromNetworkState()
                 }

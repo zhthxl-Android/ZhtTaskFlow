@@ -26,6 +26,7 @@ class TaskFlowApplication : Application() {
         }
         //全局协程异常捕获
         AppCoroutineExceptionHandler.install(crashReporter)
+        //全局 ANR 监控
         ReleaseAnrMonitor.install(this)
     }
 }
