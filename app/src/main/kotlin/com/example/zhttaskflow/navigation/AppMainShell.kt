@@ -69,16 +69,22 @@ fun AppMainShell(
     val currentRoute = navBackStackEntry?.destination?.route
     val selectedTab = MainTab.fromRoute(currentRoute)
 
+    //获取埋点监控上报器
     val analytics = analyticsImpl ?: rememberAppShellAnalytics()
+    //获取帧监控上报器
     val performanceReporter = performanceImpl ?: rememberAppShellPerformanceReporter()
+    //获取当前登录状态
     val loginSession = loginSessionImpl ?: remember { LoginSession() }
+    //获取当前深链状态
     val deepLinkMapper = deepLinkMapperImpl ?: rememberDeepLinkRouteMapper()
+    //获取ANR监控上报器
     val crashReporter = crashReporterImpl ?: rememberAppShellCrashReporter()
 
     CompositionLocalProvider(
         LocalLoginSession provides loginSession,
         LocalDeepLinkRouteMapper provides deepLinkMapper,
     ) {
+        //获取跳转拦截器
         val routerInterceptorChain = rememberAppRouterInterceptorChain()
 
         BaseScaffold(

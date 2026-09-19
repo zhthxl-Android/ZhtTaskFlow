@@ -57,7 +57,7 @@ object AppCoroutineExceptionHandler {
         applicationScope = CoroutineScope(
             SupervisorJob() + Dispatchers.Main.immediate + handler,
         )
-        //安装线程未捕获异常处理器
+        //安装系统崩溃处理器
         ExceptionHandler.installUncaughtExceptionHandler(crashReporter)
     }
 

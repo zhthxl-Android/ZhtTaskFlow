@@ -126,7 +126,7 @@ object ExceptionHandler {
         return throwable is Error
     }
 
-    // 安装线程未捕获异常处理器
+    // 安装系统崩溃异常处理器
     internal fun installUncaughtExceptionHandler(
         crashReporter: CrashReporter,
     ): () -> Unit {
@@ -168,7 +168,7 @@ fun ExceptionMonitoringRoot(
     val context = LocalContext.current.applicationContext
 
     DisposableEffect(resolvedReporter) {
-        //安装线程未捕获异常处理器
+        //安装系统崩溃处理器
         val resetHandler = ExceptionHandler.installUncaughtExceptionHandler(resolvedReporter)
         onDispose {
             //恢复原处理器

@@ -42,16 +42,23 @@ import com.example.zhttaskflow.base.ui.dialog.DialogHost
 
 /**
  * 壳层/页面层共用的全局交互宿主（Snackbar / Loading / Dialog）。
+ * 4 个全局交互控制器 / 状态打包成一个数据载体，方便父子脚手架之间批量传递，避免逐个判断和传递 4 个对象
  */
 internal data class ScaffoldGlobalHosts(
+    //官方提供的 Snackbar 宿主状态类，管理 Snackbar 的显示队列、生命周期，提供 showSnackbar 挂起方法
     val snackbarHostState: SnackbarHostState,
+    //自定义封装的 Snackbar 分发器
     val snackbarDispatcher: SnackbarDispatcher,
+    //自定义全局加载控制器，管理全屏阻塞加载的显示 / 隐藏状态、加载文案
     val loadingController: LoadingController,
+    //自定义全局对话框控制器，管理全局 Dialog 的显示队列、销毁逻辑
     val dialogController: DialogController,
 )
 
 /**
- * 若组合树上游已由 [BaseScaffold] 注入全局宿主，则返回该宿主以供内层脚手架复用。
+ * 安全检测当前组合树中是否存在父级脚手架注入的全局宿主
+ * 若组合树上游已由 [BaseScaffold] 注入全局宿主，
+ * 如果完整存在则返回封装对象，任意一个缺失则返回 `null`
  */
 @Composable
 internal fun parentGlobalHostsOrNull(): ScaffoldGlobalHosts? {
@@ -90,18 +97,29 @@ internal fun parentGlobalHostsOrNull(): ScaffoldGlobalHosts? {
 @Composable
 fun BaseScaffold(
     modifier: Modifier = Modifier,
+    //控制内容区是否避让状态栏,true 避让
     consumeStatusBarsInContent: Boolean,
+    //埋点实现注入
     analytics: Analytics? = null,
+    //性能实现注入
     performanceImpl: PerformanceReporter? = null,
+    //崩溃上报实现注入
     crashReporter: CrashReporter? = null,
+    //底部栏槽位
     bottomBar: @Composable () -> Unit = {},
+    //悬浮按钮槽位
     floatingActionButton: @Composable () -> Unit = {},
+    //顶部栏槽位
     header: @Composable () -> Unit = {},
+    //内容区域的额外修饰符
     contentModifier: Modifier = Modifier,
+    //内容区槽位
     content: @Composable (scaffoldContentPadding: PaddingValues) -> Unit,
 ) {
     val parentHosts = parentGlobalHostsOrNull()
+    //存在父级宿主
     if (parentHosts != null) {
+        //直接复用父级的所有全局宿主，不重复创建任何控制器、不重复注入监控能力
         BaseScaffoldContent(
             modifier = modifier,
             consumeStatusBarsInContent = consumeStatusBarsInContent,
@@ -110,12 +128,13 @@ fun BaseScaffold(
             header = header,
             contentModifier = contentModifier,
             hosts = parentHosts,
-            ownsGlobalHosts = false,
+            ownsGlobalHosts = false,//已经有宿主，设为false
             content = content,
         )
         return
     }
-
+    //不存在父级宿主
+    //交互宿主初始化
     val snackbarHostState = remember { SnackbarHostState() }
     val snackbarScope = rememberCoroutineScope()
     val snackbarDispatcher = remember(snackbarHostState, snackbarScope) {
@@ -126,6 +145,7 @@ fun BaseScaffold(
     }
     val loadingController = remember { LoadingController() }
     val dialogController = remember { DialogController() }
+    //4 个实例打包
     val localHosts = remember(
         snackbarHostState,
         snackbarDispatcher,
@@ -139,14 +159,14 @@ fun BaseScaffold(
             dialogController = dialogController,
         )
     }
-
+    //生命周期自动清理
     DisposableEffect(loadingController) {
         onDispose { loadingController.hideLoading() }
     }
     DisposableEffect(dialogController) {
         onDispose { dialogController.dismissAll() }
     }
-
+    //监控能力注入
     val shellAnalytics = analytics ?: rememberDebugAnalytics()
     val resolvedAnalytics = remember(shellAnalytics) {
         DeveloperObservability.wrapAnalytics(shellAnalytics)
@@ -160,15 +180,19 @@ fun BaseScaffold(
     val resolvedCrashReporter = remember(shellCrashReporter) {
         DeveloperObservability.wrapCrashReporter(shellCrashReporter)
     }
-
+    //全局注入与嵌套
     CompositionLocalProvider(
         LocalSnackbarHostState provides snackbarHostState,
         LocalSnackbarDispatcher provides snackbarDispatcher,
         LocalLoadingController provides loadingController,
         LocalDialogController provides dialogController,
     ) {
+        //将 性能监控上报器 实例注入到整个 Compose 树
         PerformanceCompositionRoot(performance = performance) {
+            //将 埋点监控上报器 实例注入到整个 Compose 树
             AnalyticsCompositionRoot(analytics = resolvedAnalytics) {
+                //将 崩溃监控上报器 实例注入到整个 Compose 树
+                //并添加网络断开横幅
                 ExceptionMonitoringRoot(
                     snackbarDispatcher = snackbarDispatcher,
                     crashReporter = resolvedCrashReporter,
@@ -203,6 +227,7 @@ private fun BaseScaffoldContent(
     content: @Composable (PaddingValues) -> Unit,
 ) {
     val performance = rememberPerformance()
+    //给页面内容 Modifier 挂载滚动监听
     val performanceContentModifier = PerformanceScaffoldBindings(
         performance = performance,
         contentModifier = contentModifier,
