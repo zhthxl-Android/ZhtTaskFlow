@@ -20,8 +20,13 @@ import kotlinx.coroutines.CoroutineScope
 class AppNavigator {
 
     private var navHostController: NavHostController? = null
+
+    //用于路由拦截器执行异步逻辑（比如登录态校验、弹窗、loading）
     private var interceptScope: CoroutineScope? = null
+
+    //拦截器：跳转前可以插入逻辑：登录校验、权限检查、弹窗、埋点、Snackbar 报错
     private var routerInterceptorChain: RouterInterceptorChain =
+        //空拦截链,没安装拦截器时，直接执行跳转，不经过拦截逻辑
         RouterInterceptorChain.Empty
 
     /** 由 [AppNavHost] 绑定控制器与协程作用域。 */
@@ -47,6 +52,7 @@ class AppNavigator {
         dispatchNavigation(
             request = RouteRequest(targetRoute = route, isMainTab = false),
         ) { outcome ->
+            //拦截器全部放行之后回调，执行真实跳转
             performNavigate(route = outcome.route, isMainTab = false)
         }
     }
@@ -72,6 +78,9 @@ class AppNavigator {
         navHostController?.popBackStack()
     }
 
+    /**
+     * 判断是否需要走拦截器
+     * */
     private fun dispatchNavigation(
         request: RouteRequest,
         onNavigate: (RouterChainOutcome.Navigate) -> Unit,
@@ -87,6 +96,7 @@ class AppNavigator {
             )
             return
         }
+        //启动拦截器链异步执行
         dispatchRouteNavigation(
             scope = scope,
             chain = chain,
@@ -95,6 +105,9 @@ class AppNavigator {
         )
     }
 
+    /**
+     * 执行跳转
+     * */
     private fun performNavigate(route: String, isMainTab: Boolean) {
         val controller = navHostController ?: return
         try {
@@ -111,6 +124,7 @@ class AppNavigator {
                 controller.navigate(route)
             }
         } catch (_: IllegalArgumentException) {
+            //通知拦截链：路由跳转失败，可以弹出错误提示
             routerInterceptorChain.notifyFailure(message = null)
         }
     }

@@ -41,8 +41,8 @@ import kotlinx.coroutines.launch
  * 路由跳转请求（进入拦截链前由 [com.example.zhttaskflow.nav.AppNavigator] 构造）。
  */
 data class RouteRequest(
-    val targetRoute: String,
-    val isMainTab: Boolean = false,
+    val targetRoute: String,//目标路由路径，支持带参数的完整路径
+    val isMainTab: Boolean = false,//是否为底部 Tab 切换，默认 `false`（普通页面跳转）
 )
 
 /**
@@ -63,18 +63,23 @@ class RouteInterceptExtras {
 }
 
 /**
- * 单次拦截上下文；[targetRoute] 可被 [RouteInterceptResult.Redirect] 更新。
+ * 单次拦截流程的上下文对象
+ * 贯穿所有拦截器，承载目标路由、Tab 标记、扩展数据；目标路由可被重定向修改
  */
 class RouteInterceptContext(
     request: RouteRequest,
 ) {
+    //当前目标路由
     var targetRoute: String = request.targetRoute
         private set
 
+    //是否 Tab 切换
     val isMainTab: Boolean = request.isMainTab
 
+    //扩展数据实例
     val extras: RouteInterceptExtras = RouteInterceptExtras()
 
+    //拦截链执行器调用此方法应用重定向路由
     internal fun applyRedirect(route: String) {
         targetRoute = route
     }
@@ -82,27 +87,33 @@ class RouteInterceptContext(
 
 /**
  * 拦截器决策。
+ * 单个拦截器执行后的决策结果
  */
 sealed interface RouteInterceptResult {
-    /** 继续执行后续拦截器。 */
+    /** 放行，继续执行后续拦截器。 */
     data object Proceed : RouteInterceptResult
 
-    /** 重定向到新路由后继续后续拦截器。 */
+    /** 重定向，修改目标路由后，继续执行后续拦截器 */
     data class Redirect(val route: String) : RouteInterceptResult
 
-    /** 中止跳转；[userMessage] 非空时通过 UI 桥展示错误提示。 */
+    /** 中止跳转，整个拦截链终止，可选携带用户可见的错误提示文案 */
     data class Abort(val userMessage: String? = null) : RouteInterceptResult
 }
 
 /**
+ * 所有路由拦截器的统一抽象接口，自定义拦截器必须实现此接口
  * 路由拦截器： [priority] 数值越大越先执行。
  */
 interface RouterInterceptor {
+    //拦截器优先级，数值越大越先执行，默认 0
     val priority: Int get() = 0
 
-    /** 为 `true` 时拦截链执行期间展示全局 Loading。 */
+    /**
+     * 执行当前拦截器时，是否需要显示全局 Loading，
+     * 默认 `false`；只要链中有一个拦截器为 `true`，整个流程就会显示 Loading */
     val showsLoading: Boolean get() = false
 
+    //核心拦截方法，接收上下文，返回决策结果
     suspend fun intercept(context: RouteInterceptContext): RouteInterceptResult
 }
 
@@ -116,25 +127,34 @@ interface PermissionRouteInterceptor : RouterInterceptor
 interface DeepLinkRouteInterceptor : RouterInterceptor
 
 /**
- * 拦截链执行结果。
+ * 整条拦截链执行完毕后的最终结果
  */
 sealed interface RouterChainOutcome {
+    //全部拦截通过，执行跳转，携带最终路由和 Tab 标记
     data class Navigate(val route: String, val isMainTab: Boolean) : RouterChainOutcome
 
+    //跳转被取消，携带错误提示信息
     data class Cancelled(val message: String?) : RouterChainOutcome
 }
 
 /**
+ * 拦截层与 UI 层的桥接接口，隔离拦截逻辑和具体 UI 实现，拦截层只依赖接口，不直接依赖 Compose UI 组件
  * 拦截过程 UI：加载弹窗与失败提示（均经 [BaseScaffold] CompositionLocal；无宿主时安全 no-op，统一走 Snackbar）。
  */
 interface RouterInterceptUiBridge {
+    //显示加载
     fun showLoading(message: String? = null)
 
+    //隐藏加载
     fun hideLoading()
 
+    //显示路由错误
     fun showRouteError(message: String)
 }
 
+/**
+ * 桥接接口的函数式实现
+ * */
 class RouterInterceptUiBridgeImpl(
     private val showLoadingAction: (String?) -> Unit,
     private val hideLoadingAction: () -> Unit,
@@ -153,6 +173,10 @@ class RouterInterceptUiBridgeImpl(
     }
 }
 
+/**
+ * Compose 环境下的 UI 桥构建函数
+ * 通过 `CompositionLocal` 获取全局 Loading 控制器和 Snackbar 调度器，生成桥接实例并缓存
+ * */
 @Composable
 fun rememberRouterInterceptUiBridge(
     defaultErrorMessage: String = stringResource(id = R.string.nav_str_route_intercept_failed),
@@ -180,49 +204,71 @@ fun rememberRouterInterceptUiBridge(
 }
 
 /**
+ * 拦截链的核心执行器，管理所有拦截器，按优先级排序执行，统一处理 Loading、异常和失败通知
  * 多拦截器按 [RouterInterceptor.priority] 降序执行；空链时直接放行。
+ * @param interceptors 拦截器列表
+ * @param uiBridge 拦截链 UI 桥，用于显示 Loading 和错误提示
+ * @param defaultErrorMessage 默认错误提示文案
  */
 class RouterInterceptorChain internal constructor(
     private val interceptors: List<RouterInterceptor>,
     private val uiBridge: RouterInterceptUiBridge?,
     private val defaultErrorMessage: String,
 ) {
+    //判断拦截链是否为空；空链直接放行，不走拦截逻辑，优化性能
     val isEmpty: Boolean get() = interceptors.isEmpty()
 
+    /**
+     * **整条拦截链的执行入口**，按优先级降序逐个执行拦截器，返回最终结果
+     * */
     suspend fun intercept(request: RouteRequest): RouterChainOutcome {
+        //没有拦截器直接返回 Navigate
         if (interceptors.isEmpty()) {
             return RouterChainOutcome.Navigate(
                 route = request.targetRoute,
                 isMainTab = request.isMainTab,
             )
         }
+        //按优先级数值从大到小排序，优先级高的先执行
         val sorted = interceptors.sortedByDescending { interceptor -> interceptor.priority }
+        //基于请求生成拦截上下文
         val context = RouteInterceptContext(request)
+        //只要有一个拦截器需要 Loading，就开启全局 Loading
         val shouldShowLoading = sorted.any { interceptor -> interceptor.showsLoading }
         try {
             if (shouldShowLoading) {
                 uiBridge?.showLoading()
             }
+            //循环执行拦截器
             for (interceptor in sorted) {
                 when (val result = interceptor.intercept(context)) {
+                    //什么都不做，继续下一个
                     RouteInterceptResult.Proceed -> Unit
+                    //调用上下文的 `applyRedirect` 更新目标路由，继续下一个
                     is RouteInterceptResult.Redirect -> context.applyRedirect(result.route)
+                    //终止整个链，后续拦截器不再执行
                     is RouteInterceptResult.Abort -> {
                         return RouterChainOutcome.Cancelled(result.userMessage)
                     }
                 }
             }
+            //返回 `Navigate`，携带最终的目标路由
             return RouterChainOutcome.Navigate(
                 route = context.targetRoute,
                 isMainTab = request.isMainTab,
             )
         } finally {
+            //保证 Loading 关闭
             if (shouldShowLoading) {
                 uiBridge?.hideLoading()
             }
         }
     }
 
+    /**
+     * 跳转失败时（如路由不存在、原生导航抛异常），
+     * 对外暴露的错误通知方法，通过 UI 桥弹出错误提示
+     * */
     fun notifyFailure(message: String?) {
         val text = message?.takeIf { it.isNotBlank() } ?: defaultErrorMessage
         if (text.isNotBlank()) {
@@ -230,6 +276,10 @@ class RouterInterceptorChain internal constructor(
         }
     }
 
+    /**
+     * 基于现有拦截链，替换 UI 桥和默认错误文案，生成新的拦截链实例
+     * 拦截链在 App 层构建好拦截器列表，进入页面后绑定 Compose 环境的 UI 桥。
+     * */
     fun withUiBridge(
         bridge: RouterInterceptUiBridge,
         defaultErrorMessage: String = this.defaultErrorMessage,
@@ -242,6 +292,7 @@ class RouterInterceptorChain internal constructor(
     }
 
     companion object {
+        //空拦截链单例，无拦截器、无 UI 桥，默认直接放行，作为默认初始值
         val Empty: RouterInterceptorChain = RouterInterceptorChain(
             interceptors = emptyList(),
             uiBridge = null,
@@ -257,6 +308,7 @@ class RouterInterceptorChain internal constructor(
         }
     }
 
+    //构建者模式，方便逐步添加拦截器，最后生成不可变的拦截链实例
     class Builder {
         private val items = mutableListOf<RouterInterceptor>()
 
@@ -264,6 +316,7 @@ class RouterInterceptorChain internal constructor(
             items.add(interceptor)
         }
 
+        //将可变列表转为不可变列表，构造最终的拦截链
         fun build(
             uiBridge: RouterInterceptUiBridge?,
             defaultErrorMessage: String,
@@ -278,7 +331,8 @@ class RouterInterceptorChain internal constructor(
 }
 
 /**
- * 测试/示例：满足条件时重定向路由。
+ * 测试/示例：
+ * 通用重定向拦截器，传入判断条件和目标路由，满足条件就重定向
  */
 class RouteRedirectInterceptor(
     private val shouldRedirect: (RouteInterceptContext) -> Boolean,
@@ -295,7 +349,8 @@ class RouteRedirectInterceptor(
 }
 
 /**
- * 测试/示例：满足条件时中止跳转并提示。
+ * 测试/示例：
+ * 通用中止拦截器，满足条件就取消跳转并弹出提示
  */
 class RouteAbortInterceptor(
     private val shouldAbort: (RouteInterceptContext) -> Boolean,
@@ -311,6 +366,16 @@ class RouteAbortInterceptor(
     }
 }
 
+/**
+ * 拦截链的异步调度入口，
+ * AppNavigator 调用此函数启动拦截流程，
+ * 空链直接同步放行，非空链在协程中异步执行
+ *
+ * @param scope 调度协程，用于启动异步任务
+ * @param chain 拦截链，可能为空
+ * @param request 跳转请求，携带目标路由和是否主 Tab 跳转
+ * @param onNavigate 跳转成功回调，拦截通过后执行，由 `AppNavigator` 传入，执行真正的页面跳转
+ * */
 internal fun dispatchRouteNavigation(
     scope: CoroutineScope,
     chain: RouterInterceptorChain,

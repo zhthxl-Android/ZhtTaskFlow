@@ -10,6 +10,7 @@ import androidx.compose.runtime.compositionLocalOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.graphics.Color
 
@@ -62,6 +63,7 @@ fun isSystemDarkTheme(): Boolean = isSystemInDarkTheme()
  */
 @Composable
 fun isAppDarkTheme(): Boolean {
+    //降级处理
     val mode = LocalThemeController.current?.themeMode ?: ThemeMode.FollowSystem
     return when (mode) {
         ThemeMode.FollowSystem -> isSystemInDarkTheme()

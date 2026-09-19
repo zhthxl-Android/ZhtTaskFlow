@@ -71,6 +71,7 @@ fun AppRippleTheme(
     val rippleColor = remember(colorScheme, darkTheme) {
         RippleTokens.rippleColor(colorScheme, darkTheme)
     }
+    //缓存计算结果，仅依赖变化时重新计算
     val rippleConfiguration = remember(rippleColor, rippleAlpha) {
         RippleConfiguration(
             color = rippleColor,
