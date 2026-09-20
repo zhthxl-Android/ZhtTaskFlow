@@ -562,9 +562,9 @@ fun rememberListSkeletonLoading(
 @Composable
 fun <T> StatePaginatedListContent(
     uiState: BaseUiState<PaginatedListPayload<T>>,
-    onRetry: () -> Unit,
-    onRefresh: () -> Unit,
-    onLoadMore: () -> Unit,
+    onRetry: () -> Unit,//重试回调
+    onRefresh: () -> Unit,//下拉刷新回调
+    onLoadMore: () -> Unit,//加载更多回调
     listContentPadding: PaddingValues,
     modifier: Modifier = Modifier,
     onRetryLoadMore: () -> Unit = onLoadMore,

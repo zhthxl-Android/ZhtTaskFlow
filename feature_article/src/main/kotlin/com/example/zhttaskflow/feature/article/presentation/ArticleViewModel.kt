@@ -21,8 +21,8 @@ import com.example.zhttaskflow.nav.route.ArticleNavRoutes
  * **线程约束**：数据加载在 [launchTask] 内执行（用例 → 仓库 IO）；本类不直接访问 Repository 与网络/数据库 SDK。
  */
 class ArticleViewModel(
-    private val getArticlePageUseCase: GetArticlePageUseCase,
-    private val refreshArticlePageUseCase: RefreshArticlePageUseCase,
+    private val getArticlePageUseCase: GetArticlePageUseCase,//普通分页加载用例
+    private val refreshArticlePageUseCase: RefreshArticlePageUseCase,//下拉刷新用例
 ) : BaseViewModel<ArticleUiState, ArticleUiEvent, ArticleUiEffect>(BaseUiState.Loading) {
 
     private val logTag = "ArticleViewModel"
@@ -42,7 +42,10 @@ class ArticleViewModel(
         when (event) {
             ArticleUiEvent.Refresh -> refresh()
             ArticleUiEvent.LoadMore -> loadMore()
-            is ArticleUiEvent.ArticleClicked -> navigateToDetail(event.articleId, event.detailUrl)
+            is ArticleUiEvent.ArticleClicked -> navigateToDetail(
+                event.articleId,
+                event.detailUrl
+            )
         }
     }
 
@@ -61,15 +64,24 @@ class ArticleViewModel(
                     BaseUiState.Error(message)
                 }
                 sendEffect(
-                    ArticleUiEffect.ShowSnackbar(message = message, type = SnackbarType.Error),
+                    ArticleUiEffect.ShowSnackbar(
+                        message = message,
+                        type = SnackbarType.Error
+                    ),
                 )
             },
         ) {
+            //请求数据
             val page = getArticlePageUseCase(
                 page = ArticlePagingDefaults.FIRST_PAGE,
                 pageSize = pageSize,
             )
-            applyPageResult(page = page, append = false, isRefresh = false)
+            //处理返回数据
+            applyPageResult(
+                page = page,
+                append = false,
+                isRefresh = false
+            )
         }
     }
 
@@ -80,6 +92,7 @@ class ArticleViewModel(
     private fun refresh() {
         val current = currentState
         if (current is BaseUiState.Success) {
+            //设置当前状态为下拉刷新
             setState {
                 BaseUiState.Success(current.data.withRefreshing())
             }
@@ -91,20 +104,27 @@ class ArticleViewModel(
             onError = { _, message ->
                 when (val state = currentState) {
                     is BaseUiState.Success -> {
+                        //成功状态下刷新失败
                         setState {
+                            //只取消刷新状态，保留原有数据
                             BaseUiState.Success(
                                 state.data.copy(isRefreshing = false),
                             )
                         }
                     }
+
                     else -> {
+                        //非成功态下刷新失败：才显示错误页
                         setState {
                             BaseUiState.Error(message)
                         }
                     }
                 }
                 sendEffect(
-                    ArticleUiEffect.ShowSnackbar(message = message, type = SnackbarType.Error),
+                    ArticleUiEffect.ShowSnackbar(
+                        message = message,
+                        type = SnackbarType.Error
+                    ),
                 )
             },
         ) {
@@ -112,7 +132,11 @@ class ArticleViewModel(
                 page = ArticlePagingDefaults.FIRST_PAGE,
                 pageSize = pageSize,
             )
-            applyPageResult(page = page, append = false, isRefresh = true)
+            applyPageResult(
+                page = page,
+                append = false,
+                isRefresh = true
+            )
         }
     }
 
@@ -121,11 +145,14 @@ class ArticleViewModel(
     // region 加载更多
 
     private fun loadMore() {
+        //不是成功态直接返回：没数据没法加载更多
         val state = currentState as? BaseUiState.Success ?: return
         val data = state.data
+        //没有更多数据、或者正在加载中，直接返回：防止重复请求
         if (!data.hasMore || data.isLoadingMore) {
             return
         }
+        //设置当前状态为加载更多
         setState {
             BaseUiState.Success(data.withLoadingMore())
         }
@@ -136,27 +163,26 @@ class ArticleViewModel(
             userMessageFallback = "加载更多失败，请稍后重试",
             onError = { _, message ->
                 setState {
+                    //设置加载更多失败
                     BaseUiState.Success(data.withLoadMoreError())
                 }
                 sendEffect(
-                    ArticleUiEffect.ShowSnackbar(message = message, type = SnackbarType.Error),
+                    ArticleUiEffect.ShowSnackbar(
+                        message = message,
+                        type = SnackbarType.Error
+                    ),
                 )
             },
         ) {
-            val page = getArticlePageUseCase(page = nextPage, pageSize = pageSize)
-            val merged = data.articles + page.articles
-            setState {
-                BaseUiState.Success(
-                    ArticleListData(
-                        articles = merged,
-                        currentPage = nextPage,
-                        hasMore = page.hasMore,
-                        isRefreshing = false,
-                        isLoadingMore = false,
-                        isLoadMoreError = false,
-                    ),
-                )
-            }
+            val page = getArticlePageUseCase(
+                page = nextPage,
+                pageSize = pageSize
+            )
+            applyPageResult(
+                page = page,
+                append = true,
+                isRefresh = false
+            )
         }
     }
 
@@ -166,13 +192,16 @@ class ArticleViewModel(
 
     private fun applyPageResult(
         page: ArticlePage,
-        append: Boolean,
-        isRefresh: Boolean,
+        append: Boolean,//是否是追加，true = 追加到原有列表后面（加载更多用）；false = 直接替换整个列表（首屏、刷新用）
+        isRefresh: Boolean,//是否是下拉刷新，成功后是否弹「刷新成功」提示
     ) {
+        //如果数据为null，并且非追加，返回空数据状态
         if (page.articles.isEmpty() && !append) {
+            //空态
             setState { BaseUiState.Empty }
             return
         }
+        //获取成功状态下的数据，非成功态返回null
         val previous = currentState.getDataOrNull()
         val articles = if (append && previous != null) {
             previous.articles + page.articles
@@ -191,6 +220,7 @@ class ArticleViewModel(
                 ),
             )
         }
+        //只有是下拉刷新、且数据不为空时，才弹「刷新成功」
         if (isRefresh && articles.isNotEmpty()) {
             sendEffect(
                 ArticleUiEffect.ShowSnackbar(
@@ -205,7 +235,10 @@ class ArticleViewModel(
 
     // region 导航处理
 
-    private fun navigateToDetail(articleId: String, detailUrl: String) {
+    private fun navigateToDetail(
+        articleId: String,
+        detailUrl: String
+    ) {
         if (!articleId.isNotNullOrBlank() || !detailUrl.isNotNullOrBlank()) {
             sendEffect(
                 ArticleUiEffect.ShowSnackbar(

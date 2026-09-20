@@ -88,6 +88,7 @@ abstract class BaseViewModel<State : BaseUiState<*>, Event : BaseUiEvent, Effect
         onError: ((throwable: Throwable, userMessage: String) -> Unit)? = null,
         block: suspend () -> Unit,
     ) {
+        // 预检网络
         if (precheckNetwork && !NetworkChecker.isNetworkConnected()) {
             val networkError = NetworkChecker.unavailableNetworkException()
             val userMessage = getUserFriendlyMessage(networkError, userMessageFallback)

@@ -87,17 +87,26 @@ fun rememberStatusBarTopInset(): Dp {
     }
 }
 
+/**
+ * 记忆化列表内容的内边距，用于计算列表内容周围的空间
+ *
+ * @param scaffoldPadding Scaffold组件提供的内边距，通常包含系统栏和导航栏等占用的空间
+ * @param extraBottom 额外的底部内边距，默认为0.dp
+ * @return 返回一个PaddingValues对象，包含计算后的内边距值
+ */
 @Composable
 fun rememberListLazyContentPadding(
-    scaffoldPadding: PaddingValues,
-    extraBottom: Dp = 0.dp,
-): PaddingValues {
+    scaffoldPadding: PaddingValues, // Scaffold组件提供的内边距
+    extraBottom: Dp = 0.dp, // 额外的底部内边距，默认为0
+): PaddingValues { // 返回内边距值
+    // 计算底部内边距，将scaffold的底部内边距与额外底部内边距相加
     val bottomInset = scaffoldPadding.calculateBottomPadding() + extraBottom
+    // 返回一个PaddingValues对象，设置左右为页面水平内边距，顶部为0，底部为计算后的底部内边距
     return PaddingValues(
-        start = UiConstants.PageHorizontalPadding,
-        end = UiConstants.PageHorizontalPadding,
-        top = 0.dp,
-        bottom = bottomInset,
+        start = UiConstants.PageHorizontalPadding, // 左侧内边距
+        end = UiConstants.PageHorizontalPadding, // 右侧内边距
+        top = 0.dp, // 顶部内边距
+        bottom = bottomInset, // 底部内边距
     )
 }
 
