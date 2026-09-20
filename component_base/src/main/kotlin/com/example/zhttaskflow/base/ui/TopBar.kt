@@ -63,20 +63,38 @@ enum class TopBarTitlePosition {
 
  * 判断顶部栏是否应参与布局（与 [TopBar] 内部 early-return 规则一致）。
 
+ *
+ * 该函数通过检查顶部栏的各个组成部分是否存在，来决定是否应该构建顶部栏。
+ * 只要任一组成部分存在，就应该构建顶部栏。
+ *
+ * @param title 顶部栏的标题文本，如果为空或null则表示没有标题
+ * @param hasLeadingSlot 是否包含左侧内容（例如返回按钮）
+ * @param hasCenterSlot 是否包含中间内容
+ * @param hasTrailingSlot 是否包含右侧内容（例如操作按钮）
+ * @return 如果任一组成部分存在，返回true表示应该构建顶部栏；否则返回false
  */
 
 internal fun topBarShouldCompose(
 
+    // 顶部栏标题，默认为null
     title: String? = null,
 
+    // 是否包含左侧内容，默认为false
     hasLeadingSlot: Boolean = false,
 
+    // 是否包含中间内容，默认为false
     hasCenterSlot: Boolean = false,
 
+    // 是否包含右侧内容，默认为false
     hasTrailingSlot: Boolean = false,
 
 ): Boolean {
 
+    // 只要以下任一条件为true，就应该构建顶部栏：
+    // 1. 有左侧内容
+    // 2. 有中间内容
+    // 3. 有标题文本（不为空且不为null）
+    // 4. 有右侧内容
     return hasLeadingSlot ||
 
         hasCenterSlot ||

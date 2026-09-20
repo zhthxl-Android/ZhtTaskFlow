@@ -52,6 +52,7 @@ fun AppNavHost(
 ) {
     val interceptScope = rememberCoroutineScope()
     val defaultRouteError = stringResource(id = R.string.nav_str_route_intercept_failed)
+    //构建拦截器UI桥
     val interceptUiBridge = rememberRouterInterceptUiBridge(defaultErrorMessage = defaultRouteError)
     val resolvedInterceptorChain = remember(routerInterceptorChain, interceptUiBridge, defaultRouteError) {
         if (routerInterceptorChain.isEmpty) {
