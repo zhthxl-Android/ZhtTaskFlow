@@ -7,11 +7,11 @@ import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import com.example.zhttaskflow.base.analytics.Analytics
-import com.example.zhttaskflow.base.analytics.AnalyticsCompositionRoot
-import com.example.zhttaskflow.base.analytics.rememberDebugAnalytics
+import com.example.zhttaskflow.base.analytics.LocalAnalytics
+import com.example.zhttaskflow.base.analytics.rememberManagedAnalytics
 import com.example.zhttaskflow.base.exception.CrashReporter
-import com.example.zhttaskflow.base.exception.CrashReporterCompositionRoot
-import com.example.zhttaskflow.base.exception.rememberCrashReporter
+import com.example.zhttaskflow.base.exception.LocalCrashReporter
+import com.example.zhttaskflow.base.exception.rememberManagedCrashReporter
 import com.example.zhttaskflow.base.ext.DialogController
 import com.example.zhttaskflow.base.ext.LoadingController
 import com.example.zhttaskflow.base.ext.LocalDialogController
@@ -19,12 +19,14 @@ import com.example.zhttaskflow.base.ext.LocalLoadingController
 import com.example.zhttaskflow.base.ext.LocalSnackbarDispatcher
 import com.example.zhttaskflow.base.ext.LocalSnackbarHostState
 import com.example.zhttaskflow.base.ext.SnackbarDispatcher
-import com.example.zhttaskflow.base.observability.DeveloperObservability
-import com.example.zhttaskflow.base.performance.DebugPerformanceReporter
-import com.example.zhttaskflow.base.performance.PerformanceCompositionRoot
+import com.example.zhttaskflow.base.performance.LocalPerformance
 import com.example.zhttaskflow.base.performance.PerformanceReporter
-import com.example.zhttaskflow.base.performance.rememberDebugPerformance
+import com.example.zhttaskflow.base.performance.rememberManagedPerformance
 
+/**
+ * 最外层脚手架专用的基础设施注入根
+ * 内层脚手架复用父级宿主时不会调用它
+ * */
 @Composable
 internal fun ScaffoldProviderRoot(
     analytics: Analytics? = null,
@@ -69,41 +71,26 @@ internal fun ScaffoldProviderRoot(
     }
     //监控能力注入
     //埋点
-    val shellAnalytics = analytics ?: rememberDebugAnalytics()
-    val resolvedAnalytics = remember(shellAnalytics) {
-        DeveloperObservability.wrapAnalytics(shellAnalytics)
-    }
+    val resolvedAnalytics = rememberManagedAnalytics(analytics)
     //性能
-    val shellPerformanceReporter = performanceImpl ?: DebugPerformanceReporter
-    val resolvedPerformanceReporter = remember(shellPerformanceReporter) {
-        DeveloperObservability.wrapPerformanceReporter(shellPerformanceReporter)
-    }
-    val performance = rememberDebugPerformance(reporter = resolvedPerformanceReporter)
+    val resolvedPerformance = rememberManagedPerformance(performanceImpl)
     //崩溃
-    val shellCrashReporter = rememberCrashReporter(override = crashReporter)
-    val resolvedCrashReporter = remember(shellCrashReporter) {
-        DeveloperObservability.wrapCrashReporter(shellCrashReporter)
-    }
+    val resolvedCrashReporter = rememberManagedCrashReporter(crashReporter)
     //全局注入与嵌套
     CompositionLocalProvider(
+        // 交互宿主 4 个
         LocalSnackbarHostState provides snackbarHostState,
         LocalSnackbarDispatcher provides snackbarDispatcher,
         LocalLoadingController provides loadingController,
         LocalDialogController provides dialogController,
+        // 监控能力 3 个
+        LocalAnalytics provides resolvedAnalytics,
+        LocalPerformance provides resolvedPerformance,
+        LocalCrashReporter provides resolvedCrashReporter
     ) {
-        //将 性能监控上报器 实例注入到整个 Compose 树
-        PerformanceCompositionRoot(performance = performance) {
-            //将 埋点监控上报器 实例注入到整个 Compose 树
-            AnalyticsCompositionRoot(analytics = resolvedAnalytics) {
-                //将 崩溃监控上报器 实例注入到整个 Compose 树
-                CrashReporterCompositionRoot(crashReporter = resolvedCrashReporter) {
-                    //并添加网络断开横幅
-                    NetworkMonitoringRoot {
-                        content(localHosts)
-                    }
-                }
-
-            }
+        //并添加网络断开横幅
+        NetworkMonitoringRoot {
+            content(localHosts)
         }
     }
 }

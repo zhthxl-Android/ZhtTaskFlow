@@ -3,7 +3,9 @@ package com.example.zhttaskflow.base.exception
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.staticCompositionLocalOf
+import com.example.zhttaskflow.base.observability.DeveloperObservability
 
 const val CRASH_LOG_TAG: String = "Exception"
 const val CRASH_PAGE_ID: String = "AppShell"
@@ -71,3 +73,23 @@ fun CrashReporterCompositionRoot(
         content()
     }
 }
+/**
+ * 批量注入场景专用：装配最终可用的崩溃上报实例
+ * 封装：默认降级策略 + 可观测装饰器包装 + 全局注册表生命周期同步
+ */
+@Composable
+internal fun rememberManagedCrashReporter(impl: CrashReporter? = null): CrashReporter {
+    // 1. 默认降级：未传入则使用 CompositionLocal 默认值
+    val shellReporter = rememberCrashReporter(override = impl)
+    // 2. 装饰器包装：接入开发者面板动态路由能力
+    val resolvedReporter = remember(shellReporter) {
+        DeveloperObservability.wrapCrashReporter(shellReporter)
+    }
+    // 3. 生命周期绑定：和全局注册表同步
+    DisposableEffect(resolvedReporter) {
+        CrashReporterRegistry.push(resolvedReporter)
+        onDispose { CrashReporterRegistry.pop(resolvedReporter) }
+    }
+    return resolvedReporter
+}
+

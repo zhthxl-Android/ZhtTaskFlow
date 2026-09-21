@@ -102,6 +102,27 @@ fun AnalyticsCompositionRoot(
     }
 }
 
+/**
+ * 批量注入场景专用：装配最终可用的埋点实例
+ * 封装：默认降级策略 + 可观测装饰器包装 + 全局注册表生命周期同步
+ */
+@Composable
+internal fun rememberManagedAnalytics(impl: Analytics? = null): Analytics {
+    // 1. 默认降级：未传入则使用调试默认实现
+    val shellAnalytics = impl ?: rememberDebugAnalytics()
+    // 2. 装饰器包装：接入开发者面板动态路由能力
+    val resolvedAnalytics = remember(shellAnalytics) {
+        DeveloperObservability.wrapAnalytics(shellAnalytics)
+    }
+    // 3. 生命周期绑定：和全局注册表同步
+    DisposableEffect(resolvedAnalytics) {
+        AnalyticsRegistry.push(resolvedAnalytics)
+        onDispose { AnalyticsRegistry.pop(resolvedAnalytics) }
+    }
+    return resolvedAnalytics
+}
+
+
 internal const val TASK_FLOW_ANALYTICS_LIST_ITEM_LOG_TAG: String = "ListItem"
 
 internal const val TASK_FLOW_ANALYTICS_CLICK_LOG_TAG: String = "UiClick"

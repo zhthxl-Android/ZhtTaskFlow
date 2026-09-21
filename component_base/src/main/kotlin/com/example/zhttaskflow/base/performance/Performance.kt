@@ -21,6 +21,7 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.input.nestedscroll.NestedScrollConnection
 import androidx.compose.ui.input.nestedscroll.NestedScrollSource
 import androidx.compose.ui.input.nestedscroll.nestedScroll
+import com.example.zhttaskflow.base.observability.DeveloperObservability
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
@@ -368,6 +369,23 @@ fun PerformanceCompositionRoot(
         content()
     }
 }
+
+/**
+ * 批量注入场景专用：装配最终可用的性能监控实例
+ * 封装：默认降级策略 + 可观测装饰器包装 + DebugPerformance 装配
+ */
+@Composable
+internal fun rememberManagedPerformance(impl: PerformanceReporter? = null): Performance {
+    // 1. 默认降级：未传入则使用调试默认实现
+    val shellReporter = impl ?: DebugPerformanceReporter
+    // 2. 装饰器包装：接入开发者面板动态路由能力
+    val resolvedReporter = remember(shellReporter) {
+        DeveloperObservability.wrapPerformanceReporter(shellReporter)
+    }
+    // 3. 装配最终可用的 Performance 实例
+    return rememberDebugPerformance(reporter = resolvedReporter)
+}
+
 
 /**
  * 给页面内容 Modifier 挂载滚动监听
