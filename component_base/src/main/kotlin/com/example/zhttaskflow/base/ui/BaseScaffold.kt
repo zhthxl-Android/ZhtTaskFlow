@@ -134,83 +134,22 @@ fun BaseScaffold(
         return
     }
     //不存在父级宿主
-    //交互宿主初始化
-    val snackbarHostState = remember { SnackbarHostState() }
-    val snackbarScope = rememberCoroutineScope()
-    val snackbarDispatcher = remember(snackbarHostState, snackbarScope) {
-        SnackbarDispatcher(
-            hostState = snackbarHostState,
-            scope = snackbarScope,
+    ScaffoldProviderRoot(
+        analytics = analytics,
+        performanceImpl = performanceImpl,
+        crashReporter = crashReporter
+    ) { localHosts ->
+        BaseScaffoldContent(
+            modifier = modifier,
+            consumeStatusBarsInContent = consumeStatusBarsInContent,
+            bottomBar = bottomBar,
+            floatingActionButton = floatingActionButton,
+            header = header,
+            contentModifier = contentModifier,
+            hosts = localHosts,
+            ownsGlobalHosts = true,
+            content = content,
         )
-    }
-    val loadingController = remember { LoadingController() }
-    val dialogController = remember { DialogController() }
-    //4 个实例打包
-    val localHosts = remember(
-        snackbarHostState,
-        snackbarDispatcher,
-        loadingController,
-        dialogController,
-    ) {
-        ScaffoldGlobalHosts(
-            snackbarHostState = snackbarHostState,
-            snackbarDispatcher = snackbarDispatcher,
-            loadingController = loadingController,
-            dialogController = dialogController,
-        )
-    }
-    //生命周期自动清理
-    DisposableEffect(loadingController) {
-        onDispose { loadingController.hideLoading() }
-    }
-    DisposableEffect(dialogController) {
-        onDispose { dialogController.dismissAll() }
-    }
-    //监控能力注入
-    val shellAnalytics = analytics ?: rememberDebugAnalytics()
-    val resolvedAnalytics = remember(shellAnalytics) {
-        DeveloperObservability.wrapAnalytics(shellAnalytics)
-    }
-    val shellPerformanceReporter = performanceImpl ?: DebugPerformanceReporter
-    val resolvedPerformanceReporter = remember(shellPerformanceReporter) {
-        DeveloperObservability.wrapPerformanceReporter(shellPerformanceReporter)
-    }
-    val performance = rememberDebugPerformance(reporter = resolvedPerformanceReporter)
-    val shellCrashReporter = rememberCrashReporter(override = crashReporter)
-    val resolvedCrashReporter = remember(shellCrashReporter) {
-        DeveloperObservability.wrapCrashReporter(shellCrashReporter)
-    }
-    //全局注入与嵌套
-    CompositionLocalProvider(
-        LocalSnackbarHostState provides snackbarHostState,
-        LocalSnackbarDispatcher provides snackbarDispatcher,
-        LocalLoadingController provides loadingController,
-        LocalDialogController provides dialogController,
-    ) {
-        //将 性能监控上报器 实例注入到整个 Compose 树
-        PerformanceCompositionRoot(performance = performance) {
-            //将 埋点监控上报器 实例注入到整个 Compose 树
-            AnalyticsCompositionRoot(analytics = resolvedAnalytics) {
-                //将 崩溃监控上报器 实例注入到整个 Compose 树
-                //并添加网络断开横幅
-                ExceptionMonitoringRoot(
-                    snackbarDispatcher = snackbarDispatcher,
-                    crashReporter = resolvedCrashReporter,
-                ) {
-                    BaseScaffoldContent(
-                        modifier = modifier,
-                        consumeStatusBarsInContent = consumeStatusBarsInContent,
-                        bottomBar = bottomBar,
-                        floatingActionButton = floatingActionButton,
-                        header = header,
-                        contentModifier = contentModifier,
-                        hosts = localHosts,
-                        ownsGlobalHosts = true,
-                        content = content,
-                    )
-                }
-            }
-        }
     }
 }
 
