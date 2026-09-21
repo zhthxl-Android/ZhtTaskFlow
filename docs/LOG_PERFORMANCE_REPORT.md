@@ -24,6 +24,7 @@
 | 项 | 内容 |
 |----|------|
 | 工程 | ZhtTaskFlow（组件化 Clean + MVI，`feature_log` + `LocalLogStore`） |
+| Release ANR | `ReleaseAnrMonitor`（`TaskFlowApplication.onCreate`）；看门狗线程 `App-AnrWatchdog`，异步上报 `App-AnrReport-Worker` |
 | 存储路径 | `files/taskflow_observability/logs/{yyyy-MM-dd}.jsonl` + 侧车 `{day}.jsonl.idx` |
 | 列表分页 | 每页 **50** 条（`LOG_PAGE_SIZE`），按索引倒序，仅解析当前页 JSONL 行 |
 | 压测脚本 | `scripts/generate_test_logs.ps1` |

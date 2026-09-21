@@ -2,9 +2,9 @@ package com.example.zhttaskflow.analytics
 
 import com.example.zhttaskflow.base.analytics.Analytics
 import com.example.zhttaskflow.base.analytics.PageViewEvent
-import com.example.zhttaskflow.observability.ReleaseObservabilityContract
-import com.example.zhttaskflow.observability.ReleaseObservabilityContract.Channel
+import com.example.zhttaskflow.base.observability.LocalObservabilityEmitter
 import com.example.zhttaskflow.observability.LocalLogStore
+import com.example.zhttaskflow.observability.ReleaseObservabilityContract
 
 /**
  * 生产环境 [Analytics]：页面曝光 / 离开 / 交互点击经 [ReleaseObservabilityContract] 统一字段上报。
@@ -20,8 +20,8 @@ object ReleaseAnalytics : Analytics {
             LocalLogStore.updateLastKnownPageId(pageId)
         }
         val actionId = when (event) {
-            PageViewEvent.Enter -> ReleaseObservabilityContract.ACTION_PAGE_ENTER
-            PageViewEvent.ArgsChange -> ReleaseObservabilityContract.ACTION_PAGE_ARGS_CHANGE
+            PageViewEvent.Enter -> LocalObservabilityEmitter.ACTION_PAGE_ENTER
+            PageViewEvent.ArgsChange -> LocalObservabilityEmitter.ACTION_PAGE_ARGS_CHANGE
         }
         val params = buildMap {
             put("lifecycle", event.name)
@@ -30,7 +30,7 @@ object ReleaseAnalytics : Analytics {
             }
         }
         ReleaseObservabilityContract.emit(
-            channel = Channel.ANALYTICS,
+            channel = LocalObservabilityEmitter.Channel.ANALYTICS,
             eventOrMetric = actionId,
             pageId = pageId,
             actionId = actionId,
@@ -40,10 +40,10 @@ object ReleaseAnalytics : Analytics {
 
     override fun trackPageLeave(pageId: String) {
         ReleaseObservabilityContract.emit(
-            channel = Channel.ANALYTICS,
-            eventOrMetric = ReleaseObservabilityContract.ACTION_PAGE_LEAVE,
+            channel = LocalObservabilityEmitter.Channel.ANALYTICS,
+            eventOrMetric = LocalObservabilityEmitter.ACTION_PAGE_LEAVE,
             pageId = pageId,
-            actionId = ReleaseObservabilityContract.ACTION_PAGE_LEAVE,
+            actionId = LocalObservabilityEmitter.ACTION_PAGE_LEAVE,
             params = mapOf("lifecycle" to "Leave"),
         )
     }
@@ -74,7 +74,7 @@ object ReleaseAnalytics : Analytics {
             }
         }
         ReleaseObservabilityContract.emit(
-            channel = Channel.ANALYTICS,
+            channel = LocalObservabilityEmitter.Channel.ANALYTICS,
             eventOrMetric = "ui_interaction",
             pageId = pageId,
             actionId = operationId,

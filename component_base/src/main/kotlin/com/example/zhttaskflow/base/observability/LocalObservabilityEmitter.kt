@@ -4,11 +4,12 @@ import android.util.Log
 import com.example.zhttaskflow.core.observability.LocalLogStore
 
 /**
- * Release 风格可观测事件落盘（Debug 面板切换 [com.example.zhttaskflow.core.debug.DeveloperTools.ObservabilityBackend.RELEASE_LOCAL] 时使用）。
+ * 可观测契约常量与 Release 风格落盘（全工程唯一常量源）。
  *
- * 字段与 `app` 模块 [com.example.zhttaskflow.observability.ReleaseObservabilityContract] 对齐，避免 feature 依赖 app。
+ * Debug 面板切换 [com.example.zhttaskflow.core.debug.DeveloperTools.ObservabilityBackend.RELEASE_LOCAL] 时走 [emit]；
+ * 生产壳层经 `app` 模块 [com.example.zhttaskflow.observability.ReleaseObservabilityContract.emit] 落盘并对接 SDK。
  */
-internal object LocalObservabilityEmitter {
+object LocalObservabilityEmitter {
 
     const val LOG_TAG: String = "TaskFlow/Observability"
 

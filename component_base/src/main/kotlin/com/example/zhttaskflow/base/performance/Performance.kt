@@ -7,7 +7,7 @@ import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.Stable
-import androidx.compose.runtime.compositionLocalOf
+import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableLongStateOf
@@ -331,19 +331,16 @@ class Performance internal constructor(
 }
 
 /**
- * 向下提供 [Performance]；未注入时返回 [Performance.NoOp]。
+ * 向下提供 [Performance]；未注入时返回 [Performance.NoOp]（`staticCompositionLocalOf`，与监控三联其余项一致）。
  */
-val LocalPerformance = compositionLocalOf { Performance.NoOp }
+val LocalPerformance = staticCompositionLocalOf { Performance.NoOp }
 
 
 /**
- * 获取当前 CompositionLocal 中的 Performance 实例
- * 默认 Performance.NoOp
- * */
+ * 获取当前 CompositionLocal 中的 [Performance] 实例；默认 [Performance.NoOp]。
+ */
 @Composable
-fun rememberPerformance(): Performance {
-    return LocalPerformance.current
-}
+fun rememberPerformance(): Performance = LocalPerformance.current
 
 /**
  * Compose 场景下创建 Performance 实例，默认使用调试版上报器（Debug 环境下打印日志等）
@@ -355,14 +352,6 @@ fun rememberDebugPerformance(
 ): Performance {
     return remember(reporter) { Performance(reporter) }
 }
-
-/**
- * 非 Compose 场景（如 ViewModel、普通类）创建 Performance 实例
- * 非 Composable 场景根据 [PerformanceReporter] 创建实例（与 [rememberDebugPerformance] 一致）。
- */
-fun createPerformance(
-    reporter: PerformanceReporter = DebugPerformanceReporter,
-): Performance = Performance(reporter)
 
 /**
  * 性能监控的根注入器，放在应用壳层（如 BaseScaffold、Application 级主题下），

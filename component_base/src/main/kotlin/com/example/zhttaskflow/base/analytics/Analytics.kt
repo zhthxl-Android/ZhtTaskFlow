@@ -3,7 +3,7 @@ package com.example.zhttaskflow.base.analytics
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.DisposableEffect
-import androidx.compose.runtime.compositionLocalOf
+import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.runtime.remember
 import com.example.zhttaskflow.base.observability.DeveloperObservability
 
@@ -59,16 +59,17 @@ enum class PageViewEvent {
 }
 
 /**
- * 向下提供 [Analytics]；默认 [DebugAnalytics]。
+ * 向下提供 [Analytics]；默认 [DebugAnalytics]（与 [LocalCrashReporter]、[LocalPerformance] 同为 `staticCompositionLocalOf`）。
  */
-val LocalAnalytics = compositionLocalOf<Analytics> {
+val LocalAnalytics = staticCompositionLocalOf<Analytics> {
     DebugAnalytics
 }
 
+/**
+ * 获取当前 CompositionLocal 中的 [Analytics] 实例；默认 [DebugAnalytics]。
+ */
 @Composable
-fun rememberAnalytics(): Analytics {
-    return LocalAnalytics.current
-}
+fun rememberAnalytics(): Analytics = LocalAnalytics.current
 
 /**
  * 调试默认 [Analytics] 实例（壳层未注入 [analyticsImpl] 时使用）。

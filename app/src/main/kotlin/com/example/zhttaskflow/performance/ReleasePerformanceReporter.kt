@@ -1,8 +1,8 @@
 package com.example.zhttaskflow.performance
 
 import com.example.zhttaskflow.base.performance.PerformanceReporter
+import com.example.zhttaskflow.base.observability.LocalObservabilityEmitter
 import com.example.zhttaskflow.observability.ReleaseObservabilityContract
-import com.example.zhttaskflow.observability.ReleaseObservabilityContract.Channel
 
 /**
  * 生产环境 [PerformanceReporter]：指标写入本地 [com.example.zhttaskflow.observability.LocalLogStore]，
@@ -16,10 +16,10 @@ object ReleasePerformanceReporter : PerformanceReporter {
     override fun onFirstFrameRendered(pageId: String, durationMs: Long) {
         val anomaly = durationMs > FIRST_FRAME_SLOW_THRESHOLD_MS
         ReleaseObservabilityContract.emit(
-            channel = Channel.PERFORMANCE,
-            eventOrMetric = ReleaseObservabilityContract.METRIC_FIRST_FRAME,
+            channel = LocalObservabilityEmitter.Channel.PERFORMANCE,
+            eventOrMetric = LocalObservabilityEmitter.METRIC_FIRST_FRAME,
             pageId = pageId,
-            actionId = ReleaseObservabilityContract.METRIC_FIRST_FRAME,
+            actionId = LocalObservabilityEmitter.METRIC_FIRST_FRAME,
             params = mapOf(
                 "durationMs" to durationMs.toString(),
                 "thresholdMs" to FIRST_FRAME_SLOW_THRESHOLD_MS.toString(),
@@ -31,10 +31,10 @@ object ReleasePerformanceReporter : PerformanceReporter {
     override fun onScrollFpsSample(pageId: String, fps: Float, frameCount: Int) {
         val anomaly = fps > 0f && fps < SCROLL_FPS_MIN_THRESHOLD
         ReleaseObservabilityContract.emit(
-            channel = Channel.PERFORMANCE,
-            eventOrMetric = ReleaseObservabilityContract.METRIC_SCROLL_FPS,
+            channel = LocalObservabilityEmitter.Channel.PERFORMANCE,
+            eventOrMetric = LocalObservabilityEmitter.METRIC_SCROLL_FPS,
             pageId = pageId,
-            actionId = ReleaseObservabilityContract.METRIC_SCROLL_FPS,
+            actionId = LocalObservabilityEmitter.METRIC_SCROLL_FPS,
             params = mapOf(
                 "fps" to "%.1f".format(fps),
                 "frameCount" to frameCount.toString(),
@@ -46,10 +46,10 @@ object ReleasePerformanceReporter : PerformanceReporter {
 
     override fun onPageDwell(pageId: String, dwellMs: Long) {
         ReleaseObservabilityContract.emit(
-            channel = Channel.PERFORMANCE,
-            eventOrMetric = ReleaseObservabilityContract.METRIC_PAGE_DWELL,
+            channel = LocalObservabilityEmitter.Channel.PERFORMANCE,
+            eventOrMetric = LocalObservabilityEmitter.METRIC_PAGE_DWELL,
             pageId = pageId,
-            actionId = ReleaseObservabilityContract.METRIC_PAGE_DWELL,
+            actionId = LocalObservabilityEmitter.METRIC_PAGE_DWELL,
             params = mapOf(
                 "dwellMs" to dwellMs.toString(),
                 "anomaly" to "false",

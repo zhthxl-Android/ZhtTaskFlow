@@ -158,7 +158,7 @@ AppMainShell(
 )
 ```
 
-Release 包另在 `TaskFlowApplication.onCreate` 调用 `ReleaseCrashMonitoring.install(this)`，用于 ANR 探测与第三方 SDK 初始化占位（见 §8.2）。
+Release 包另在 `TaskFlowApplication.onCreate` 调用 `ReleaseAnrMonitor.install(this)`，用于 ANR 探测与第三方 SDK 初始化占位（见 §8.2）。
 
 **拦截链替换登录 / 深链 / 权限校验示例**：
 
@@ -188,7 +188,7 @@ CompositionLocalProvider(
 |------|------------------------------|---------------------|---------------------|
 | 埋点 | `DebugAnalytics` | `ReleaseAnalytics` | `ReleaseObservabilityContract`，Tag `TaskFlow/Observability` |
 | APM | `DebugPerformanceReporter` | `ReleasePerformanceReporter` | 同上，`channel=performance` |
-| 崩溃 | `DebugCrashReporter` | `ReleaseCrashReporter` + `ReleaseCrashMonitoring` | 同上，`channel=crash`；含未捕获异常与 ANR |
+| 崩溃 | `DebugCrashReporter` | `ReleaseCrashReporter`（未捕获/协程）+ `ReleaseAnrMonitor`（ANR） | 同上，`channel=crash`；含未捕获异常与 ANR |
 
 **数据契约（单行日志，便于 ELK / 自研平台解析）**：
 

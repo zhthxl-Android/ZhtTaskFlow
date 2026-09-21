@@ -4,9 +4,9 @@ import com.example.zhttaskflow.base.exception.CRASH_ACTION_ID
 import com.example.zhttaskflow.base.exception.CRASH_PAGE_ID
 import com.example.zhttaskflow.base.exception.CrashReporter
 import com.example.zhttaskflow.core.util.nullIfBlank
-import com.example.zhttaskflow.observability.ReleaseObservabilityContract
-import com.example.zhttaskflow.observability.ReleaseObservabilityContract.Channel
+import com.example.zhttaskflow.base.observability.LocalObservabilityEmitter
 import com.example.zhttaskflow.observability.LocalLogStore
+import com.example.zhttaskflow.observability.ReleaseObservabilityContract
 
 private const val ANR_MESSAGE_MAX_LENGTH: Int = 2_048
 
@@ -23,8 +23,8 @@ object ReleaseCrashReporter : CrashReporter {
         val pagePath = LocalLogStore.lastKnownPageId().orEmpty()
         // 通过 ReleaseObservabilityContract 统一上报
         ReleaseObservabilityContract.emit(
-            channel = Channel.CRASH,
-            eventOrMetric = ReleaseObservabilityContract.EVENT_CRASH,
+            channel = LocalObservabilityEmitter.Channel.CRASH,
+            eventOrMetric = LocalObservabilityEmitter.EVENT_CRASH,
             pageId = CRASH_PAGE_ID,
             actionId = CRASH_ACTION_ID,
             params = buildCrashParams(
@@ -44,10 +44,10 @@ object ReleaseCrashReporter : CrashReporter {
         val synthetic = AnrReportException(threadDump.take(ANR_MESSAGE_MAX_LENGTH))
         val pagePath = LocalLogStore.lastKnownPageId().orEmpty()
         ReleaseObservabilityContract.emit(
-            channel = Channel.CRASH,
-            eventOrMetric = ReleaseObservabilityContract.EVENT_ANR,
+            channel = LocalObservabilityEmitter.Channel.CRASH,
+            eventOrMetric = LocalObservabilityEmitter.EVENT_ANR,
             pageId = CRASH_PAGE_ID,
-            actionId = ReleaseObservabilityContract.ACTION_APP_ANR,
+            actionId = LocalObservabilityEmitter.ACTION_APP_ANR,
             params = buildCrashParams(
                 scene = "anr",
                 throwable = synthetic,

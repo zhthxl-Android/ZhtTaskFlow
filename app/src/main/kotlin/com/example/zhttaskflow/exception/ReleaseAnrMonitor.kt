@@ -14,11 +14,18 @@ import kotlin.math.max
 import kotlin.math.min
 
 /**
- * Release ANR 监控
- * 核心能力：主线程探针检测、LockSupport零GC、自适应间隔、分层堆栈、前后台分级、阶梯冷却
- * 可靠性保证：并发可见性、虚假唤醒防御、边界兜底、异常保护
+ * Release ANR 监控（`TaskFlowApplication.onCreate` 调用 [install]）。
+ *
+ * 核心能力：主线程探针检测、LockSupport 零 GC、自适应间隔、分层堆栈、前后台分级、阶梯冷却。
+ * 线程命名与工程 `App-*` 前缀一致：`App-AnrWatchdog`、`App-AnrReport-Worker`。
  */
 object ReleaseAnrMonitor {
+
+    /** 看门狗循环线程名 */
+    private const val THREAD_NAME_WATCHDOG: String = "App-AnrWatchdog"
+
+    /** 堆栈抓取与上报线程池工作线程名 */
+    private const val THREAD_NAME_REPORT_WORKER: String = "App-AnrReport-Worker"
 
     // ==================== 常量配置 ====================
     /** ANR 判定阈值：与系统前台 ANR 对齐（5秒） */
@@ -91,7 +98,7 @@ object ReleaseAnrMonitor {
             { r ->
                 Thread(
                     r,
-                    "Anr-Report-Worker"
+                    THREAD_NAME_REPORT_WORKER
                 ).apply { isDaemon = true }
             },
             ThreadPoolExecutor.DiscardOldestPolicy()
@@ -227,7 +234,7 @@ object ReleaseAnrMonitor {
                     }
                 }
             },
-            "App-AnrWatchdog"
+            THREAD_NAME_WATCHDOG,
         )
 
         watchdogThread?.isDaemon = true
@@ -462,7 +469,7 @@ object ReleaseAnrMonitor {
      * 效果：
      * Total threads: 86
      * - main state=RUNNABLE stackDepth=15
-     * - Anr-Report-Worker state=WAITING stackDepth=8
+     * - App-AnrReport-Worker state=WAITING stackDepth=8
      * - OkHttp Dispatcher state=RUNNABLE stackDepth=12
      * - ...
      * Blocked threads: 3

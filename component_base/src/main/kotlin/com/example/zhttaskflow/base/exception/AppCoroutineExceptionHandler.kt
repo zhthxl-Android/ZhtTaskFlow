@@ -15,11 +15,11 @@ import kotlin.coroutines.cancellation.CancellationException
 const val COROUTINE_UNCAUGHT_SOURCE: String = "app_uncaught_coroutine"
 
 /**
- * 全局协程未捕获异常处理器：与 [ExceptionHandler.installUncaughtExceptionHandler] 互补，覆盖协程域。
+ * 应用级未捕获异常入口：协程域 + JVM 线程钩子均在 [install] 中一次性装配。
  *
- * - 在 [install] 时挂载到应用根 [applicationScope]，并注册 [CrashReporterRegistry] 默认实现。
+ * - 注册 [CrashReporterRegistry] 默认实现，并调用 [ExceptionHandler.installUncaughtExceptionHandler]（全进程唯一安装点）。
+ * - [ExceptionMonitoringRoot] 仅注入 [LocalCrashReporter] 与离线横幅，不重复安装线程钩子。
  * - 不处理 [CancellationException]；业务层 `try/catch` 与 [com.example.zhttaskflow.base.mvi.BaseViewModel.launchTask] 逻辑不受影响。
- * - Debug 安装包：Logcat 输出；Release 安装包：仅静默走 [CrashReporter]（与线程未捕获崩溃同一落盘格式）。
  */
 object AppCoroutineExceptionHandler {
 
@@ -57,8 +57,7 @@ object AppCoroutineExceptionHandler {
         applicationScope = CoroutineScope(
             SupervisorJob() + Dispatchers.Main.immediate + handler,
         )
-        //安装系统崩溃处理器
-        ExceptionHandler.installUncaughtExceptionHandler(crashReporter)
+        ExceptionHandler.installUncaughtExceptionHandler()
     }
 
     private fun createCoroutineExceptionHandler(): CoroutineExceptionHandler {
