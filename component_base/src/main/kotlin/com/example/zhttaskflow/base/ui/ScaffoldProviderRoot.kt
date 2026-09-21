@@ -10,7 +10,7 @@ import com.example.zhttaskflow.base.analytics.Analytics
 import com.example.zhttaskflow.base.analytics.AnalyticsCompositionRoot
 import com.example.zhttaskflow.base.analytics.rememberDebugAnalytics
 import com.example.zhttaskflow.base.exception.CrashReporter
-import com.example.zhttaskflow.base.exception.ExceptionMonitoringRoot
+import com.example.zhttaskflow.base.exception.CrashReporterCompositionRoot
 import com.example.zhttaskflow.base.exception.rememberCrashReporter
 import com.example.zhttaskflow.base.ext.DialogController
 import com.example.zhttaskflow.base.ext.LoadingController
@@ -35,7 +35,10 @@ internal fun ScaffoldProviderRoot(
     //交互宿主初始化
     val snackbarHostState = remember { SnackbarHostState() }
     val snackbarScope = rememberCoroutineScope()
-    val snackbarDispatcher = remember(snackbarHostState, snackbarScope) {
+    val snackbarDispatcher = remember(
+        snackbarHostState,
+        snackbarScope
+    ) {
         SnackbarDispatcher(
             hostState = snackbarHostState,
             scope = snackbarScope,
@@ -93,13 +96,13 @@ internal fun ScaffoldProviderRoot(
             //将 埋点监控上报器 实例注入到整个 Compose 树
             AnalyticsCompositionRoot(analytics = resolvedAnalytics) {
                 //将 崩溃监控上报器 实例注入到整个 Compose 树
-                //并添加网络断开横幅
-                ExceptionMonitoringRoot(
-                    snackbarDispatcher = snackbarDispatcher,
-                    crashReporter = resolvedCrashReporter,
-                ) {
-                    content(localHosts)
+                CrashReporterCompositionRoot(crashReporter = resolvedCrashReporter) {
+                    //并添加网络断开横幅
+                    NetworkMonitoringRoot {
+                        content(localHosts)
+                    }
                 }
+
             }
         }
     }

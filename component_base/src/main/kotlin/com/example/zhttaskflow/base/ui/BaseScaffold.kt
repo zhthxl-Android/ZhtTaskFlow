@@ -8,37 +8,26 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.statusBarsPadding
-import androidx.compose.material3.Scaffold as MaterialScaffold
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.CompositionLocalProvider
-import androidx.compose.runtime.DisposableEffect
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
 import com.example.zhttaskflow.base.analytics.Analytics
-import com.example.zhttaskflow.base.analytics.AnalyticsCompositionRoot
-import com.example.zhttaskflow.base.analytics.rememberDebugAnalytics
 import com.example.zhttaskflow.base.exception.CrashReporter
-import com.example.zhttaskflow.base.exception.ExceptionMonitoringRoot
-import com.example.zhttaskflow.base.exception.LocalCrashReporter
 import com.example.zhttaskflow.base.exception.DebugCrashReporter
-import com.example.zhttaskflow.base.exception.rememberCrashReporter
-import com.example.zhttaskflow.base.observability.DeveloperObservability
-import com.example.zhttaskflow.base.performance.DebugPerformanceReporter
-import com.example.zhttaskflow.base.performance.PerformanceCompositionRoot
-import com.example.zhttaskflow.base.performance.PerformanceReporter
-import com.example.zhttaskflow.base.performance.PerformanceScaffoldBindings
-import com.example.zhttaskflow.base.performance.rememberDebugPerformance
-import com.example.zhttaskflow.base.performance.rememberPerformance
+import com.example.zhttaskflow.base.exception.LocalCrashReporter
+import com.example.zhttaskflow.base.ext.DialogController
+import com.example.zhttaskflow.base.ext.LoadingController
 import com.example.zhttaskflow.base.ext.LocalDialogController
 import com.example.zhttaskflow.base.ext.LocalLoadingController
 import com.example.zhttaskflow.base.ext.LocalSnackbarDispatcher
 import com.example.zhttaskflow.base.ext.LocalSnackbarHostState
-import com.example.zhttaskflow.base.ext.DialogController
-import com.example.zhttaskflow.base.ext.LoadingController
 import com.example.zhttaskflow.base.ext.SnackbarDispatcher
+import com.example.zhttaskflow.base.performance.DebugPerformanceReporter
+import com.example.zhttaskflow.base.performance.PerformanceReporter
+import com.example.zhttaskflow.base.performance.PerformanceScaffoldBindings
+import com.example.zhttaskflow.base.performance.rememberPerformance
 import com.example.zhttaskflow.base.ui.dialog.DialogHost
+import androidx.compose.material3.Scaffold as MaterialScaffold
 
 /**
  * 壳层/页面层共用的全局交互宿主（Snackbar / Loading / Dialog）。
