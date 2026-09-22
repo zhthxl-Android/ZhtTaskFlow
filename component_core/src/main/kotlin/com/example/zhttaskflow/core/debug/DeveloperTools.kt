@@ -50,9 +50,7 @@ object DeveloperTools {
         simulateNetworkOffline = enabled
     }
 
-    /**
-     * 向本地日志仓注入测试记录（埋点 / 性能 / 崩溃）。
-     */
+    @Deprecated("Moved to ObservabilityDebugInjector")
     fun injectTestLogs(
         channel: LocalLogStore.ObservabilityChannel,
         count: Int,
@@ -60,41 +58,6 @@ object DeveloperTools {
     ) {
         if (!isDebugLoggingEnabled()) {
             return
-        }
-        val safeCount = count.coerceIn(1, 5_000)
-        val baseMs = System.currentTimeMillis()
-        repeat(safeCount) { index ->
-            val timestamp = baseMs - index
-            val event = when (channel) {
-                LocalLogStore.ObservabilityChannel.ANALYTICS ->
-                    "debug_inject_analytics_$index"
-                LocalLogStore.ObservabilityChannel.PERFORMANCE ->
-                    "debug_inject_perf_$index"
-                LocalLogStore.ObservabilityChannel.CRASH ->
-                    "debug_inject_crash_$index"
-            }
-            val stackTrace = if (channel == LocalLogStore.ObservabilityChannel.CRASH) {
-                "com.example.debug.SyntheticCrash: inject #$index\n    at debug.Injector.inject(Injector.kt:1)"
-            } else {
-                null
-            }
-            LocalLogStore.recordFromObservabilityEmit(
-                channel = channel,
-                eventOrMetric = event,
-                pageId = pageId,
-                actionId = "debug_inject",
-                params = mapOf(
-                    "seedIndex" to index.toString(),
-                    "source" to "LogDebugPanel",
-                ),
-                stackTrace = stackTrace,
-                deviceInfo = if (channel == LocalLogStore.ObservabilityChannel.CRASH) {
-                    "debug_panel=true"
-                } else {
-                    null
-                },
-                anomaly = channel == LocalLogStore.ObservabilityChannel.CRASH,
-            )
         }
     }
 }

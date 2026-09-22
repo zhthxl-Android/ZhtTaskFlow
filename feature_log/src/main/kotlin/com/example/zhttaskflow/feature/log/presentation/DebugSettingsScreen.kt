@@ -29,6 +29,8 @@ import com.example.zhttaskflow.base.ext.rememberDialogController
 import com.example.zhttaskflow.base.ext.rememberSnackbarDispatcher
 import com.example.zhttaskflow.base.ext.showSnackbar
 import com.example.zhttaskflow.base.observability.DeveloperObservability
+import com.example.zhttaskflow.base.observability.LocalObservabilityEmitter
+import com.example.zhttaskflow.base.observability.ObservabilityDebugInjector
 import com.example.zhttaskflow.base.ui.extension.PageLifecycleLog
 import com.example.zhttaskflow.base.ui.ListScaffold
 import com.example.zhttaskflow.base.ui.UiConstants
@@ -125,15 +127,15 @@ internal fun DebugSettingsScreen(
                     val count = injectCountText.toIntOrNull()?.coerceIn(1, 5_000) ?: 50
                     val channel = when (injectChannel) {
                         InjectChannel.ANALYTICS ->
-                            LocalLogStore.ObservabilityChannel.ANALYTICS
+                            LocalObservabilityEmitter.Channel.ANALYTICS
                         InjectChannel.PERFORMANCE ->
-                            LocalLogStore.ObservabilityChannel.PERFORMANCE
+                            LocalObservabilityEmitter.Channel.PERFORMANCE
                         InjectChannel.CRASH ->
-                            LocalLogStore.ObservabilityChannel.CRASH
+                            LocalObservabilityEmitter.Channel.CRASH
                     }
                     scope.launch {
                         withContext(Dispatchers.IO) {
-                            DeveloperTools.injectTestLogs(channel = channel, count = count)
+                            ObservabilityDebugInjector.injectTestLogs(channel = channel, count = count)
                         }
                         showSnackbar(
                         dispatcher = snackbarDispatcher,

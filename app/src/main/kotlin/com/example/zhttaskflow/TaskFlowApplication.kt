@@ -7,7 +7,7 @@ import com.example.zhttaskflow.core.observability.LocalLogStore
 import com.example.zhttaskflow.core.util.bindNetworkDiagnostics
 import com.example.zhttaskflow.core.util.isDebugLoggingEnabled
 import com.example.zhttaskflow.exception.ReleaseAnrMonitor
-import com.example.zhttaskflow.exception.ReleaseCrashReporter
+import com.example.zhttaskflow.base.exception.ReleaseCrashReporter
 import com.example.zhttaskflow.observability.AppObservabilityAssembly
 
 /** 壳 Application：全局同步网络/数据层 Debug 诊断开关，并初始化自研本地可观测日志仓。 */

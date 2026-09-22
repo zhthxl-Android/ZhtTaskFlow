@@ -1,29 +1,35 @@
-package com.example.zhttaskflow.exception
+package com.example.zhttaskflow.base.observability
 
 import com.example.zhttaskflow.base.exception.CRASH_ACTION_ID
 import com.example.zhttaskflow.base.exception.CRASH_PAGE_ID
-import com.example.zhttaskflow.base.exception.CrashReporter
+import com.example.zhttaskflow.core.observability.LocalLogStore
 import com.example.zhttaskflow.core.util.nullIfBlank
-import com.example.zhttaskflow.base.observability.LocalObservabilityEmitter
-import com.example.zhttaskflow.observability.LocalLogStore
-import com.example.zhttaskflow.observability.ReleaseObservabilityContract
-
-private const val ANR_MESSAGE_MAX_LENGTH: Int = 2_048
 
 /**
- * 生产环境 [CrashReporter]：未捕获异常与 ANR 写入本地日志仓（含堆栈、设备信息、最近页面路径）。
- *
- * 下次启动可通过 [LocalLogStore.peekLastCrash] 或调试页查看 [last_crash.jsonl]。
+ * Release 风格崩溃 / ANR 共用逻辑：参数拼装与契约字段映射。
  */
-object ReleaseCrashReporter : CrashReporter {
+internal object ReleaseCrashCore {
 
-    override fun reportCrash(throwable: Throwable, fatal: Boolean) {
+    private const val ANR_MESSAGE_MAX_LENGTH: Int = 2_048
+
+    internal fun interface CrashEmit {
+        fun emit(
+            eventOrMetric: String,
+            pageId: String?,
+            actionId: String?,
+            params: Map<String, String?>?,
+            throwable: Throwable?,
+        )
+    }
+
+    fun reportCrash(
+        throwable: Throwable,
+        fatal: Boolean,
+        emit: CrashEmit,
+    ) {
         val scene = if (fatal) "fatal" else "non_fatal"
-        //最后一次页面id
         val pagePath = LocalLogStore.lastKnownPageId().orEmpty()
-        // 通过 ReleaseObservabilityContract 统一上报
-        ReleaseObservabilityContract.emit(
-            channel = LocalObservabilityEmitter.Channel.CRASH,
+        emit.emit(
             eventOrMetric = LocalObservabilityEmitter.EVENT_CRASH,
             pageId = CRASH_PAGE_ID,
             actionId = CRASH_ACTION_ID,
@@ -37,14 +43,13 @@ object ReleaseCrashReporter : CrashReporter {
         )
     }
 
-    /**
-     * ANR 上报（主线程阻塞等）；与 [reportCrash] 共用本地存储与平台扩展位。
-     */
-    fun reportAnr(threadDump: String) {
+    fun reportAnr(
+        threadDump: String,
+        emit: CrashEmit,
+    ) {
         val synthetic = AnrReportException(threadDump.take(ANR_MESSAGE_MAX_LENGTH))
         val pagePath = LocalLogStore.lastKnownPageId().orEmpty()
-        ReleaseObservabilityContract.emit(
-            channel = LocalObservabilityEmitter.Channel.CRASH,
+        emit.emit(
             eventOrMetric = LocalObservabilityEmitter.EVENT_ANR,
             pageId = CRASH_PAGE_ID,
             actionId = LocalObservabilityEmitter.ACTION_APP_ANR,
@@ -59,7 +64,7 @@ object ReleaseCrashReporter : CrashReporter {
         )
     }
 
-    private fun buildCrashParams(
+    fun buildCrashParams(
         scene: String,
         throwable: Throwable,
         pagePath: String,

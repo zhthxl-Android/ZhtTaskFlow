@@ -49,14 +49,22 @@ object ObservabilityEmitPipeline {
             stackTrace = stackTrace,
             anomaly = params?.get("anomaly") == "true" || channel == LocalObservabilityEmitter.Channel.CRASH,
         )
-        platformHook.onObservabilityEvent(
-            channel = channel,
-            payload = payload,
-            pageId = pageId,
-            actionId = actionId,
-            params = params,
-            throwable = throwable,
-        )
+        try {
+            platformHook.onObservabilityEvent(
+                channel = channel,
+                payload = payload,
+                pageId = pageId,
+                actionId = actionId,
+                params = params,
+                throwable = throwable,
+            )
+        } catch (t: Throwable) {
+            Log.e(
+                LocalObservabilityEmitter.LOG_TAG,
+                "platform hook execution failed",
+                t,
+            )
+        }
     }
 
     private fun buildPayload(

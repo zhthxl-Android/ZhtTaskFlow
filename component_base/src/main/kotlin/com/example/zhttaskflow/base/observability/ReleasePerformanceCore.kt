@@ -1,22 +1,29 @@
-package com.example.zhttaskflow.performance
-
-import com.example.zhttaskflow.base.performance.PerformanceReporter
-import com.example.zhttaskflow.base.observability.LocalObservabilityEmitter
-import com.example.zhttaskflow.observability.ReleaseObservabilityContract
+package com.example.zhttaskflow.base.observability
 
 /**
- * 生产环境 [PerformanceReporter]：指标写入本地 [com.example.zhttaskflow.observability.LocalLogStore]，
- * 慢首帧 / 低帧率自动标记 `anomaly=true`。
+ * Release 风格性能指标共用逻辑：阈值判定与契约字段映射。
  */
-object ReleasePerformanceReporter : PerformanceReporter {
+internal object ReleasePerformanceCore {
 
     private const val FIRST_FRAME_SLOW_THRESHOLD_MS: Long = 700L
     private const val SCROLL_FPS_MIN_THRESHOLD: Float = 45f
 
-    override fun onFirstFrameRendered(pageId: String, durationMs: Long) {
+    internal fun interface PerformanceEmit {
+        fun emit(
+            eventOrMetric: String,
+            pageId: String,
+            actionId: String,
+            params: Map<String, String>,
+        )
+    }
+
+    fun onFirstFrameRendered(
+        pageId: String,
+        durationMs: Long,
+        emit: PerformanceEmit,
+    ) {
         val anomaly = durationMs > FIRST_FRAME_SLOW_THRESHOLD_MS
-        ReleaseObservabilityContract.emit(
-            channel = LocalObservabilityEmitter.Channel.PERFORMANCE,
+        emit.emit(
             eventOrMetric = LocalObservabilityEmitter.METRIC_FIRST_FRAME,
             pageId = pageId,
             actionId = LocalObservabilityEmitter.METRIC_FIRST_FRAME,
@@ -28,10 +35,14 @@ object ReleasePerformanceReporter : PerformanceReporter {
         )
     }
 
-    override fun onScrollFpsSample(pageId: String, fps: Float, frameCount: Int) {
+    fun onScrollFpsSample(
+        pageId: String,
+        fps: Float,
+        frameCount: Int,
+        emit: PerformanceEmit,
+    ) {
         val anomaly = fps > 0f && fps < SCROLL_FPS_MIN_THRESHOLD
-        ReleaseObservabilityContract.emit(
-            channel = LocalObservabilityEmitter.Channel.PERFORMANCE,
+        emit.emit(
             eventOrMetric = LocalObservabilityEmitter.METRIC_SCROLL_FPS,
             pageId = pageId,
             actionId = LocalObservabilityEmitter.METRIC_SCROLL_FPS,
@@ -44,9 +55,12 @@ object ReleasePerformanceReporter : PerformanceReporter {
         )
     }
 
-    override fun onPageDwell(pageId: String, dwellMs: Long) {
-        ReleaseObservabilityContract.emit(
-            channel = LocalObservabilityEmitter.Channel.PERFORMANCE,
+    fun onPageDwell(
+        pageId: String,
+        dwellMs: Long,
+        emit: PerformanceEmit,
+    ) {
+        emit.emit(
             eventOrMetric = LocalObservabilityEmitter.METRIC_PAGE_DWELL,
             pageId = pageId,
             actionId = LocalObservabilityEmitter.METRIC_PAGE_DWELL,

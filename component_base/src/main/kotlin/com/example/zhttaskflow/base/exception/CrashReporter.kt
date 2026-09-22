@@ -1,7 +1,6 @@
 package com.example.zhttaskflow.base.exception
 
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.staticCompositionLocalOf
@@ -51,28 +50,6 @@ fun rememberCrashReporter(override: CrashReporter? = null): CrashReporter {
     return override ?: fromLocal
 }
 
-/**
- * 装配崩溃上报并与 [CrashReporterRegistry] 同步（供非 Composable 的
- * [com.example.zhttaskflow.base.exception.ExceptionHandler.reportCrash] 解析）。
- *
- * 由 [com.example.zhttaskflow.base.exception.ExceptionMonitoringRoot] 在拥有全局宿主时调用；
- * 与网络离线横幅同层装配（线程未捕获钩子见 [AppCoroutineExceptionHandler.install]）。
- */
-@Composable
-fun CrashReporterCompositionRoot(
-    crashReporter: CrashReporter = rememberCrashReporter(),
-    content: @Composable () -> Unit,
-) {
-    CompositionLocalProvider(LocalCrashReporter provides crashReporter) {
-        DisposableEffect(crashReporter) {
-            CrashReporterRegistry.push(crashReporter)
-            onDispose {
-                CrashReporterRegistry.pop(crashReporter)
-            }
-        }
-        content()
-    }
-}
 /**
  * 批量注入场景专用：装配最终可用的崩溃上报实例
  * 封装：默认降级策略 + 可观测装饰器包装 + 全局注册表生命周期同步

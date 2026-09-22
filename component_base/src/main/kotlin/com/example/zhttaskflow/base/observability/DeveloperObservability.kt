@@ -3,14 +3,13 @@ package com.example.zhttaskflow.base.observability
 import com.example.zhttaskflow.base.analytics.Analytics
 import com.example.zhttaskflow.base.analytics.PageViewEvent
 import com.example.zhttaskflow.base.analytics.ReleaseAnalytics
-import com.example.zhttaskflow.base.exception.CRASH_ACTION_ID
-import com.example.zhttaskflow.base.exception.CRASH_PAGE_ID
 import com.example.zhttaskflow.base.exception.CrashReporter
+import com.example.zhttaskflow.base.exception.DebugCrashReporter
+import com.example.zhttaskflow.base.exception.ReleaseCrashReporter
 import com.example.zhttaskflow.base.performance.PerformanceReporter
+import com.example.zhttaskflow.base.performance.ReleasePerformanceReporter
 import com.example.zhttaskflow.core.debug.DeveloperTools
-import com.example.zhttaskflow.core.observability.LocalLogStore
 import com.example.zhttaskflow.core.util.isDebugLoggingEnabled
-import com.example.zhttaskflow.core.util.nullIfBlank
 
 /**
  * Debug 包深度调试面板：在壳层默认实现与 Release 风格本地落盘之间路由可观测三联。
@@ -87,9 +86,7 @@ object DeveloperObservability {
         }
         // Debug 包：根据开发者面板的开关切换
         return when (DeveloperTools.observabilityBackend) {
-            // 模拟 Release 本地落盘
-            DeveloperTools.ObservabilityBackend.RELEASE_LOCAL -> ReleaseLocalCrashReporter
-            // 用壳层默认（DebugCrashReporter）
+            DeveloperTools.ObservabilityBackend.RELEASE_LOCAL -> ReleaseCrashReporter
             DeveloperTools.ObservabilityBackend.APP_SHELL_DEFAULT -> shellDefault
         }
     }
@@ -120,7 +117,7 @@ object DeveloperObservability {
             return shellDefault
         }
         return when (DeveloperTools.observabilityBackend) {
-            DeveloperTools.ObservabilityBackend.RELEASE_LOCAL -> ReleaseLocalPerformanceReporter
+            DeveloperTools.ObservabilityBackend.RELEASE_LOCAL -> ReleasePerformanceReporter
             DeveloperTools.ObservabilityBackend.APP_SHELL_DEFAULT -> shellDefault
         }
     }
@@ -132,7 +129,7 @@ object DeveloperObservability {
         if (!isDebugLoggingEnabled()) {
             return
         }
-        ReleaseLocalCrashReporter.reportAnr(threadDump)
+        ReleaseCrashReporter.reportAnr(threadDump)
     }
 
     /**
@@ -142,18 +139,17 @@ object DeveloperObservability {
         if (!isDebugLoggingEnabled()) {
             return
         }
-        val reporter = resolvePerformanceReporter(ReleaseLocalPerformanceReporter)
         val start = System.currentTimeMillis()
         if (blockMainThreadMs > 0L) {
             //限制最大 8 秒
             Thread.sleep(blockMainThreadMs.coerceAtMost(8_000L))
         }
         val elapsed = System.currentTimeMillis() - start
-        reporter.onFirstFrameRendered(
+        resolvePerformanceReporter(ReleasePerformanceReporter).onFirstFrameRendered(
             pageId = "LogDebugPanel",
             durationMs = elapsed,
         )
-        LocalObservabilityEmitter.emit(
+        ObservabilityEmitPipeline.emit(
             channel = LocalObservabilityEmitter.Channel.PERFORMANCE,
             eventOrMetric = "debug_slow_function",
             pageId = "LogDebugPanel",
@@ -162,6 +158,7 @@ object DeveloperObservability {
                 "blockedMs" to elapsed.toString(),
                 "requestedBlockMs" to blockMainThreadMs.toString(),
             ),
+            throwable = null,
         )
     }
 
@@ -173,109 +170,6 @@ object DeveloperObservability {
             return
         }
         val error = IllegalStateException(message)
-        resolveCrashReporter(ReleaseLocalCrashReporter).reportCrash(error, fatal = false)
+        resolveCrashReporter(DebugCrashReporter).reportCrash(error, fatal = false)
     }
-}
-
-/**
- * private 的release性能上报， 本地实现，用于调试
- * */
-private object ReleaseLocalPerformanceReporter : PerformanceReporter {
-
-    override fun onFirstFrameRendered(pageId: String, durationMs: Long) {
-        LocalObservabilityEmitter.emit(
-            channel = LocalObservabilityEmitter.Channel.PERFORMANCE,
-            eventOrMetric = LocalObservabilityEmitter.METRIC_FIRST_FRAME,
-            pageId = pageId,
-            actionId = LocalObservabilityEmitter.METRIC_FIRST_FRAME,
-            params = mapOf("durationMs" to durationMs.toString()),
-        )
-    }
-
-    override fun onScrollFpsSample(pageId: String, fps: Float, frameCount: Int) {
-        LocalObservabilityEmitter.emit(
-            channel = LocalObservabilityEmitter.Channel.PERFORMANCE,
-            eventOrMetric = LocalObservabilityEmitter.METRIC_SCROLL_FPS,
-            pageId = pageId,
-            actionId = LocalObservabilityEmitter.METRIC_SCROLL_FPS,
-            params = mapOf(
-                "fps" to "%.1f".format(fps),
-                "frameCount" to frameCount.toString(),
-            ),
-        )
-    }
-
-    override fun onPageDwell(pageId: String, dwellMs: Long) {
-        LocalObservabilityEmitter.emit(
-            channel = LocalObservabilityEmitter.Channel.PERFORMANCE,
-            eventOrMetric = LocalObservabilityEmitter.METRIC_PAGE_DWELL,
-            pageId = pageId,
-            actionId = LocalObservabilityEmitter.METRIC_PAGE_DWELL,
-            params = mapOf("dwellMs" to dwellMs.toString()),
-        )
-    }
-}
-
-/**
- * private 的release崩溃上报， 本地实现，用于调试
- * */
-private object ReleaseLocalCrashReporter : CrashReporter {
-
-    private const val ANR_MESSAGE_MAX_LENGTH: Int = 2_048
-
-    override fun reportCrash(throwable: Throwable, fatal: Boolean) {
-        val scene = if (fatal) "fatal" else "non_fatal"
-        val pagePath = LocalLogStore.lastKnownPageId().orEmpty()
-        LocalObservabilityEmitter.emit(
-            channel = LocalObservabilityEmitter.Channel.CRASH,
-            eventOrMetric = LocalObservabilityEmitter.EVENT_CRASH,
-            pageId = CRASH_PAGE_ID,
-            actionId = CRASH_ACTION_ID,
-            params = buildCrashParams(
-                scene = scene,
-                throwable = throwable,
-                pagePath = pagePath,
-                fatal = fatal,
-            ),
-            throwable = throwable,
-        )
-    }
-
-    fun reportAnr(threadDump: String) {
-        val synthetic = AnrReportException(threadDump.take(ANR_MESSAGE_MAX_LENGTH))
-        val pagePath = LocalLogStore.lastKnownPageId().orEmpty()
-        LocalObservabilityEmitter.emit(
-            channel = LocalObservabilityEmitter.Channel.CRASH,
-            eventOrMetric = LocalObservabilityEmitter.EVENT_ANR,
-            pageId = CRASH_PAGE_ID,
-            actionId = LocalObservabilityEmitter.ACTION_APP_ANR,
-            params = buildCrashParams(
-                scene = "anr",
-                throwable = synthetic,
-                pagePath = pagePath,
-                fatal = true,
-                threadDumpLength = threadDump.length,
-            ),
-            throwable = synthetic,
-        )
-    }
-
-    private fun buildCrashParams(
-        scene: String,
-        throwable: Throwable,
-        pagePath: String,
-        fatal: Boolean,
-        threadDumpLength: Int? = null,
-    ): Map<String, String> {
-        return buildMap {
-            put("scene", scene)
-            put("fatal", fatal.toString())
-            put("type", throwable::class.simpleName.orEmpty())
-            put("message", throwable.message.nullIfBlank().orEmpty())
-            put("pagePath", pagePath)
-            threadDumpLength?.let { length -> put("dumpLength", length.toString()) }
-        }
-    }
-
-    private class AnrReportException(message: String) : RuntimeException(message)
 }

@@ -1,8 +1,5 @@
 package com.example.zhttaskflow.base.observability
 
-import android.util.Log
-import com.example.zhttaskflow.core.observability.LocalLogStore
-
 /**
  * 可观测契约常量与 Release 风格落盘（全工程唯一常量源）。
  *
@@ -40,72 +37,13 @@ object LocalObservabilityEmitter {
         params: Map<String, String?>? = null,
         throwable: Throwable? = null,
     ) {
-        val payload = buildPayload(
+        ObservabilityEmitPipeline.emit(
             channel = channel,
             eventOrMetric = eventOrMetric,
             pageId = pageId,
             actionId = actionId,
             params = params,
+            throwable = throwable,
         )
-        when (channel) {
-            Channel.CRASH -> Log.e(LOG_TAG, payload, throwable)
-            else -> Log.i(LOG_TAG, payload)
-        }
-        val storeChannel = when (channel) {
-            Channel.ANALYTICS -> LocalLogStore.ObservabilityChannel.ANALYTICS
-            Channel.PERFORMANCE -> LocalLogStore.ObservabilityChannel.PERFORMANCE
-            Channel.CRASH -> LocalLogStore.ObservabilityChannel.CRASH
-        }
-        val stackTrace = throwable?.let { stackTraceOf(it) }
-        LocalLogStore.recordFromObservabilityEmit(
-            channel = storeChannel,
-            eventOrMetric = eventOrMetric,
-            pageId = pageId,
-            actionId = actionId,
-            params = params,
-            stackTrace = stackTrace,
-            anomaly = params?.get("anomaly") == "true" || channel == Channel.CRASH,
-        )
-    }
-
-    private fun buildPayload(
-        channel: Channel,
-        eventOrMetric: String,
-        pageId: String?,
-        actionId: String?,
-        params: Map<String, String?>?,
-    ): String {
-        return buildString {
-            append("channel=${channel.name.lowercase()}")
-            append(" event=$eventOrMetric")
-            if (!pageId.isNullOrBlank()) {
-                append(" pageId=$pageId")
-            }
-            if (!actionId.isNullOrBlank()) {
-                append(" actionId=$actionId")
-            }
-            val snapshot = formatParams(params)
-            if (snapshot.isNotBlank()) {
-                append(" params=$snapshot")
-            }
-        }
-    }
-
-    private fun formatParams(params: Map<String, String?>?): String {
-        return params
-            ?.entries
-            ?.mapNotNull { (key, value) -> value?.let { safe -> "$key=$safe" } }
-            ?.joinToString(separator = ",")
-            .orEmpty()
-    }
-
-    private fun stackTraceOf(throwable: Throwable): String {
-        return buildString {
-            append(throwable::class.java.name)
-            append(": ")
-            append(throwable.message.orEmpty())
-            append('\n')
-            append(throwable.stackTraceToString())
-        }
     }
 }

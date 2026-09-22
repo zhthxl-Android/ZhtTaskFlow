@@ -9,8 +9,8 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import androidx.compose.ui.platform.LocalContext
 import com.example.zhttaskflow.base.analytics.ReleaseAnalytics
-import com.example.zhttaskflow.exception.ReleaseCrashReporter
-import com.example.zhttaskflow.performance.ReleasePerformanceReporter
+import com.example.zhttaskflow.base.exception.ReleaseCrashReporter
+import com.example.zhttaskflow.base.performance.ReleasePerformanceReporter
 import com.example.zhttaskflow.base.analytics.Analytics
 import com.example.zhttaskflow.base.analytics.DebugAnalytics
 import com.example.zhttaskflow.base.exception.CrashReporter

@@ -355,22 +355,6 @@ fun rememberDebugPerformance(
 }
 
 /**
- * 性能监控的根注入器，放在应用壳层（如 BaseScaffold、Application 级主题下），
- * 将 Performance 实例注入到整个 Compose 树
- * Release 环境传入真实上报实现，Debug 环境传入调试实现
- * 壳层装配性能监控（与 [com.example.zhttaskflow.base.ui.BaseScaffold] 配合）。
- */
-@Composable
-fun PerformanceCompositionRoot(
-    performance: Performance = rememberDebugPerformance(),
-    content: @Composable () -> Unit,
-) {
-    CompositionLocalProvider(LocalPerformance provides performance) {
-        content()
-    }
-}
-
-/**
  * 批量注入场景专用：装配最终可用的性能监控实例
  * 封装：默认降级策略 + 可观测装饰器包装 + DebugPerformance 装配
  */

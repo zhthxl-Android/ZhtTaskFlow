@@ -4,6 +4,7 @@ import android.app.Application
 import android.os.Handler
 import android.os.Looper
 import android.os.SystemClock
+import com.example.zhttaskflow.base.exception.ReleaseCrashReporter
 import com.example.zhttaskflow.core.util.isDebugLoggingEnabled
 import java.util.concurrent.LinkedBlockingQueue
 import java.util.concurrent.ThreadPoolExecutor
