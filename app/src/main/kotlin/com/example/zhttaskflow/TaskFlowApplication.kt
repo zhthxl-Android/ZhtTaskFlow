@@ -8,6 +8,7 @@ import com.example.zhttaskflow.core.util.bindNetworkDiagnostics
 import com.example.zhttaskflow.core.util.isDebugLoggingEnabled
 import com.example.zhttaskflow.exception.ReleaseAnrMonitor
 import com.example.zhttaskflow.exception.ReleaseCrashReporter
+import com.example.zhttaskflow.observability.AppObservabilityAssembly
 
 /** 壳 Application：全局同步网络/数据层 Debug 诊断开关，并初始化自研本地可观测日志仓。 */
 class TaskFlowApplication : Application() {
@@ -18,6 +19,7 @@ class TaskFlowApplication : Application() {
         bindNetworkDiagnostics(applicationContext)
         //本地可观测日志仓初始化
         LocalLogStore.init(applicationContext)
+        AppObservabilityAssembly.install()
         //全局异常捕获
         val crashReporter = if (isDebugLoggingEnabled()) {
             DebugCrashReporter

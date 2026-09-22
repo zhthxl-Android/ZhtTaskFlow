@@ -85,10 +85,10 @@ internal fun rememberManagedCrashReporter(impl: CrashReporter? = null): CrashRep
     val resolvedReporter = remember(shellReporter) {
         DeveloperObservability.wrapCrashReporter(shellReporter)
     }
-    // 3. 生命周期绑定：和全局注册表同步
-    DisposableEffect(resolvedReporter) {
-        CrashReporterRegistry.push(resolvedReporter)
-        onDispose { CrashReporterRegistry.pop(resolvedReporter) }
+    // 3. 生命周期绑定：Registry 存 shell，current() 统一 resolve
+    DisposableEffect(shellReporter) {
+        CrashReporterRegistry.push(shellReporter)
+        onDispose { CrashReporterRegistry.pop(shellReporter) }
     }
     return resolvedReporter
 }

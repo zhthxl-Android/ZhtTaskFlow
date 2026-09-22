@@ -1,7 +1,6 @@
 package com.example.zhttaskflow.base.analytics
 
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.runtime.remember
@@ -82,27 +81,6 @@ fun rememberDebugAnalytics(): Analytics {
 internal val AnalyticsFallback: Analytics = DebugAnalytics
 
 /**
- * 在壳层装配 Analytics，并与 [AnalyticsRegistry] 同步。
- *
- * 通常由 [com.example.zhttaskflow.base.ui.BaseScaffold] 调用；应用壳也可在更外层包裹以提前注入。
- */
-@Composable
-fun AnalyticsCompositionRoot(
-    analytics: Analytics = rememberDebugAnalytics(),
-    content: @Composable () -> Unit,
-) {
-    CompositionLocalProvider(LocalAnalytics provides analytics) {
-        DisposableEffect(analytics) {
-            AnalyticsRegistry.push(analytics)
-            onDispose {
-                AnalyticsRegistry.pop(analytics)
-            }
-        }
-        content()
-    }
-}
-
-/**
  * 批量注入场景专用：装配最终可用的埋点实例
  * 封装：默认降级策略 + 可观测装饰器包装 + 全局注册表生命周期同步
  */
@@ -114,10 +92,10 @@ internal fun rememberManagedAnalytics(impl: Analytics? = null): Analytics {
     val resolvedAnalytics = remember(shellAnalytics) {
         DeveloperObservability.wrapAnalytics(shellAnalytics)
     }
-    // 3. 生命周期绑定：和全局注册表同步
-    DisposableEffect(resolvedAnalytics) {
-        AnalyticsRegistry.push(resolvedAnalytics)
-        onDispose { AnalyticsRegistry.pop(resolvedAnalytics) }
+    // 3. 生命周期绑定：Registry 存 shell，current() 统一 resolve
+    DisposableEffect(shellAnalytics) {
+        AnalyticsRegistry.push(shellAnalytics)
+        onDispose { AnalyticsRegistry.pop(shellAnalytics) }
     }
     return resolvedAnalytics
 }

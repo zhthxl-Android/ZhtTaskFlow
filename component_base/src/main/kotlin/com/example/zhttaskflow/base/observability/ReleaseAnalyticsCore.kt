@@ -1,20 +1,27 @@
-package com.example.zhttaskflow.analytics
+package com.example.zhttaskflow.base.observability
 
-import com.example.zhttaskflow.base.analytics.Analytics
 import com.example.zhttaskflow.base.analytics.PageViewEvent
-import com.example.zhttaskflow.base.observability.LocalObservabilityEmitter
-import com.example.zhttaskflow.observability.LocalLogStore
-import com.example.zhttaskflow.observability.ReleaseObservabilityContract
+import com.example.zhttaskflow.core.observability.LocalLogStore
 
 /**
- * 生产环境 [Analytics]：页面曝光 / 离开 / 交互点击经 [ReleaseObservabilityContract] 统一字段上报。
+ * Release 风格埋点共用逻辑：页面 ID 更新、契约字段映射与参数拼装。
  */
-object ReleaseAnalytics : Analytics {
+internal object ReleaseAnalyticsCore {
 
-    override fun trackPageView(
+    internal fun interface AnalyticsEmit {
+        fun emit(
+            eventOrMetric: String,
+            pageId: String?,
+            actionId: String?,
+            params: Map<String, String?>?,
+        )
+    }
+
+    fun trackPageView(
         pageId: String,
         pageArgs: String?,
         event: PageViewEvent,
+        emit: AnalyticsEmit,
     ) {
         if (event == PageViewEvent.Enter || event == PageViewEvent.ArgsChange) {
             LocalLogStore.updateLastKnownPageId(pageId)
@@ -29,8 +36,7 @@ object ReleaseAnalytics : Analytics {
                 put("pageArgs", pageArgs)
             }
         }
-        ReleaseObservabilityContract.emit(
-            channel = LocalObservabilityEmitter.Channel.ANALYTICS,
+        emit.emit(
             eventOrMetric = actionId,
             pageId = pageId,
             actionId = actionId,
@@ -38,9 +44,11 @@ object ReleaseAnalytics : Analytics {
         )
     }
 
-    override fun trackPageLeave(pageId: String) {
-        ReleaseObservabilityContract.emit(
-            channel = LocalObservabilityEmitter.Channel.ANALYTICS,
+    fun trackPageLeave(
+        pageId: String,
+        emit: AnalyticsEmit,
+    ) {
+        emit.emit(
             eventOrMetric = LocalObservabilityEmitter.ACTION_PAGE_LEAVE,
             pageId = pageId,
             actionId = LocalObservabilityEmitter.ACTION_PAGE_LEAVE,
@@ -48,13 +56,14 @@ object ReleaseAnalytics : Analytics {
         )
     }
 
-    override fun trackInteraction(
+    fun trackInteraction(
         action: String,
         operationId: String,
         pageId: String?,
         params: Map<String, String?>?,
         detail: String?,
         logTag: String?,
+        emit: AnalyticsEmit,
     ) {
         if (!pageId.isNullOrBlank()) {
             LocalLogStore.updateLastKnownPageId(pageId)
@@ -73,8 +82,7 @@ object ReleaseAnalytics : Analytics {
                 put("detail", detail)
             }
         }
-        ReleaseObservabilityContract.emit(
-            channel = LocalObservabilityEmitter.Channel.ANALYTICS,
+        emit.emit(
             eventOrMetric = "ui_interaction",
             pageId = pageId,
             actionId = operationId,

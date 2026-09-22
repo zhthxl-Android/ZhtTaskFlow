@@ -2,6 +2,7 @@ package com.example.zhttaskflow.base.observability
 
 import com.example.zhttaskflow.base.analytics.Analytics
 import com.example.zhttaskflow.base.analytics.PageViewEvent
+import com.example.zhttaskflow.base.analytics.ReleaseAnalytics
 import com.example.zhttaskflow.base.exception.CRASH_ACTION_ID
 import com.example.zhttaskflow.base.exception.CRASH_PAGE_ID
 import com.example.zhttaskflow.base.exception.CrashReporter
@@ -27,7 +28,7 @@ object DeveloperObservability {
         }
         //根据面板的开关选择
         return when (DeveloperTools.observabilityBackend) {
-            DeveloperTools.ObservabilityBackend.RELEASE_LOCAL -> ReleaseLocalAnalytics
+            DeveloperTools.ObservabilityBackend.RELEASE_LOCAL -> ReleaseAnalytics
             DeveloperTools.ObservabilityBackend.APP_SHELL_DEFAULT -> shellDefault
         }
     }
@@ -173,83 +174,6 @@ object DeveloperObservability {
         }
         val error = IllegalStateException(message)
         resolveCrashReporter(ReleaseLocalCrashReporter).reportCrash(error, fatal = false)
-    }
-}
-
-/**
- * private 的release埋点上报， 本地实现，用于调试
- * */
-private object ReleaseLocalAnalytics : Analytics {
-
-    override fun trackPageView(
-        pageId: String,
-        pageArgs: String?,
-        event: PageViewEvent,
-    ) {
-        if (event == PageViewEvent.Enter || event == PageViewEvent.ArgsChange) {
-            LocalLogStore.updateLastKnownPageId(pageId)
-        }
-        val actionId = when (event) {
-            PageViewEvent.Enter -> LocalObservabilityEmitter.ACTION_PAGE_ENTER
-            PageViewEvent.ArgsChange -> LocalObservabilityEmitter.ACTION_PAGE_ARGS_CHANGE
-        }
-        val params = buildMap {
-            put("lifecycle", event.name)
-            if (!pageArgs.isNullOrBlank()) {
-                put("pageArgs", pageArgs)
-            }
-        }
-        LocalObservabilityEmitter.emit(
-            channel = LocalObservabilityEmitter.Channel.ANALYTICS,
-            eventOrMetric = actionId,
-            pageId = pageId,
-            actionId = actionId,
-            params = params,
-        )
-    }
-
-    override fun trackPageLeave(pageId: String) {
-        LocalObservabilityEmitter.emit(
-            channel = LocalObservabilityEmitter.Channel.ANALYTICS,
-            eventOrMetric = LocalObservabilityEmitter.ACTION_PAGE_LEAVE,
-            pageId = pageId,
-            actionId = LocalObservabilityEmitter.ACTION_PAGE_LEAVE,
-            params = mapOf("lifecycle" to "Leave"),
-        )
-    }
-
-    override fun trackInteraction(
-        action: String,
-        operationId: String,
-        pageId: String?,
-        params: Map<String, String?>?,
-        detail: String?,
-        logTag: String?,
-    ) {
-        if (!pageId.isNullOrBlank()) {
-            LocalLogStore.updateLastKnownPageId(pageId)
-        }
-        val mergedParams = buildMap {
-            put("uiAction", action)
-            if (!logTag.isNullOrBlank()) {
-                put("logTag", logTag)
-            }
-            params?.forEach { (key, value) ->
-                if (value != null) {
-                    put(key, value)
-                }
-            }
-            if (!detail.isNullOrBlank()) {
-                put("detail", detail)
-            }
-        }
-        LocalObservabilityEmitter.emit(
-            channel = LocalObservabilityEmitter.Channel.ANALYTICS,
-            eventOrMetric = "ui_interaction",
-            pageId = pageId,
-            actionId = operationId,
-            params = mergedParams,
-        )
     }
 }
 
