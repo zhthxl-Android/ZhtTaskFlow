@@ -5,7 +5,7 @@ import android.content.pm.ApplicationInfo
 import com.example.zhttaskflow.core.network.SafeApiCallRuntime
 
 /**
- * 运行时诊断开关：由宿主 [bindNetworkDiagnostics] 或 [com.example.zhttaskflow.core.network.RetrofitServiceFactory.createApi] 兜底同步。
+ * 运行时诊断开关：由宿主 [initRuntimeDiagnostics] 或 [com.example.zhttaskflow.core.network.RetrofitServiceFactory.createApi] 兜底同步。
  */
 object RuntimeUtils {
 
@@ -47,7 +47,7 @@ internal fun Context.isAppDebuggable(): Boolean {
 /**
  * 宿主 Application 正式初始化入口：启动时同步 Debug/Release 下数据层日志策略。
  */
-fun bindNetworkDiagnostics(context: Context) {
+fun initRuntimeDiagnostics(context: Context) {
     RuntimeUtils.syncFrom(context)
 }
 

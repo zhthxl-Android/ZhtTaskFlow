@@ -94,7 +94,7 @@ object ExceptionHandler {
     /**
      * 安装 JVM 未捕获异常钩子（进程内仅调用一次）。
      *
-     * 须在 [AppCoroutineExceptionHandler.install] 中调用；[ExceptionMonitoringRoot] 不得重复安装，
+     * 须在 [AppCoroutineExceptionHandler.install] 中调用
      * 避免链式 handler 导致同一次崩溃重复落盘。
      *
      * 上报时解析 [CrashReporterRegistry.current]，与协程未捕获异常及壳层 [LocalCrashReporter] 注入一致。
