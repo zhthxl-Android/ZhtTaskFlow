@@ -31,7 +31,7 @@ import com.example.zhttaskflow.base.ui.icon.AppIcons
 import com.example.zhttaskflow.base.ui.rememberStateBoxContentPadding
 import com.example.zhttaskflow.base.ui.skeleton.rememberDetailSkeletonLoading
 import com.example.zhttaskflow.base.ui.extension.PageLifecycleLog
-import com.example.zhttaskflow.base.ui.extension.logUiInteraction
+import com.example.zhttaskflow.base.ui.extension.analyticsUiInteraction
 import com.example.zhttaskflow.feature.article.R
 
 /** 资讯详情页埋点 pageId（与全局 Analytics 约定一致）。 */
@@ -92,7 +92,7 @@ fun ArticleDetailScreen(
         navigationIcon = {
             IconButton(
                 onClick = {
-                    logUiInteraction(
+                    analyticsUiInteraction(
                         action = "click",
                         identifier = "article_detail_back",
                         pageId = ARTICLE_DETAIL_PAGE_ID,
@@ -113,7 +113,7 @@ fun ArticleDetailScreen(
         StateBox(
             uiState = uiState,
             onRetry = {
-                logUiInteraction(
+                analyticsUiInteraction(
                     action = "click",
                     identifier = "article_detail_network_retry",
                     pageId = ARTICLE_DETAIL_PAGE_ID,

@@ -4,7 +4,6 @@ import android.content.Intent
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -27,7 +26,6 @@ import androidx.core.content.FileProvider
 import com.example.zhttaskflow.core.util.isDebugLoggingEnabled
 import com.example.zhttaskflow.base.ext.SnackbarType
 import com.example.zhttaskflow.base.ext.DialogController
-import com.example.zhttaskflow.base.ext.SnackbarDispatcher
 import com.example.zhttaskflow.base.ext.rememberDialogController
 import com.example.zhttaskflow.base.ext.rememberSnackbarDispatcher
 import com.example.zhttaskflow.base.ext.showSnackbar
@@ -39,9 +37,9 @@ import com.example.zhttaskflow.base.ui.PaginatedListPayload
 import com.example.zhttaskflow.base.ui.StatePaginatedListContent
 import com.example.zhttaskflow.base.ui.UiConstants
 import com.example.zhttaskflow.base.ui.extension.PageLifecycleLog
-import com.example.zhttaskflow.base.ui.extension.listItemClickWithLog
-import com.example.zhttaskflow.base.ui.extension.logUiInteraction
-import com.example.zhttaskflow.base.ui.extension.logUiOutcome
+import com.example.zhttaskflow.base.ui.extension.listItemClickWithAnalytics
+import com.example.zhttaskflow.base.ui.extension.analyticsUiInteraction
+import com.example.zhttaskflow.base.ui.extension.analyticsUiOutcome
 import com.example.zhttaskflow.base.ui.rememberListLazyContentPadding
 import com.example.zhttaskflow.base.ui.rememberStateBoxContentPadding
 import com.example.zhttaskflow.feature.log.domain.LogExportScope
@@ -126,7 +124,7 @@ internal fun LogScreen(
             if (showDebugEntry) {
                 TextButton(
                     onClick = {
-                        logUiInteraction(
+                        analyticsUiInteraction(
                             action = "click",
                             identifier = "log_debug_panel",
                             pageId = LOG_PAGE_ID,
@@ -139,7 +137,7 @@ internal fun LogScreen(
             }
             TextButton(
                 onClick = {
-                    logUiInteraction(
+                    analyticsUiInteraction(
                         action = "click",
                         identifier = "log_export",
                         pageId = LOG_PAGE_ID,
@@ -161,7 +159,7 @@ internal fun LogScreen(
             }
             TextButton(
                 onClick = {
-                    logUiInteraction(
+                    analyticsUiInteraction(
                         action = "click",
                         identifier = "log_clear_request",
                         pageId = LOG_PAGE_ID,
@@ -172,7 +170,7 @@ internal fun LogScreen(
                         confirmText = confirmText,
                         dismissText = dismissText,
                         onConfirm = {
-                            logUiInteraction(
+                            analyticsUiInteraction(
                                 action = "click",
                                 identifier = "log_clear_confirm",
                                 pageId = LOG_PAGE_ID,
@@ -198,7 +196,7 @@ internal fun LogScreen(
             LogTypeFilterRow(
                 selected = selectedFilter,
                 onSelected = { filter ->
-                    logUiInteraction(
+                    analyticsUiInteraction(
                         action = "click",
                         identifier = "log_filter_${filter.name.lowercase()}",
                         pageId = LOG_PAGE_ID,
@@ -213,7 +211,7 @@ internal fun LogScreen(
             StatePaginatedListContent(
                 uiState = uiState.toPaginatedListState(),
                 onRetry = {
-                    logUiInteraction(
+                    analyticsUiInteraction(
                         action = "click",
                         identifier = "log_retry",
                         pageId = LOG_PAGE_ID,
@@ -221,7 +219,7 @@ internal fun LogScreen(
                     viewModel.onEvent(LogUiEvent.Retry)
                 },
                 onRefresh = {
-                    logUiInteraction(
+                    analyticsUiInteraction(
                         action = "pullRefresh",
                         identifier = "log_list",
                         pageId = LOG_PAGE_ID,
@@ -229,7 +227,7 @@ internal fun LogScreen(
                     viewModel.onEvent(LogUiEvent.Refresh)
                 },
                 onLoadMore = {
-                    logUiInteraction(
+                    analyticsUiInteraction(
                         action = "loadMore",
                         identifier = "log_load_more",
                         pageId = LOG_PAGE_ID,
@@ -237,7 +235,7 @@ internal fun LogScreen(
                     viewModel.onEvent(LogUiEvent.LoadMore)
                 },
                 onRetryLoadMore = {
-                    logUiInteraction(
+                    analyticsUiInteraction(
                         action = "click",
                         identifier = "log_load_more_retry",
                         pageId = LOG_PAGE_ID,
@@ -254,7 +252,7 @@ internal fun LogScreen(
                 LogEntryCard(
                     entry = entry,
                     expanded = expanded,
-                    modifier = Modifier.listItemClickWithLog(
+                    modifier = Modifier.listItemClickWithAnalytics(
                         identifier = "log_list_item",
                         index = index,
                         pageId = LOG_PAGE_ID,
@@ -396,7 +394,7 @@ private fun consumeLogUiEffect(
                 SnackbarType.Error -> "failure"
                 SnackbarType.Normal -> "info"
             }
-            logUiOutcome(
+            analyticsUiOutcome(
                 pageId = LOG_PAGE_ID,
                 actionId = "log_snackbar",
                 outcome = outcome,
@@ -417,7 +415,7 @@ private fun consumeLogUiEffect(
                 SnackbarType.Error -> "failure"
                 SnackbarType.Normal -> "info"
             }
-            logUiOutcome(
+            analyticsUiOutcome(
                 pageId = LOG_PAGE_ID,
                 actionId = "log_snackbar",
                 outcome = outcome,
@@ -430,7 +428,7 @@ private fun consumeLogUiEffect(
             )
         }
         is LogUiEffect.ShowShareSheet -> {
-            logUiOutcome(
+            analyticsUiOutcome(
                 pageId = LOG_PAGE_ID,
                 actionId = "log_export_share",
                 outcome = "success",

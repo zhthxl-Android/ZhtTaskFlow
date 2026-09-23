@@ -28,9 +28,9 @@ import com.example.zhttaskflow.base.ui.rememberStateBoxContentPadding
 import com.example.zhttaskflow.base.ui.StatePaginatedListContent
 import com.example.zhttaskflow.base.ui.UiConstants
 import com.example.zhttaskflow.base.ui.extension.PageLifecycleLog
-import com.example.zhttaskflow.base.ui.extension.listItemClickWithLog
-import com.example.zhttaskflow.base.ui.extension.logUiInteraction
-import com.example.zhttaskflow.base.ui.extension.logUiOutcome
+import com.example.zhttaskflow.base.ui.extension.listItemClickWithAnalytics
+import com.example.zhttaskflow.base.ui.extension.analyticsUiInteraction
+import com.example.zhttaskflow.base.ui.extension.analyticsUiOutcome
 import com.example.zhttaskflow.base.ui.rememberListLazyContentPadding
 import com.example.zhttaskflow.feature.article.R
 import com.example.zhttaskflow.feature.article.domain.Article
@@ -109,7 +109,7 @@ private fun ArticleListContent(
         //把业务状态 ArticleUiState 转换成通用分页列表状态
         uiState = uiState.toPaginatedUiState(),
         onRetry = {
-            logUiInteraction(
+            analyticsUiInteraction(
                 action = "click",
                 identifier = "article_list_retry",
                 pageId = ARTICLE_LIST_PAGE_ID,
@@ -117,7 +117,7 @@ private fun ArticleListContent(
             onEvent(ArticleUiEvent.Refresh)
         },
         onRefresh = {
-            logUiInteraction(
+            analyticsUiInteraction(
                 action = "pullRefresh",
                 identifier = "article_list",
                 pageId = ARTICLE_LIST_PAGE_ID,
@@ -125,7 +125,7 @@ private fun ArticleListContent(
             onEvent(ArticleUiEvent.Refresh)
         },
         onLoadMore = {
-            logUiInteraction(
+            analyticsUiInteraction(
                 action = "loadMore",
                 identifier = "article_list_load_more",
                 pageId = ARTICLE_LIST_PAGE_ID,
@@ -133,7 +133,7 @@ private fun ArticleListContent(
             onEvent(ArticleUiEvent.LoadMore)
         },
         onRetryLoadMore = {
-            logUiInteraction(
+            analyticsUiInteraction(
                 action = "click",
                 identifier = "article_list_load_more_retry",
                 pageId = ARTICLE_LIST_PAGE_ID,
@@ -204,7 +204,7 @@ private fun ArticleListItem(
     Card(
         modifier = modifier
             .fillMaxWidth()
-            .listItemClickWithLog(//添加点击上报
+            .listItemClickWithAnalytics(//添加点击上报
                 identifier = "article_list_item",
                 index = index,
                 pageId = ARTICLE_LIST_PAGE_ID,
@@ -262,7 +262,7 @@ private fun consumeArticleListUiEffect(
                 SnackbarType.Normal -> "info"
             }
             //上报结果埋点
-            logUiOutcome(
+            analyticsUiOutcome(
                 pageId = ARTICLE_LIST_PAGE_ID,
                 actionId = "article_list_snackbar",
                 outcome = outcome,

@@ -9,7 +9,7 @@ import com.example.zhttaskflow.base.observability.DeveloperObservability
 /**
  * 产品埋点抽象层：与具体 SDK / 日志实现解耦，由壳工程通过 [LocalAnalytics] 注入实现。
  *
- * 业务侧优先使用 [rememberAnalytics] 或 [com.example.zhttaskflow.base.ui.extension.logUiInteraction] 等封装，
+ * 业务侧优先使用 [rememberAnalytics] 或 [com.example.zhttaskflow.base.ui.extension.analyticsUiInteraction] 等封装，
  * 禁止直接依赖 [DebugAnalytics]（调试默认实现）。
  *
  * 后续接入友盟 / 自研 SDK 时，实现本接口并在应用壳 [com.example.zhttaskflow.navigation.AppMainShell] 传入 `analyticsImpl`，

@@ -33,8 +33,8 @@ import com.example.zhttaskflow.base.ui.StateBox
 import com.example.zhttaskflow.base.ui.PageScaffold
 import com.example.zhttaskflow.base.ui.UiConstants
 import com.example.zhttaskflow.base.ui.extension.PageLifecycleLog
-import com.example.zhttaskflow.base.ui.extension.logUiInteraction
-import com.example.zhttaskflow.base.ui.extension.logUiOutcome
+import com.example.zhttaskflow.base.ui.extension.analyticsUiInteraction
+import com.example.zhttaskflow.base.ui.extension.analyticsUiOutcome
 import com.example.zhttaskflow.base.ui.icon.AppIcons
 import com.example.zhttaskflow.base.ui.rememberStateBoxContentPadding
 import com.example.zhttaskflow.base.ui.skeleton.rememberDetailSkeletonLoading
@@ -104,7 +104,7 @@ fun TaskDetailPlaceholderScreen(
         navigationIcon = {
             IconButton(
                 onClick = {
-                    logUiInteraction(
+                    analyticsUiInteraction(
                         action = "click",
                         identifier = "task_detail_back",
                         pageId = TASK_DETAIL_PAGE_ID,
@@ -123,7 +123,7 @@ fun TaskDetailPlaceholderScreen(
             if (detailData != null && !detailData.isEditing && !detailData.isSubmitting) {
                 TextButton(
                     onClick = {
-                        logUiInteraction(
+                        analyticsUiInteraction(
                             action = "click",
                             identifier = "task_detail_edit",
                             pageId = TASK_DETAIL_PAGE_ID,
@@ -139,7 +139,7 @@ fun TaskDetailPlaceholderScreen(
         StateBox(
             uiState = uiState,
             onRetry = {
-                logUiInteraction(
+                analyticsUiInteraction(
                     action = "click",
                     identifier = "task_detail_retry",
                     pageId = TASK_DETAIL_PAGE_ID,
@@ -160,7 +160,7 @@ fun TaskDetailPlaceholderScreen(
                     viewModel.onEvent(TaskDetailUiEvent.DraftContentChanged(value))
                 },
                 onSaveEdit = {
-                    logUiInteraction(
+                    analyticsUiInteraction(
                         action = "click",
                         identifier = "task_detail_save",
                         pageId = TASK_DETAIL_PAGE_ID,
@@ -168,7 +168,7 @@ fun TaskDetailPlaceholderScreen(
                     viewModel.onEvent(TaskDetailUiEvent.SaveEdit)
                 },
                 onCancelEdit = {
-                    logUiInteraction(
+                    analyticsUiInteraction(
                         action = "click",
                         identifier = "task_detail_cancel_edit",
                         pageId = TASK_DETAIL_PAGE_ID,
@@ -176,7 +176,7 @@ fun TaskDetailPlaceholderScreen(
                     viewModel.onEvent(TaskDetailUiEvent.CancelEdit)
                 },
                 onStatusSelected = { status ->
-                    logUiInteraction(
+                    analyticsUiInteraction(
                         action = "click",
                         identifier = "task_detail_status_${status.name.lowercase()}",
                         pageId = TASK_DETAIL_PAGE_ID,
@@ -185,7 +185,7 @@ fun TaskDetailPlaceholderScreen(
                     viewModel.onEvent(TaskDetailUiEvent.ChangeStatus(status))
                 },
                 onAttachmentClick = { attachment ->
-                    logUiInteraction(
+                    analyticsUiInteraction(
                         action = "click",
                         identifier = "task_detail_attachment",
                         pageId = TASK_DETAIL_PAGE_ID,
@@ -459,7 +459,7 @@ private fun consumeTaskDetailUiEffect(
                 SnackbarType.Error -> "failure"
                 SnackbarType.Normal -> "info"
             }
-            logUiOutcome(
+            analyticsUiOutcome(
                 pageId = TASK_DETAIL_PAGE_ID,
                 actionId = effect.actionId,
                 outcome = outcome,

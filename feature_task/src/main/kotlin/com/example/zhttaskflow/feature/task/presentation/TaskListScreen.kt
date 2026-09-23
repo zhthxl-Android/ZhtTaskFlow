@@ -39,9 +39,9 @@ import com.example.zhttaskflow.base.ui.rememberStateBoxContentPadding
 import com.example.zhttaskflow.base.ui.StateRefreshableListContent
 import com.example.zhttaskflow.base.ui.UiConstants
 import com.example.zhttaskflow.base.ui.extension.PageLifecycleLog
-import com.example.zhttaskflow.base.ui.extension.listItemClickWithLog
-import com.example.zhttaskflow.base.ui.extension.logUiInteraction
-import com.example.zhttaskflow.base.ui.extension.logUiOutcome
+import com.example.zhttaskflow.base.ui.extension.listItemClickWithAnalytics
+import com.example.zhttaskflow.base.ui.extension.analyticsUiInteraction
+import com.example.zhttaskflow.base.ui.extension.analyticsUiOutcome
 import com.example.zhttaskflow.base.ui.rememberImePadding
 import com.example.zhttaskflow.base.ui.rememberListLazyContentPadding
 import com.example.zhttaskflow.base.ui.imeBringIntoViewOnFocus
@@ -91,7 +91,7 @@ fun TaskListScreen(
         actions = {
             TextButton(
                 onClick = {
-                    logUiInteraction(
+                    analyticsUiInteraction(
                         action = "click",
                         identifier = "task_list_more",
                         pageId = TASK_LIST_PAGE_ID,
@@ -100,12 +100,12 @@ fun TaskListScreen(
                         TaskListMoreBottomSheetContent(
                             onItemClick = { action, feedbackMessage ->
                                 dialogController.dismissAll()
-                                logUiInteraction(
+                                analyticsUiInteraction(
                                     action = "click",
                                     identifier = "task_list_more_${action.actionSuffix}",
                                     pageId = TASK_LIST_PAGE_ID,
                                 )
-                                logUiOutcome(
+                                analyticsUiOutcome(
                                     pageId = TASK_LIST_PAGE_ID,
                                     actionId = "task_list_more_result",
                                     outcome = "info",
@@ -130,7 +130,7 @@ fun TaskListScreen(
         floatingActionButton = {
             FloatingActionButton(
                 onClick = {
-                    logUiInteraction(
+                    analyticsUiInteraction(
                         action = "click",
                         identifier = "task_list_fab_add",
                         pageId = TASK_LIST_PAGE_ID,
@@ -175,7 +175,7 @@ fun TaskListScreen(
             uiState = uiState,
             listContentPadding = listContentPadding,
             onRefresh = {
-                logUiInteraction(
+                analyticsUiInteraction(
                     action = "pullRefresh",
                     identifier = "task_list",
                     pageId = TASK_LIST_PAGE_ID,
@@ -183,7 +183,7 @@ fun TaskListScreen(
                 viewModel.onEvent(TaskUiEvent.Refresh)
             },
             onRetry = {
-                logUiInteraction(
+                analyticsUiInteraction(
                     action = "click",
                     identifier = "task_list_retry",
                     pageId = TASK_LIST_PAGE_ID,
@@ -308,7 +308,7 @@ private fun TaskListItem(
     Card(
         modifier = modifier
             .fillMaxWidth()
-            .listItemClickWithLog(
+            .listItemClickWithAnalytics(
                 identifier = "task_list_item",
                 index = index,
                 pageId = TASK_LIST_PAGE_ID,
@@ -403,7 +403,7 @@ private fun consumeTaskListUiEffect(
                 SnackbarType.Error -> "failure"
                 SnackbarType.Normal -> "info"
             }
-            logUiOutcome(
+            analyticsUiOutcome(
                 pageId = TASK_LIST_PAGE_ID,
                 actionId = "task_list_snackbar",
                 outcome = outcome,
