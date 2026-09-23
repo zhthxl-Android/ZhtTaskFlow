@@ -27,7 +27,7 @@ import com.example.zhttaskflow.base.ui.PaginatedListPayload
 import com.example.zhttaskflow.base.ui.rememberStateBoxContentPadding
 import com.example.zhttaskflow.base.ui.StatePaginatedListContent
 import com.example.zhttaskflow.base.ui.UiConstants
-import com.example.zhttaskflow.base.ui.extension.PageLifecycleLog
+import com.example.zhttaskflow.base.ui.extension.PageLifecycleAnalytics
 import com.example.zhttaskflow.base.ui.extension.listItemClickWithAnalytics
 import com.example.zhttaskflow.base.ui.extension.analyticsUiInteraction
 import com.example.zhttaskflow.base.ui.extension.analyticsUiOutcome
@@ -58,7 +58,7 @@ fun ArticleListScreen(
         is BaseUiState.Empty -> "empty"
     }
     //传入统计方法
-    PageLifecycleLog(
+    PageLifecycleAnalytics(
         pageName = "ArticleList",
         pageArgs = lifecycleArgs,
     )

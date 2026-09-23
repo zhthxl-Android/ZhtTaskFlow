@@ -29,7 +29,7 @@ private const val PAGE_LIFECYCLE_LOG_TAG = "PageLifecycle"
  */
 @Composable
 @Suppress("UNUSED_PARAMETER")
-fun PageLifecycleLog(
+fun PageLifecycleAnalytics(
     pageName: String,
     pageArgs: String? = null,
     tag: String = PAGE_LIFECYCLE_LOG_TAG,

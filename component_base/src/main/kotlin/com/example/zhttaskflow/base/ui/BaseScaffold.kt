@@ -80,7 +80,7 @@ internal fun parentGlobalHostsOrNull(): ScaffoldGlobalHosts? {
  * @param performanceImpl 壳层注入的 APM 实现；为 `null` 时使用 [DebugPerformanceReporter] 经 [com.example.zhttaskflow.base.performance.rememberDebugPerformance] 装配。
  * @param crashReporter 壳层注入的崩溃上报；为 `null` 时使用 [LocalCrashReporter] 默认（[DebugCrashReporter]）。
  * 页面性能（首帧 / 滚动 FPS / 停留）由 [com.example.zhttaskflow.base.performance.PerformanceCompositionRoot] 注入，
- * 并与 [com.example.zhttaskflow.base.ui.extension.PageLifecycleLog] 的 `pageName` 关联。
+ * 并与 [com.example.zhttaskflow.base.ui.extension.PageLifecycleAnalytics] 的 `pageName` 关联。
  * @see com.example.zhttaskflow.base.doc.BaseArchitecture
  */
 @Composable

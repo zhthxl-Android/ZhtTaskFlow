@@ -36,7 +36,7 @@ import com.example.zhttaskflow.base.ui.ListScaffold
 import com.example.zhttaskflow.base.ui.PaginatedListPayload
 import com.example.zhttaskflow.base.ui.StatePaginatedListContent
 import com.example.zhttaskflow.base.ui.UiConstants
-import com.example.zhttaskflow.base.ui.extension.PageLifecycleLog
+import com.example.zhttaskflow.base.ui.extension.PageLifecycleAnalytics
 import com.example.zhttaskflow.base.ui.extension.listItemClickWithAnalytics
 import com.example.zhttaskflow.base.ui.extension.analyticsUiInteraction
 import com.example.zhttaskflow.base.ui.extension.analyticsUiOutcome
@@ -81,7 +81,7 @@ internal fun LogScreen(
         }
     }
 
-    PageLifecycleLog(
+    PageLifecycleAnalytics(
         pageName = LOG_PAGE_ID,
         pageArgs = lifecycleArgs,
     )

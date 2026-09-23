@@ -3,7 +3,6 @@ package com.example.zhttaskflow.base.performance
 import android.os.SystemClock
 import android.view.Choreographer
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.Stable
@@ -75,7 +74,7 @@ interface PerformanceReporter {
  * 核心性能状态管理类
  * 页面性能会话：首帧、滚动 FPS、停留时长。
  *
- * 由壳层 [LocalPerformance] 提供；业务通过 [PageLifecycleLog][com.example.zhttaskflow.base.ui.extension.PageLifecycleLog]
+ * 由壳层 [LocalPerformance] 提供；业务通过 [PageLifecycleLog][com.example.zhttaskflow.base.ui.extension.PageLifecycleAnalytics]
  * 或手动 [beginPage]/[endPage] 绑定 [pageId]。
  *
  * 产品 APM：实现 [PerformanceReporter]，在应用壳 [com.example.zhttaskflow.navigation.AppMainShell] 传入

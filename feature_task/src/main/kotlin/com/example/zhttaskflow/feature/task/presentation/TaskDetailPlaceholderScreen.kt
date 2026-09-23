@@ -32,7 +32,7 @@ import com.example.zhttaskflow.base.mvi.BaseUiState
 import com.example.zhttaskflow.base.ui.StateBox
 import com.example.zhttaskflow.base.ui.PageScaffold
 import com.example.zhttaskflow.base.ui.UiConstants
-import com.example.zhttaskflow.base.ui.extension.PageLifecycleLog
+import com.example.zhttaskflow.base.ui.extension.PageLifecycleAnalytics
 import com.example.zhttaskflow.base.ui.extension.analyticsUiInteraction
 import com.example.zhttaskflow.base.ui.extension.analyticsUiOutcome
 import com.example.zhttaskflow.base.ui.icon.AppIcons
@@ -92,7 +92,7 @@ fun TaskDetailPlaceholderScreen(
         }
     }
 
-    PageLifecycleLog(
+    PageLifecycleAnalytics(
         pageName = TASK_DETAIL_PAGE_ID,
         pageArgs = lifecycleArgs,
     )

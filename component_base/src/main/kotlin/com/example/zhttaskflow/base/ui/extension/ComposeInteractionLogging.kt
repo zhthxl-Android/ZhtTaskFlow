@@ -12,7 +12,7 @@ private const val UI_LONG_CLICK_LOG_TAG = "UiLongClick"
 private const val UI_OUTCOME_LOG_TAG = "UiOutcome"
 
 /**
- * Compose 层关键交互 Debug 埋点工具（与 [PageLifecycleLog] 互补）。
+ * Compose 层关键交互 Debug 埋点工具（与 [PageLifecycleAnalytics] 互补）。
  *
  * 底层经 [com.example.zhttaskflow.base.analytics.Analytics] 上报，默认 [com.example.zhttaskflow.base.analytics.DebugAnalytics]，
  * 业务调用方式不变；壳层替换 [com.example.zhttaskflow.base.analytics.LocalAnalytics] 即可切换产品 SDK。
@@ -21,7 +21,7 @@ private const val UI_OUTCOME_LOG_TAG = "UiOutcome"
  *
  * 每个业务页面至少覆盖以下三类日志，便于联调与线上问题还原：
  *
- * 1. **页面级曝光** — 使用 [PageLifecycleLog]：`onEnter` / `onLeave` / `onArgsChange`，
+ * 1. **页面级曝光** — 使用 [PageLifecycleAnalytics]：`onEnter` / `onLeave` / `onArgsChange`，
  *    `pageName` 与业务 Screen 一致（如 `LogViewer`、`TaskList`、`ArticleList`），`pageArgs` 携带列表条数、加载态等快照。
  * 2. **核心 CTA 点击** — 使用 [analyticsUiInteraction] 或 [Modifier.clickWithAnalytics] / [listItemClickWithAnalytics]：
  *    `action` 为 `click`、`pullRefresh`、`loadMore` 等；`actionId`（入参 [identifier]）命名 `{page}_{控件}`
@@ -30,7 +30,7 @@ private const val UI_OUTCOME_LOG_TAG = "UiOutcome"
  * 3. **操作成功 / 失败** — 在展示 Snackbar 等反馈处调用 [analyticsUiOutcome] 或 [analyticsUiInteraction]：
  *    `action` 使用 `success` / `failure` / `info`；`actionId` 如 `{page}_snackbar` 或 `{page}_{业务}_result`；
  *    [params] 携带 `message` 等（勿记录敏感信息）。
- * @see PageLifecycleLog
+ * @see PageLifecycleAnalytics
  */
 
 /**

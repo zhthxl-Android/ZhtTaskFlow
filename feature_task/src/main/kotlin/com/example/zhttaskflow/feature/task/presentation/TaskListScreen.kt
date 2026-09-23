@@ -38,7 +38,7 @@ import com.example.zhttaskflow.base.ui.RefreshableListPayload
 import com.example.zhttaskflow.base.ui.rememberStateBoxContentPadding
 import com.example.zhttaskflow.base.ui.StateRefreshableListContent
 import com.example.zhttaskflow.base.ui.UiConstants
-import com.example.zhttaskflow.base.ui.extension.PageLifecycleLog
+import com.example.zhttaskflow.base.ui.extension.PageLifecycleAnalytics
 import com.example.zhttaskflow.base.ui.extension.listItemClickWithAnalytics
 import com.example.zhttaskflow.base.ui.extension.analyticsUiInteraction
 import com.example.zhttaskflow.base.ui.extension.analyticsUiOutcome
@@ -72,7 +72,7 @@ fun TaskListScreen(
         is BaseUiState.Empty -> "empty"
     }
 
-    PageLifecycleLog(
+    PageLifecycleAnalytics(
         pageName = "TaskList",
         pageArgs = lifecycleArgs,
     )

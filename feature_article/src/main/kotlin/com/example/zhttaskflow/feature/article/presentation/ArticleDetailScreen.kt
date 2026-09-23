@@ -30,7 +30,7 @@ import com.example.zhttaskflow.base.ui.PageScaffold
 import com.example.zhttaskflow.base.ui.icon.AppIcons
 import com.example.zhttaskflow.base.ui.rememberStateBoxContentPadding
 import com.example.zhttaskflow.base.ui.skeleton.rememberDetailSkeletonLoading
-import com.example.zhttaskflow.base.ui.extension.PageLifecycleLog
+import com.example.zhttaskflow.base.ui.extension.PageLifecycleAnalytics
 import com.example.zhttaskflow.base.ui.extension.analyticsUiInteraction
 import com.example.zhttaskflow.feature.article.R
 
@@ -79,7 +79,7 @@ fun ArticleDetailScreen(
         }
     }
 
-    PageLifecycleLog(
+    PageLifecycleAnalytics(
         pageName = ARTICLE_DETAIL_PAGE_ID,
         pageArgs = lifecycleArgs,
     )
